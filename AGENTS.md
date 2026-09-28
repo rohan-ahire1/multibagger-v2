@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics) and M3 (baselines + SEPA port) done. Next: M4 (research loop). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics) and M3 (baselines + SEPA port) and M4 (research loop) done. Next: M5 (momentum strategy + research). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 
@@ -24,11 +24,12 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 |---|---|
 | `configs/market/` | Costs, slippage, idle-cash yield, sector map path (one file per market) |
 | `configs/data/` | Data config (`nse_research.yaml`: sources, adjustment rules, check limits) and CA overrides CSV |
-| `configs/baselines.yaml` | Locked period start, Nifty 500 TRI file, 12-1 momentum baseline settings (folds come in M4) |
+| `configs/baselines.yaml` | Locked period start, development folds, adoption metric, Nifty 500 TRI file, 12-1 momentum baseline settings |
 | `strategies/<name>/configs/` | Strategy configs (one file per version) |
 | `src/mb/config/` | Strict Pydantic models (`models.py`) and loader (`loader.py`) |
 | `src/mb/strategy/` | `registry.py` maps strategy name → params model + runner |
 | `src/mb/runs/record.py` | Run record writer and index |
+| `src/mb/runs/research.py` | One-final-per-config check, pins, run diff, re-run check, adoption report |
 | `src/mb/sources/` | Adapters: `nse_bhavcopy.py` (download + parse to canonical bars), `nse_corporate_actions.py` |
 | `src/mb/data/` | `corporate_actions.py` (feed + overrides), `adjust.py` (jump-matched adjustment), `checks.py`, `build.py`, `datasets.py` |
 | `src/mb/engine/` | `config.py` (engine rules), `simulate.py` (portfolio simulator), `gate.py` (unexplained-jump refusal), `run.py` (bars + sectors + simulate + gate + metrics for a strategy run) |
@@ -44,6 +45,11 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 ```
 uv run mb backtest <strategy-config> [--final]   # writes runs/<run_id>/
 uv run mb runs list
+uv run mb runs diff <run|pin> <run|pin>        # what changed in config, data, code, and headline numbers
+uv run mb runs pin <run> --as sepa/<name>      # milestone; refuses dirty-code runs, never moves a pin
+uv run mb runs verify <run|pin>                # re-run a non-final run; must match the record exactly
+uv run mb backtest <cfg> --question <id>       # tag a run to a research question (variants are counted per question)
+uv run mb research report <id> --against <pin> # variants tried + adoption verdict per fold -> reports/<id>.md
 uv run mb data build configs/data/nse_research.yaml --version <label>   # new immutable dataset, runs checks
 uv run mb data check nse_research@<label>                              # recorded checks + file hashes
 uv run mb data fetch bhavcopy configs/data/nse_research.yaml --from D --to D
@@ -81,3 +87,5 @@ Current dataset: `nse_research@2026-09-29` (data through 2026-07-17); it equals 
   That flips one cash-limited fill in 2017, so the unpatched run gives 257 trades / 6.72% CAGR. With v1's exact values for
   those two columns it gives 258 / 6.39% / 23.55% / 0.27 (`tests/test_m3_sepa.py`).
 - `v1_port.yaml` has had its one `--final` run (run 20260928-201856-74c7b90c). Use `v1_port_dev.yaml` (ends 2023-12-31) for dev.
+- Research rules in code: the lock counts `period.end + settle_calendar_days`; a config hash gets one `--final` run; a
+  candidate is adopted only if it beats the pinned run and both baselines on `adoption.metric` on the whole period and every fold.

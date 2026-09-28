@@ -16,9 +16,8 @@ from mb.config.models import BaselinesConfig, MarketConfig, Momentum
 from mb.evaluation.metrics import equity_metrics
 
 
-def buy_and_hold(root: Path, cfg: BaselinesConfig, start: date, end: date) -> dict[str, Any]:
-    tri = pl.read_csv(root / cfg.buy_and_hold.tri_file, try_parse_dates=True).rename({"tri": "equity"})
-    return equity_metrics(tri, start, end)
+def buy_and_hold_curve(root: Path, cfg: BaselinesConfig) -> pl.DataFrame:
+    return pl.read_csv(root / cfg.buy_and_hold.tri_file, try_parse_dates=True).rename({"tri": "equity"})
 
 
 def _rebalance_picks(panel: pl.DataFrame, m: Momentum, start: date, end: date) -> dict[date, list[str]]:
@@ -38,7 +37,8 @@ def _rebalance_picks(panel: pl.DataFrame, m: Momentum, start: date, end: date) -
     return picks
 
 
-def momentum(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: Path, start: date, end: date) -> dict[str, Any]:
+def momentum_curve(cfg: BaselinesConfig, market: MarketConfig, panel_path: Path, start: date, end: date) -> tuple[pl.DataFrame, int]:
+    """Daily equity of the momentum baseline over [start, end], and the number of rebalances."""
     m = cfg.momentum
     panel = (pl.scan_parquet(panel_path).filter(pl.col("date") <= end)
              .select("date", "symbol", "series", "close", "turnover", "adj_open", "adj_close").collect())
@@ -93,13 +93,20 @@ def momentum(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path:
         rows.append((d, cash + invested, invested, int((shares > 0).sum())))
         if d in picks:
             target = picks[d]
-    curve = pl.DataFrame(rows, schema=["date", "equity", "invested_value", "open_positions"], orient="row")
-    out = equity_metrics(curve, start, end)
-    out["rebalances"] = rebalances
-    out["avg_open_positions"] = curve["open_positions"].mean()
-    return out
+    return pl.DataFrame(rows, schema=["date", "equity", "invested_value", "open_positions"], orient="row"), rebalances
 
 
 def compute(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: Path, start: date, end: date) -> dict[str, Any]:
-    return {"nifty500_tri_buy_and_hold": buy_and_hold(root, cfg, start, end),
-            "momentum_12_1": momentum(root, cfg, market, panel_path, start, end)}
+    """Both baselines over the run's period and over each development fold inside it.
+
+    Each baseline runs once over the period; a fold is a slice of that one curve, the same way the strategy's folds are.
+    """
+    tri = buy_and_hold_curve(root, cfg)
+    mom, rebalances = momentum_curve(cfg, market, panel_path, start, end)
+    windows = {"period": (start, end)} | {f.name: (f.start, f.end) for f in cfg.folds if f.start >= start and f.end <= end}
+    out: dict[str, Any] = {}
+    for label, curve in (("nifty500_tri_buy_and_hold", tri), ("momentum_12_1", mom)):
+        out[label] = {w: equity_metrics(curve, s, e) for w, (s, e) in windows.items()}
+    out["momentum_12_1"]["period"]["rebalances"] = rebalances
+    out["momentum_12_1"]["period"]["avg_open_positions"] = mom.filter(pl.col("date").is_between(start, end))["open_positions"].mean()
+    return out

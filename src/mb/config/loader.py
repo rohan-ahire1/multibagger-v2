@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -67,17 +68,26 @@ def load_strategy_config(strategy_path: Path, root: Path) -> Resolved:
     params = _validate(pmodel, strategy.params, f"{strategy_path} (params)")
     market_path = root / "configs" / "market" / f"{strategy.market}.yaml"
     market = _validate(MarketConfig, _read_yaml(market_path), str(market_path))
-    base_path = root / "configs" / "baselines.yaml"
-    baselines = _validate(BaselinesConfig, _read_yaml(base_path), str(base_path))
+    baselines = load_baselines(root)
     return Resolved(strategy, params, market, baselines, strategy_path)
 
 
+def load_baselines(root: Path) -> BaselinesConfig:
+    path = root / "configs" / "baselines.yaml"
+    return _validate(BaselinesConfig, _read_yaml(path), str(path))
+
+
 def enforce_lock(cfg: Resolved, final: bool) -> None:
-    """The locked test period is off limits unless --final is given."""
+    """The locked test period is off limits unless --final is given.
+
+    A run reads bars for `settle_calendar_days` past `period.end` so late exits close; that window counts as reaching in.
+    """
     lock = cfg.baselines.locked_from
-    if cfg.strategy.period.end >= lock and not final:
+    engine = getattr(cfg.params, "engine", None)
+    reach = cfg.strategy.period.end + timedelta(days=engine.settle_calendar_days if engine is not None else 0)
+    if reach >= lock and not final:
         raise ConfigError(
-            f"period.end {cfg.strategy.period.end} reaches the locked period (from {lock}); "
+            f"period.end {cfg.strategy.period.end} (plus settle window: {reach}) reaches the locked period (from {lock}); "
             "use --final for a final evaluation"
         )
 

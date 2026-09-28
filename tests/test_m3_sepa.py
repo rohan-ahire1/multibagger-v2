@@ -9,9 +9,10 @@ import polars as pl
 import pytest
 
 from mb.config.loader import load_strategy_config
-from mb.config.models import BaselinesConfig, BuyAndHold, MarketConfig, Momentum
+from mb.config.models import Adoption, BaselinesConfig, BuyAndHold, MarketConfig, Momentum
 from mb.engine.run import evaluate, load_bars
 from mb.evaluation import baselines
+from mb.evaluation.metrics import equity_metrics
 from mb.strategy.sepa.contraction import count_contractions
 from mb.strategy.sepa.run import make_signals
 
@@ -114,7 +115,7 @@ def _market(cost: bool) -> MarketConfig:
 def _cfg(tri: str, **over) -> BaselinesConfig:
     mom = dict(lookback_sessions=20, skip_sessions=5, top_n=1, allowed_series=["EQ"], min_price_inr=10.0,
                min_adv_inr=1.0, adv_window_sessions=5, initial_capital=100000.0) | over
-    return BaselinesConfig(locked_from=date(2024, 1, 1), buy_and_hold=BuyAndHold(tri_file=tri), momentum=Momentum(**mom))
+    return BaselinesConfig(locked_from=date(2024, 1, 1), folds=[], adoption=Adoption(metric="calmar"), buy_and_hold=BuyAndHold(tri_file=tri), momentum=Momentum(**mom))
 
 
 def _panel(path: Path, drifts: dict[str, float], n: int = 150) -> list[date]:
@@ -136,17 +137,23 @@ def test_buy_and_hold_reads_the_tri_window(tmp_path):
     days = _panel(tmp_path / "p.parquet", {"A": 0.0})
     tri = tmp_path / "tri.csv"
     pl.DataFrame({"date": days, "tri": [100.0 * 1.001 ** i for i in range(len(days))]}).write_csv(tri)
-    got = baselines.buy_and_hold(tmp_path, _cfg(str(tri)), days[0], days[-1])
+    got = equity_metrics(baselines.buy_and_hold_curve(tmp_path, _cfg(str(tri))), days[0], days[-1])
     assert got["end_equity"] / got["start_equity"] == pytest.approx(1.001 ** (len(days) - 1))
     assert got["max_dd_pct"] == 0.0
+
+
+def _momentum(tmp_path, cfg, market, days):
+    curve, rebalances = baselines.momentum_curve(cfg, market, tmp_path / "p.parquet", days[0], days[-1])
+    return {**equity_metrics(curve, days[0], days[-1]), "rebalances": rebalances,
+            "avg_open_positions": curve["open_positions"].mean()}
 
 
 def test_momentum_holds_the_strongest_name_and_costs_reduce_the_result(tmp_path):
     days = _panel(tmp_path / "p.parquet", {"UP": 0.004, "FLAT": 0.0, "DOWN": -0.002})
     tri = tmp_path / "tri.csv"
     pl.DataFrame({"date": days, "tri": [1.0] * len(days)}).write_csv(tri)
-    free = baselines.momentum(tmp_path, _cfg(str(tri)), _market(False), tmp_path / "p.parquet", days[0], days[-1])
-    paid = baselines.momentum(tmp_path, _cfg(str(tri)), _market(True), tmp_path / "p.parquet", days[0], days[-1])
+    free = _momentum(tmp_path, _cfg(str(tri)), _market(False), days)
+    paid = _momentum(tmp_path, _cfg(str(tri)), _market(True), days)
     assert free["avg_open_positions"] > 0.7 and free["rebalances"] >= 3
     assert free["cagr_pct"] > 0
     assert paid["end_equity"] < free["end_equity"]
@@ -158,5 +165,5 @@ def test_momentum_ignores_names_failing_the_liquidity_or_price_filter(tmp_path):
     tri = tmp_path / "tri.csv"
     pl.DataFrame({"date": days, "tri": [1.0] * len(days)}).write_csv(tri)
     all_out = _cfg(str(tri), min_price_inr=1e6)
-    got = baselines.momentum(tmp_path, all_out, _market(False), tmp_path / "p.parquet", days[0], days[-1])
+    got = _momentum(tmp_path, all_out, _market(False), days)
     assert got["avg_open_positions"] == 0 and got["end_equity"] == pytest.approx(100000.0)

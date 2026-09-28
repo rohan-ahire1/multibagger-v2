@@ -58,7 +58,7 @@ def _report(cfg: Resolved, run_id: str, result: RunResult) -> str:
 
 
 def write_run(cfg: Resolved, result: RunResult, root: Path, runs_dir: Path, final: bool,
-              started: datetime, finished: datetime) -> Path:
+              started: datetime, finished: datetime, question: str | None = None) -> Path:
     run_id = f"{started.strftime('%Y%m%d-%H%M%S')}-{cfg.hash()[:8]}"
     out = runs_dir / run_id
     out.mkdir(parents=True, exist_ok=False)
@@ -73,6 +73,7 @@ def write_run(cfg: Resolved, result: RunResult, root: Path, runs_dir: Path, fina
         "code": git_state(root),
         "period": [cfg.strategy.period.start.isoformat(), cfg.strategy.period.end.isoformat()],
         "final": final,
+        "question": question,
         "host": platform.node(),
         "started_at": started.isoformat(),
         "duration_s": round((finished - started).total_seconds(), 3),

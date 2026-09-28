@@ -43,6 +43,8 @@ def evaluate(cfg: Resolved, root: Path, eng: EngineConfig, signals: pl.DataFrame
     res = simulate(signals, bars, load_sectors(root, cfg), eng, cfg.market)
     jumps = pl.read_parquet(datasets.dataset_path(root, cfg.strategy.dataset) / JUMPS_FILE)
     enforce_data_gate(res.trades, jumps)
+    folds = {f.name: {**equity_metrics(res.equity, f.start, f.end), "trades": trade_metrics(res.trades, f.start, f.end).get("trades")}
+             for f in cfg.baselines.folds if f.start >= period.start and f.end <= period.end}
     metrics = {
         "strategy": {
             **equity_metrics(res.equity, period.start, period.end),
@@ -51,6 +53,7 @@ def evaluate(cfg: Resolved, root: Path, eng: EngineConfig, signals: pl.DataFrame
             "signals": signals.height,
             "signals_not_filled_or_refused": res.skipped.height,
         },
+        "folds": folds,
         "baselines": baselines.compute(root, cfg.baselines, cfg.market, datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE,
                                        period.start, period.end),
     }

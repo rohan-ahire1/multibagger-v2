@@ -8,12 +8,14 @@ import typer
 from datetime import date
 
 from mb.config.loader import ConfigError, enforce_lock, load_strategy_config
-from mb.runs import record
+from mb.runs import record, research
 from mb.strategy.registry import runner
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 runs_app = typer.Typer(no_args_is_help=True)
 app.add_typer(runs_app, name="runs", help="Inspect run records.")
+research_app = typer.Typer(no_args_is_help=True)
+app.add_typer(research_app, name="research", help="Compare variants against the pinned milestone.")
 data_app = typer.Typer(no_args_is_help=True)
 app.add_typer(data_app, name="data", help="Fetch, build and check datasets.")
 fetch_app = typer.Typer(no_args_is_help=True)
@@ -27,18 +29,21 @@ _ROOT = Path(__file__).resolve().parents[2]
 def backtest(
     config: Annotated[Path, typer.Argument(help="Strategy config YAML.")],
     final: Annotated[bool, typer.Option("--final", help="Allow the locked test period.")] = False,
+    question: Annotated[str | None, typer.Option("--question", help="Research question this run belongs to (counts variants).")] = None,
     root: Root = _ROOT,
 ) -> None:
     """Run one backtest and write its run record."""
     try:
         cfg = load_strategy_config(config, root)
         enforce_lock(cfg, final)
+        if final:
+            research.check_final_unused(root / "runs", cfg.hash())
     except ConfigError as e:
         typer.echo(f"error: {e}", err=True)
         raise typer.Exit(2) from None
     started = record.now()
     result = runner(cfg.strategy.name)(cfg, root)
-    out = record.write_run(cfg, result, root, root / "runs", final, started, record.now())
+    out = record.write_run(cfg, result, root, root / "runs", final, started, record.now(), question)
     typer.echo(f"run {out.name}")
     typer.echo(f"config {config} (hash {cfg.hash()[:8]})")
 
@@ -47,6 +52,67 @@ def backtest(
 def runs_list(root: Root = _ROOT) -> None:
     """List all runs (index rebuilt from run folders)."""
     typer.echo(str(record.list_runs(root / "runs")))
+
+
+@runs_app.command("pin")
+def runs_pin(
+    run_id: Annotated[str, typer.Argument(help="Run id.")],
+    name: Annotated[str, typer.Option("--as", help="Milestone name, e.g. sepa/2026-10_baseline.")],
+    root: Root = _ROOT,
+) -> None:
+    """Mark a run as a milestone. Refuses runs from uncommitted code and never moves an existing pin."""
+    try:
+        research.pin(root / "runs", run_id, name)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"pinned {name} -> {run_id}")
+
+
+@runs_app.command("diff")
+def runs_diff(
+    a: Annotated[str, typer.Argument(help="Run id or pin name.")],
+    b: Annotated[str, typer.Argument(help="Run id or pin name.")],
+    root: Root = _ROOT,
+) -> None:
+    """Show which config values, data or code changed between two runs, and how the headline numbers moved."""
+    try:
+        typer.echo("\n".join(research.diff(root / "runs", a, b)))
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+
+
+@runs_app.command("verify")
+def runs_verify(
+    ref: Annotated[str, typer.Argument(help="Run id or pin name.")],
+    root: Root = _ROOT,
+) -> None:
+    """Re-run a non-final run and check the result matches the record exactly."""
+    try:
+        problems = research.verify(root / "runs", ref, root)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    if problems:
+        raise _fail("; ".join(problems))
+    typer.echo("re-run matches the record exactly")
+
+
+@research_app.command("report")
+def research_report(
+    question: Annotated[str, typer.Argument(help="Research question id used with --question.")],
+    against: Annotated[str, typer.Option("--against", help="Pin name or run id of the current milestone.")],
+    root: Root = _ROOT,
+) -> None:
+    """Report every variant tried for a question and whether any passes the adoption bar."""
+    try:
+        from mb.config.loader import load_baselines
+        text, adopted = research.report(root / "runs", question, against, load_baselines(root).adoption.metric)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    out = root / "reports" / f"{question}.md"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(text + "\n")
+    typer.echo(text)
+    typer.echo(f"written {out}; {'a variant passes the bar' if adopted else 'no variant passes the bar'}")
 
 
 DataCfg = Annotated[Path, typer.Argument(help="Data config YAML, e.g. configs/data/nse_research.yaml.")]

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
@@ -37,10 +37,35 @@ class Momentum(Strict):
     initial_capital: float
 
 
+class Fold(Strict):
+    name: str
+    start: date
+    end: date
+
+
+class Adoption(Strict):
+    metric: Literal["calmar", "cagr_pct"]  # a candidate must beat the milestone and both baselines on this, on every fold
+
+
 class BaselinesConfig(Strict):
     locked_from: date
+    folds: list[Fold]
+    adoption: Adoption
     buy_and_hold: BuyAndHold
     momentum: Momentum
+
+    @model_validator(mode="after")
+    def _folds_ordered_and_unlocked(self) -> BaselinesConfig:
+        prev = None
+        for f in self.folds:
+            if f.end < f.start:
+                raise ValueError(f"fold {f.name}: end is before start")
+            if prev is not None and f.start <= prev.end:
+                raise ValueError(f"fold {f.name} overlaps or precedes {prev.name}")
+            if f.end >= self.locked_from:
+                raise ValueError(f"fold {f.name} reaches the locked period (from {self.locked_from})")
+            prev = f
+        return self
 
 
 class Period(Strict):

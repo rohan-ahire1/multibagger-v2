@@ -51,6 +51,9 @@ same equity-curve metrics. Momentum: month-end 12-1 ranking, top `top_n` equal-w
 costs, no stops. A name with no open on a rebalance day is sold at its last close. Settings are in `configs/baselines.yaml`.
 Full window 2010-01-04 to 2026-03-17: TRI 11.61% CAGR / 38.11% max DD; momentum 19.99% / 48.76%.
 
+`metrics.json` layout: `strategy` (whole period), `folds.<name>` (equity metrics plus trade count, for each development fold
+inside the period), `baselines.<label>.<window>` where window is `period` or a fold name.
+
 ## Run record
 
 See `PLAN.md` §6 (`src/mb/runs/record.py`). `manifest.json` carries `dataset_hash` (sha256 of the panel).

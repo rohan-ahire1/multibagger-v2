@@ -1,6 +1,17 @@
 # The locked test period starts here. Running into it needs --final, once per config.
 locked_from: 2024-01-01
 
+# Development folds. A run reports its numbers on each fold that lies inside its period, and on the whole period.
+folds:
+  - {name: f1_2010_2013, start: 2010-01-01, end: 2013-12-31}
+  - {name: f2_2014_2017, start: 2014-01-01, end: 2017-12-31}
+  - {name: f3_2018_2023, start: 2018-01-01, end: 2023-12-31}
+
+# Adoption bar: a candidate replaces the pinned milestone only if it beats it on this metric on every fold and on the
+# whole development period, and also beats both baselines on the same windows.
+adoption:
+  metric: calmar
+
 # Every strategy run reports these two beside its own numbers.
 buy_and_hold:
   # Nifty 500 total-return index, daily. Metrics use the rows inside the run's period; the file ends 2026-03-17.
