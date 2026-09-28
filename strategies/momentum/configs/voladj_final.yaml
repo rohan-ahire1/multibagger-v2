@@ -1,0 +1,26 @@
+# M5 final (docs/research/m5.md): voladj_dev over the full window, crossing the locked period. Its one --final run.
+name: momentum
+version: voladj_final
+dataset: nse_research@2026-09-29b
+market: nse_cash
+period: {start: 2010-01-04, end: 2026-03-17}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 50000000
+    adv_window_sessions: 50
+    exclude_fund_units: false
+  ranking:
+    lookback_sessions: 252
+    skip_sessions: 21
+    score: return_over_vol
+  portfolio:
+    top_n: 30
+    hold_rank_max: 30
+  regime:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+    risk_off_gross: 0.0
+  initial_capital: 1000000
