@@ -22,8 +22,25 @@ class MarketConfig(Strict):
     sector_map_file: str
 
 
+class BuyAndHold(Strict):
+    tri_file: str
+
+
+class Momentum(Strict):
+    lookback_sessions: int
+    skip_sessions: int
+    top_n: int
+    allowed_series: list[str]
+    min_price_inr: float
+    min_adv_inr: float
+    adv_window_sessions: int
+    initial_capital: float
+
+
 class BaselinesConfig(Strict):
     locked_from: date
+    buy_and_hold: BuyAndHold
+    momentum: Momentum
 
 
 class Period(Strict):

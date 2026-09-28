@@ -44,6 +44,13 @@ A signal waits `entry.pending_bars` of the symbol's own sessions; a missing bar 
 - Bars must start at `period.start` (EMAs are seeded from the first bar). Bars run to `period.end + settle_calendar_days`
   so late exits close; metrics use `[period.start, period.end]` and count trades by entry date.
 
+## Baselines (`evaluation/baselines.py`)
+
+`metrics.json` has `baselines.nifty500_tri_buy_and_hold` and `baselines.momentum_12_1`, measured over the run's period with the
+same equity-curve metrics. Momentum: month-end 12-1 ranking, top `top_n` equal-weighted, next-open trades, market-profile
+costs, no stops. A name with no open on a rebalance day is sold at its last close. Settings are in `configs/baselines.yaml`.
+Full window 2010-01-04 to 2026-03-17: TRI 11.61% CAGR / 38.11% max DD; momentum 19.99% / 48.76%.
+
 ## Run record
 
 See `PLAN.md` §6 (`src/mb/runs/record.py`). `manifest.json` carries `dataset_hash` (sha256 of the panel).

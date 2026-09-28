@@ -1,2 +1,20 @@
-# Folds and benchmark definitions are added in M3/M4.
+# The locked test period starts here. Running into it needs --final, once per config.
 locked_from: 2024-01-01
+
+# Every strategy run reports these two beside its own numbers.
+buy_and_hold:
+  # Nifty 500 total-return index, daily. Metrics use the rows inside the run's period; the file ends 2026-03-17.
+  tri_file: data/raw/benchmarks/nifty500_tri_2010-01-04_2026-03-17.csv
+
+momentum:
+  # Simple 12-1 momentum: rank by the return from `lookback_sessions` ago to `skip_sessions` ago, hold the top `top_n`
+  # equal-weighted, rebalance on the last session of each month, trade at the next session's open. Costs from the market
+  # profile. No stops, no regime filter, no position caps.
+  lookback_sessions: 252
+  skip_sessions: 21
+  top_n: 30
+  allowed_series: [EQ]
+  min_price_inr: 50
+  min_adv_inr: 50000000
+  adv_window_sessions: 50
+  initial_capital: 1000000

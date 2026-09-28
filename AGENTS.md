@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 (skeleton), M1 (data layer) and M2 (engine + metrics) done. Next: M3 (baselines + SEPA port). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics) and M3 (baselines + SEPA port) done. Next: M4 (research loop). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 
@@ -24,7 +24,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 |---|---|
 | `configs/market/` | Costs, slippage, idle-cash yield, sector map path (one file per market) |
 | `configs/data/` | Data config (`nse_research.yaml`: sources, adjustment rules, check limits) and CA overrides CSV |
-| `configs/baselines.yaml` | Locked period start (folds and benchmarks come in M3/M4) |
+| `configs/baselines.yaml` | Locked period start, Nifty 500 TRI file, 12-1 momentum baseline settings (folds come in M4) |
 | `strategies/<name>/configs/` | Strategy configs (one file per version) |
 | `src/mb/config/` | Strict Pydantic models (`models.py`) and loader (`loader.py`) |
 | `src/mb/strategy/` | `registry.py` maps strategy name → params model + runner |
@@ -32,7 +32,8 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `src/mb/sources/` | Adapters: `nse_bhavcopy.py` (download + parse to canonical bars), `nse_corporate_actions.py` |
 | `src/mb/data/` | `corporate_actions.py` (feed + overrides), `adjust.py` (jump-matched adjustment), `checks.py`, `build.py`, `datasets.py` |
 | `src/mb/engine/` | `config.py` (engine rules), `simulate.py` (portfolio simulator), `gate.py` (unexplained-jump refusal), `run.py` (bars + sectors + simulate + gate + metrics for a strategy run) |
-| `src/mb/evaluation/` | `metrics.py`: equity, exposure and trade metrics |
+| `src/mb/evaluation/` | `metrics.py`: equity, exposure and trade metrics. `baselines.py`: Nifty 500 TRI buy-and-hold and 12-1 momentum, added to every run's `metrics.baselines` |
+| `src/mb/strategy/sepa/` | SEPA/VCP: `signals.py` (features, RS rank, breakout rule), `contraction.py`, `params.py`, `run.py` |
 | `src/mb/live/` | Empty until M6 |
 | `configs/reference/` | Symbol → industry map for the sector caps |
 | `docs/reference/` | v1 reference trades, metrics, resolved settings |
@@ -74,3 +75,9 @@ Current dataset: `nse_research@2026-09-29` (data through 2026-07-17); it equals 
   signals (`docs/reference/v1_reference_signals.csv`) and matches all 258 trades of `docs/reference/v1_reference_trades.csv`.
 - `settle_calendar_days` (v1 used 220) reads bars past `period.end`. For a dev config this can reach the locked period, so
   dev configs use 0 (open positions are then closed at the last bar with status `open`).
+- SEPA port (`strategies/sepa/configs/v1_port.yaml`): v1 never applied its series filter in the scan, so BE-series rows were in
+  the universe and RS pool. The config keeps `allowed_series: [EQ, BE]` for parity; new configs use `[EQ]`.
+- SEPA signal parity: all 294 v1 signals are reproduced. Nine 2010 signals differ from v1's `entry_ref`/`stop` by ~1e-15.
+  That flips one cash-limited fill in 2017, so the unpatched run gives 257 trades / 6.72% CAGR. With v1's exact values for
+  those two columns it gives 258 / 6.39% / 23.55% / 0.27 (`tests/test_m3_sepa.py`).
+- `v1_port.yaml` has had its one `--final` run (run 20260928-201856-74c7b90c). Use `v1_port_dev.yaml` (ends 2023-12-31) for dev.

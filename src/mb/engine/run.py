@@ -15,6 +15,7 @@ from mb.data import datasets
 from mb.engine.config import EngineConfig
 from mb.engine.gate import enforce_data_gate
 from mb.engine.simulate import SimResult, simulate
+from mb.evaluation import baselines
 from mb.evaluation.metrics import equity_metrics, exposure_metrics, trade_metrics
 from mb.runs.record import RunResult
 
@@ -50,6 +51,7 @@ def evaluate(cfg: Resolved, root: Path, eng: EngineConfig, signals: pl.DataFrame
             "signals": signals.height,
             "signals_not_filled_or_refused": res.skipped.height,
         },
-        "baselines": {},
+        "baselines": baselines.compute(root, cfg.baselines, cfg.market, datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE,
+                                       period.start, period.end),
     }
     return res, RunResult(metrics=metrics, trades=res.trades, equity=res.equity)
