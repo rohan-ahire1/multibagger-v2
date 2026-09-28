@@ -18,6 +18,11 @@ total-return price adjustment (price only, not volume). Strategies: ratios and i
 `unexplained_jumps.parquet` (adjusted moves beyond the configured ratio), `unusable_actions.parquet`, `manifest.json`
 (input hashes, config hash, code commit, check results, output hashes). Versions are immutable and rebuild byte-identically.
 
+Corporate-action feed rows are re-keyed by ISIN to the symbol that traded at the time (`resymbol_by_isin`). Rights and
+demergers come only from overrides with an explicit factor and adjust price, not volume. Jumps listed in
+`verified_moves_file` (reviewed real moves, with reason and source) leave `unexplained_jumps`; a listed row that is not a
+jump fails the build.
+
 Unexplained jumps are recorded, not fatal. The engine refuses a run whose trades hold through one (`engine/gate.py`, applied in `engine/run.py`).
 
 ## Signals (input to the engine)
@@ -43,6 +48,18 @@ A signal waits `entry.pending_bars` of the symbol's own sessions; a missing bar 
 - `skipped`: symbol, signal_date, status (why a signal never became a trade).
 - Bars must start at `period.start` (EMAs are seeded from the first bar). Bars run to `period.end + settle_calendar_days`
   so late exits close; metrics use `[period.start, period.end]` and count trades by entry date.
+
+## Rebalance engine (`engine/rebalance.py`)
+
+Input: `{decision_date: Target(weights, gross)}`, adjusted bars, the session calendar. Trades at the next session's open,
+sells first, buys scaled together if cash is short; a name with no open is not bought and is sold at its last close.
+Output: `equity` (date, equity, cash, invested_value, open_positions), `holdings` (one row per continuous holding, the
+gate and trade metrics read it as trades; P&L net of costs), `fills`, `rebalances`.
+
+## Blends (`strategy/blend/`)
+
+Sleeves are strategy configs pinned by hash, with the blend's period, dataset and market. Each gets `weight * capital` at
+the start and is never rebalanced. `metrics.strategy.sleeves` and `sleeve_daily_return_corr` report each sleeve.
 
 ## Baselines (`evaluation/baselines.py`)
 

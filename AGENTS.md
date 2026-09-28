@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics) and M3 (baselines + SEPA port) and M4 (research loop) done. Next: M5 (momentum strategy + research). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics), M3 (baselines + SEPA port), M4 (research loop) and M5 (momentum + blends, `docs/research/m5.md`) done. Next: M6 (paper trading on the VPS; needs the user). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 
@@ -23,7 +23,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | Path | What |
 |---|---|
 | `configs/market/` | Costs, slippage, idle-cash yield, sector map path (one file per market) |
-| `configs/data/` | Data config (`nse_research.yaml`: sources, adjustment rules, check limits) and CA overrides CSV |
+| `configs/data/` | Data config (`nse_research.yaml`: sources, adjustment rules, check limits), CA overrides CSV, `verified_price_moves.csv` (reviewed real jumps the gate allows) |
 | `configs/baselines.yaml` | Locked period start, development folds, adoption metric, Nifty 500 TRI file, 12-1 momentum baseline settings |
 | `strategies/<name>/configs/` | Strategy configs (one file per version) |
 | `src/mb/config/` | Strict Pydantic models (`models.py`) and loader (`loader.py`) |
@@ -32,9 +32,12 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `src/mb/runs/research.py` | One-final-per-config check, pins, run diff, re-run check, adoption report |
 | `src/mb/sources/` | Adapters: `nse_bhavcopy.py` (download + parse to canonical bars), `nse_corporate_actions.py` |
 | `src/mb/data/` | `corporate_actions.py` (feed + overrides), `adjust.py` (jump-matched adjustment), `checks.py`, `build.py`, `datasets.py` |
-| `src/mb/engine/` | `config.py` (engine rules), `simulate.py` (portfolio simulator), `gate.py` (unexplained-jump refusal), `run.py` (bars + sectors + simulate + gate + metrics for a strategy run) |
+| `src/mb/engine/` | `config.py` (engine rules), `simulate.py` (signal-driven simulator), `rebalance.py` (target-weight simulator for momentum and the 12-1 baseline), `gate.py` (unexplained-jump refusal), `run.py` (bars + sectors + simulate, then `score`: gate + metrics + baselines) |
 | `src/mb/evaluation/` | `metrics.py`: equity, exposure and trade metrics. `baselines.py`: Nifty 500 TRI buy-and-hold and 12-1 momentum, added to every run's `metrics.baselines` |
 | `src/mb/strategy/sepa/` | SEPA/VCP: `signals.py` (features, RS rank, breakout rule), `contraction.py`, `params.py`, `run.py` |
+| `src/mb/strategy/momentum/` | Month-end momentum: `targets.py` (ranking, stocks-only filter, vol-adjusted score, hold buffer, regime), `params.py`, `run.py` |
+| `src/mb/strategy/blend/` | Fixed-weight mix of existing strategy configs, each pinned by config hash |
+| `docs/research/` | Pre-registration and results per research milestone |
 | `src/mb/live/` | Empty until M6 |
 | `configs/reference/` | Symbol → industry map for the sector caps |
 | `docs/reference/` | v1 reference trades, metrics, resolved settings |
@@ -46,7 +49,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 uv run mb backtest <strategy-config> [--final]   # writes runs/<run_id>/
 uv run mb runs list
 uv run mb runs diff <run|pin> <run|pin>        # what changed in config, data, code, and headline numbers
-uv run mb runs pin <run> --as sepa/<name>      # milestone; refuses dirty-code runs, never moves a pin
+uv run mb runs pin <run> --as <strategy>/<name> # milestone; refuses dirty-code runs, never moves a pin
 uv run mb runs verify <run|pin>                # re-run a non-final run; must match the record exactly
 uv run mb backtest <cfg> --question <id>       # tag a run to a research question (variants are counted per question)
 uv run mb research report <id> --against <pin> # variants tried + adoption verdict per fold -> reports/<id>.md
@@ -71,7 +74,9 @@ Create `strategies/<name>/`, define a strict `Params` model and a `run(cfg, root
 `~/projects/Multibagger/data/nse_bhavcopy_raw/` (nothing copied; disk is tight). New downloads land beside them as real
 files. `data/raw/nse_corporate_actions/` and `data/raw/benchmarks/` are copies of v1's reference files.
 Datasets go in `data/datasets/<name>/<version>/` (`panel.parquet` = canonical bars + `adj_*` columns).
-Current dataset: `nse_research@2026-09-29` (data through 2026-07-17); it equals v1's sim layer exactly.
+Current dataset: `nse_research@2026-09-29b` (data through 2026-07-17): corporate actions re-keyed by ISIN, three manual
+overrides, one verified move (see `docs/research/m5.md`). `nse_research@2026-09-29` equals v1's sim layer exactly and backs
+the M3/M4 pins.
 
 ## v1 behaviours kept on purpose (parity)
 
