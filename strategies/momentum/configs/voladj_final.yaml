@@ -1,7 +1,8 @@
 # M5 final (docs/research/m5.md): voladj_dev over the full window, crossing the locked period. Its one --final run.
+# Dataset c = b plus the STAR 2024-12-06 demerger override (the only gate hit; identical before that date up to a constant).
 name: momentum
 version: voladj_final
-dataset: nse_research@2026-09-29b
+dataset: nse_research@2026-09-29c
 market: nse_cash
 period: {start: 2010-01-04, end: 2026-03-17}
 params:

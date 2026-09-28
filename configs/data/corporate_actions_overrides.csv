@@ -379,6 +379,7 @@ SPORTKING,"",split,2024-09-13,,,,,0.1,FV 10->1 inferred from purpose_parsed (obs
 SPYL,"",split,2013-04-10,,,,,0.1,1:10 inferred from isin_corroborated (observed ratio 0.101583),isin_corroborated
 SRPL,"",split,2023-05-19,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.109015),purpose_parsed
 SSWL,"",split,2022-11-10,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.204916),purpose_parsed
+STAR,"",demerger,2024-12-06,,,,,0.437729,"OneSource Specialty Pharma demerged (feed: demerger, no factor). Factor = ex-date price discovery: open 650.05 / cum close 1485.05",manual
 STEELCAS,"",split,2025-08-29,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.191419),purpose_parsed
 STEELXIND,"",split,2022-07-12,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.104807),purpose_parsed
 STER,"",bonus_split,2006-05-05,,,,,0.2,FV 5->2 + bonus 1:1 inferred from purpose_parsed (observed ratio 0.207455),purpose_parsed
