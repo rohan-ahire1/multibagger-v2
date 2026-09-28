@@ -66,7 +66,8 @@ def test_unknown_param_fails(root: Path):
 
 
 def test_unknown_market_key_fails(root: Path):
-    (root / "configs/market/nse_cash.yaml").write_text("slippage_bps_per_side: 10\nidle_cash_yield_annual: 0.0\nx: 1\n")
+    mp = root / "configs/market/nse_cash.yaml"
+    mp.write_text(mp.read_text() + "x: 1\n")
     with pytest.raises(ConfigError, match="x"):
         load_strategy_config(SMOKE, root)
 

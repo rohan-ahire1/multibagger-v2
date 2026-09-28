@@ -1,6 +1,8 @@
 """Smoke-test strategy: takes no parameters and never trades."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import polars as pl
 
 from mb.config.loader import Resolved
@@ -15,7 +17,7 @@ class Params(Strict):
     pass
 
 
-def run(cfg: Resolved) -> RunResult:
+def run(cfg: Resolved, root: Path) -> RunResult:
     return RunResult(
         metrics={"strategy": {"trades": 0}, "baselines": {}},
         trades=pl.DataFrame(schema=TRADE_SCHEMA),

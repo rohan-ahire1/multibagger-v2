@@ -14,7 +14,12 @@ class Strict(BaseModel):
 
 class MarketConfig(Strict):
     slippage_bps_per_side: float
+    buy_charge_rate: float
+    sell_charge_rate: float
+    dp_fee_per_sale_inr: float
     idle_cash_yield_annual: float
+    trading_days_per_year: int
+    sector_map_file: str
 
 
 class BaselinesConfig(Strict):

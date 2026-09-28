@@ -18,9 +18,32 @@ total-return price adjustment (price only, not volume). Strategies: ratios and i
 `unexplained_jumps.parquet` (adjusted moves beyond the configured ratio), `unusable_actions.parquet`, `manifest.json`
 (input hashes, config hash, code commit, check results, output hashes). Versions are immutable and rebuild byte-identically.
 
-Unexplained jumps are recorded, not fatal. The engine must refuse a run whose trades hold through one (v1 "data gate";
-lands with M2/M3).
+Unexplained jumps are recorded, not fatal. The engine refuses a run whose trades hold through one (`engine/gate.py`, applied in `engine/run.py`).
 
-## Signals, run record
+## Signals (input to the engine)
 
-Run record: see `PLAN.md` §6 (`src/mb/runs/record.py`). Signals: added in M3.
+One row per signal, made at the close of `signal_date`, on the adjusted price basis.
+
+| Column | Meaning |
+|---|---|
+| `symbol`, `signal_date` | Who and when |
+| `entry_ref` | Buy level. Fills from the symbol's next session if `open >= entry_ref` or `high >= entry_ref`, at `max(open, entry_ref)` |
+| `stop` | Initial stop (adjusted basis). Risk per share = fill − stop |
+| `size_mult` | Multiplies the risk budget (1.0 = normal) |
+
+A signal waits `entry.pending_bars` of the symbol's own sessions; a missing bar does not use one up.
+
+## Engine output (`engine/simulate.py`)
+
+- `trades`: symbol, signal_date, entry_date, entry_price, stop, exit_date, exit_price, shares, return_pct, r_multiple, pnl,
+  status, holding_days, mae_r, mfe_r, sector, entry_ref. Prices are net of slippage and charges. `status` is the exit
+  reason (`intraday_stop`, `stopped`, `initial_stop_next_open`, `trail_ema_hybrid_next_open`, `stagnation_next_open`,
+  `max_hold`, `drawdown_close`, `open`).
+- `equity`: date, equity, cash, invested_value, open_positions, size_mult (equity uses raw closes).
+- `skipped`: symbol, signal_date, status (why a signal never became a trade).
+- Bars must start at `period.start` (EMAs are seeded from the first bar). Bars run to `period.end + settle_calendar_days`
+  so late exits close; metrics use `[period.start, period.end]` and count trades by entry date.
+
+## Run record
+
+See `PLAN.md` §6 (`src/mb/runs/record.py`). `manifest.json` carries `dataset_hash` (sha256 of the panel).

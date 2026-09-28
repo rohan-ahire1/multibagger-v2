@@ -1,0 +1,49 @@
+"""Engine settings: how a strategy's signals become fills, exits and sizes.
+
+Every value is set in the strategy config. Costs and slippage come from the market profile instead.
+"""
+from __future__ import annotations
+
+from typing import Literal
+
+from mb.config.models import Strict
+
+
+class EntryRules(Strict):
+    pending_bars: int          # a signal stays live for this many of the symbol's sessions after the signal date
+
+
+class ExitRules(Strict):
+    mode: Literal["ema_hybrid", "ema10", "ema21", "hard"]
+    breakeven_r: float         # close at entry + breakeven_r * initial risk lifts the stop to entry
+    tighten_r: float           # ema_hybrid: peak R at which the trail switches from the 21 to the 10 EMA
+    max_hold_days: int         # calendar days; the position closes at that day's close
+    stagnation_bars: int       # sessions held before the stagnation test applies
+    stagnation_max_mfe_r: float
+    stagnation_max_open_r: float
+
+
+class SizingRules(Strict):
+    risk_per_trade: float      # fraction of equity risked to the stop
+    max_positions: int
+    max_name_pct: float        # cap on one position's cost as a fraction of equity
+    max_sector_positions: int  # 0 disables
+    max_sector_pct: float      # 1.0 disables
+    max_heat_pct: float        # open risk plus new risk as a fraction of equity
+    default_sector: str        # label for symbols missing from the sector map (still capped)
+    uncapped_sectors: list[str]
+
+
+class BreakerRules(Strict):
+    half_dd: float             # new-position size halves at this drawdown from peak equity
+    stop_dd: float             # no new positions
+    close_dd: float            # every position is closed
+
+
+class EngineConfig(Strict):
+    entry: EntryRules
+    exits: ExitRules
+    sizing: SizingRules
+    breaker: BreakerRules
+    initial_capital: float
+    settle_calendar_days: int  # days after period.end that are simulated so late-exiting trades close for real

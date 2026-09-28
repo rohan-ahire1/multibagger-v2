@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
     from mb.config.loader import Resolved
 
 
-def _dummy() -> tuple[type[BaseModel], Callable[[Resolved], RunResult]]:
+def _dummy() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
     from mb.strategy import dummy
 
     return dummy.Params, dummy.run
@@ -24,5 +25,5 @@ def params_model(name: str) -> type[BaseModel]:
     return _REGISTRY[name]()[0]
 
 
-def runner(name: str) -> Callable[[Resolved], RunResult]:
+def runner(name: str) -> Callable[[Resolved, Path], RunResult]:
     return _REGISTRY[name]()[1]

@@ -1,3 +1,12 @@
-# Market profile. Statutory charges and DP fee are added in M2 with the engine.
+# NSE cash-equity delivery profile. Applied by the engine to every fill.
 slippage_bps_per_side: 10
+# Statutory charges as a fraction of traded value. Buy: STT + exchange + SEBI + stamp duty + GST.
+# Sell: STT + exchange + SEBI + GST. Rates as used in the v1 reference run.
+buy_charge_rate: 0.00118658
+sell_charge_rate: 0.00103658
+# Depository fee per sale, in INR (charged once per closing sale).
+dp_fee_per_sale_inr: 16.0
 idle_cash_yield_annual: 0.0
+trading_days_per_year: 252
+# Symbol -> industry map used by the sector caps. Symbols not in it fall under the engine's default_sector.
+sector_map_file: configs/reference/sector_map.csv

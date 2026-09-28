@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 (skeleton) and M1 (data layer) done. Next: M2 (engine + metrics). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton), M1 (data layer) and M2 (engine + metrics) done. Next: M3 (baselines + SEPA port). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 
@@ -22,7 +22,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
 | Path | What |
 |---|---|
-| `configs/market/` | Costs, slippage, idle-cash yield (one file per market) |
+| `configs/market/` | Costs, slippage, idle-cash yield, sector map path (one file per market) |
 | `configs/data/` | Data config (`nse_research.yaml`: sources, adjustment rules, check limits) and CA overrides CSV |
 | `configs/baselines.yaml` | Locked period start (folds and benchmarks come in M3/M4) |
 | `strategies/<name>/configs/` | Strategy configs (one file per version) |
@@ -31,7 +31,10 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `src/mb/runs/record.py` | Run record writer and index |
 | `src/mb/sources/` | Adapters: `nse_bhavcopy.py` (download + parse to canonical bars), `nse_corporate_actions.py` |
 | `src/mb/data/` | `corporate_actions.py` (feed + overrides), `adjust.py` (jump-matched adjustment), `checks.py`, `build.py`, `datasets.py` |
-| `src/mb/{engine,evaluation,live}/` | Empty until their milestones |
+| `src/mb/engine/` | `config.py` (engine rules), `simulate.py` (portfolio simulator), `gate.py` (unexplained-jump refusal), `run.py` (bars + sectors + simulate + gate + metrics for a strategy run) |
+| `src/mb/evaluation/` | `metrics.py`: equity, exposure and trade metrics |
+| `src/mb/live/` | Empty until M6 |
+| `configs/reference/` | Symbol → industry map for the sector caps |
 | `docs/reference/` | v1 reference trades, metrics, resolved settings |
 | `tests/` | `uv run pytest` |
 
@@ -52,7 +55,7 @@ Run record: `config.resolved.yaml`, `manifest.json` (code commit, config hash, d
 
 ## Adding a strategy
 
-Create `strategies/<name>/`, define a strict `Params` model and a `run(cfg) -> RunResult`, register both in
+Create `strategies/<name>/`, define a strict `Params` model and a `run(cfg, root) -> RunResult`, register both in
 `src/mb/strategy/registry.py`.
 
 ## Raw data on this Mac
@@ -62,3 +65,12 @@ Create `strategies/<name>/`, define a strict `Params` model and a `run(cfg) -> R
 files. `data/raw/nse_corporate_actions/` and `data/raw/benchmarks/` are copies of v1's reference files.
 Datasets go in `data/datasets/<name>/<version>/` (`panel.parquet` = canonical bars + `adj_*` columns).
 Current dataset: `nse_research@2026-09-29` (data through 2026-07-17); it equals v1's sim layer exactly.
+
+## v1 behaviours kept on purpose (parity)
+
+- Slippage and charges are multiplied in v1's order (`price * slip * charge`, separate factors). A pre-combined factor
+  changes float rounding, and a cash-limited fill (`cost <= cash`) can then flip by 1 ulp and move a fill by a day.
+- Engine parity check: `tests/test_m2_engine.py::test_v1_reference_trades_reproduced_on_identical_signals` runs v1's 294
+  signals (`docs/reference/v1_reference_signals.csv`) and matches all 258 trades of `docs/reference/v1_reference_trades.csv`.
+- `settle_calendar_days` (v1 used 220) reads bars past `period.end`. For a dev config this can reach the locked period, so
+  dev configs use 0 (open positions are then closed at the last bar with status `open`).

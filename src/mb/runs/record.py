@@ -36,6 +36,16 @@ def git_state(root: Path) -> dict[str, Any]:
     return {"commit": commit, "dirty": bool(status) if status is not None else None}
 
 
+def _dataset_hash(root: Path, ref: str) -> str | None:
+    """The dataset panel's sha256 from its manifest, or None if the dataset is not on this machine."""
+    from mb.data import datasets
+
+    try:
+        return datasets.read_manifest(datasets.dataset_path(root, ref))["outputs"][datasets.PANEL_FILE]["sha256"]
+    except FileNotFoundError:
+        return None
+
+
 def _report(cfg: Resolved, run_id: str, result: RunResult) -> str:
     s = cfg.strategy
     return (
@@ -59,7 +69,7 @@ def write_run(cfg: Resolved, result: RunResult, root: Path, runs_dir: Path, fina
         "config_hash": cfg.hash(),
         "config_file": str(cfg.strategy_path),
         "dataset": cfg.strategy.dataset,
-        "dataset_hash": None,  # filled in once datasets exist (M1)
+        "dataset_hash": _dataset_hash(root, cfg.strategy.dataset),
         "code": git_state(root),
         "period": [cfg.strategy.period.start.isoformat(), cfg.strategy.period.end.isoformat()],
         "final": final,

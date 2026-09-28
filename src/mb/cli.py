@@ -37,7 +37,7 @@ def backtest(
         typer.echo(f"error: {e}", err=True)
         raise typer.Exit(2) from None
     started = record.now()
-    result = runner(cfg.strategy.name)(cfg)
+    result = runner(cfg.strategy.name)(cfg, root)
     out = record.write_run(cfg, result, root, root / "runs", final, started, record.now())
     typer.echo(f"run {out.name}")
     typer.echo(f"config {config} (hash {cfg.hash()[:8]})")
