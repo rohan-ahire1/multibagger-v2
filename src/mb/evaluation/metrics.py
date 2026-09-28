@@ -37,17 +37,22 @@ def equity_metrics(equity: pl.DataFrame, start: date, end: date) -> dict[str, An
     }
 
 
-def exposure_metrics(equity: pl.DataFrame, trades: pl.DataFrame, start: date, end: date) -> dict[str, Any]:
+def exposure_metrics(equity: pl.DataFrame, traded: float, start: date, end: date) -> dict[str, Any]:
+    """`traded` is the gross value bought plus sold over [start, end]."""
     curve = _window(equity, start, end)
     invested_frac = (pl.col("invested_value") / pl.col("equity")).mean()
     years = max((curve["date"][-1] - curve["date"][0]).days / DAYS_PER_YEAR, 1e-6)
-    filled = _filled(trades, start, end)
-    traded = (filled["shares"] * (filled["entry_price"] + filled["exit_price"])).sum() if filled.height else 0.0
     return {
         "avg_invested_frac": curve.select(invested_frac).item(),
         "avg_open_positions": curve["open_positions"].mean(),
         "annual_turnover_x": traded / curve["equity"].mean() / years,
     }
+
+
+def traded_value(trades: pl.DataFrame, start: date, end: date) -> float:
+    """Entry plus exit value of the engine's trades entered in [start, end]."""
+    filled = _filled(trades, start, end)
+    return (filled["shares"] * (filled["entry_price"] + filled["exit_price"])).sum() if filled.height else 0.0
 
 
 def _filled(trades: pl.DataFrame, start: date, end: date) -> pl.DataFrame:

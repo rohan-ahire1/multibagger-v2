@@ -24,7 +24,21 @@ def _sepa() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
     return run.Params, run.run
 
 
-_REGISTRY: dict[str, Callable[[], tuple[type[BaseModel], Callable]]] = {"dummy": _dummy, "sepa": _sepa}
+def _momentum() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+    from mb.strategy.momentum import run
+
+    return run.Params, run.run
+
+
+def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+    from mb.strategy.blend import run
+
+    return run.Params, run.run
+
+
+_REGISTRY: dict[str, Callable[[], tuple[type[BaseModel], Callable]]] = {
+    "dummy": _dummy, "sepa": _sepa, "momentum": _momentum, "blend": _blend,
+}
 
 
 def params_model(name: str) -> type[BaseModel]:

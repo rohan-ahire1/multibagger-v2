@@ -1,0 +1,26 @@
+# The 12-1 momentum baseline (configs/baselines.yaml) as a strategy: its numbers must equal metrics.baselines.momentum.
+name: momentum
+version: baseline_dev
+dataset: nse_research@2026-09-29b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 50000000
+    adv_window_sessions: 50
+    exclude_fund_units: false
+  ranking:
+    lookback_sessions: 252
+    skip_sessions: 21
+    score: return
+  portfolio:
+    top_n: 30
+    hold_rank_max: 30
+  regime:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+    risk_off_gross: 0.0
+  initial_capital: 1000000

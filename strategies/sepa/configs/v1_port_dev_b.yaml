@@ -1,0 +1,82 @@
+# v1_port_dev.yaml on dataset nse_research@2026-09-29b (corporate actions matched by ISIN, three manual fixes), so SEPA
+# and momentum are compared on the same data. Otherwise identical: v1_port's rules, a period that ends before the locked
+# period, and open trades marked at the last close (settle_calendar_days 0).
+name: sepa
+version: v1_port_dev_b
+dataset: nse_research@2026-09-29b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    benchmark_symbol: NIFTYBEES
+    # v1 never applied its own series filter to the scan: BE-series rows (trade-to-trade segment) were in the universe
+    # and in the RS ranking pool. Kept for parity; new configs should use [EQ] only.
+    allowed_series: [EQ, BE]
+    min_price_inr: 50
+    min_adv50_inr: 50000000
+    min_avg_volume_shares: 200000
+    min_history_days: 320
+    max_symbols: 1500
+  trend:
+    sma_fast: 50
+    sma_mid: 150
+    sma_slow: 200
+    lookback_52w: 252
+    max_below_52w_high_pct: 0.45
+    min_above_52w_low_pct: 0.1
+    sma200_slope_lookback: 21
+  setup:
+    base_lookback: 65
+    atr_period: 14
+    atr_contraction_factor: 1.2
+    base_max_depth_pct: 0.6
+    max_range10_pct: 0.08
+    max_vol_dryup_ratio: 2.0
+    max_extension_from_50sma_pct: 0.4
+    contraction_smooth_window: 5
+    contraction_min_peak_pct: 0.01
+    contraction_max_count: 2
+  breakout:
+    buffer_atr_mult: 0.5
+    vol_mult: 1.0
+    vol_max_mult: 20.0
+    max_extension_breakout_pct: 0.3
+  risk:
+    entry_buffer_atr_mult: 0.5
+    struct_stop_atr_mult: 1.0
+    max_stop_pct: 0.07
+  rs:
+    lookbacks: [63]
+    weights: [1.0]
+    skip_recent_days: 0
+    rank_min: 70
+    rank_max: 100
+  selection:
+    skip_months: [1]
+    range10_max: 0.08
+    voldry_max: 0.9
+    setup_streak_max: 0
+    contraction_max: 2
+    max_signals_per_day: 20
+  engine:
+    entry: {pending_bars: 8}
+    exits:
+      mode: ema_hybrid
+      breakeven_r: 3.0
+      tighten_r: 5.0
+      max_hold_days: 150
+      stagnation_bars: 15
+      stagnation_max_mfe_r: 0.4
+      stagnation_max_open_r: 0.0
+    sizing:
+      risk_per_trade: 0.02
+      max_positions: 20
+      max_name_pct: 0.2
+      max_sector_positions: 4
+      max_sector_pct: 1.0
+      max_heat_pct: 1.0
+      default_sector: UNKNOWN
+      uncapped_sectors: [ETF]
+    breaker: {half_dd: 0.5, stop_dd: 0.6, close_dd: 0.7}
+    initial_capital: 1000000
+    settle_calendar_days: 0

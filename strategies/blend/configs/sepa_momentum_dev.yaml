@@ -1,0 +1,15 @@
+# M5 blend (docs/research/m5.md): half SEPA, half the 12-1 momentum baseline, never rebalanced between the two.
+name: blend
+version: sepa_momentum_dev
+dataset: nse_research@2026-09-29b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/sepa/configs/v1_port_dev_b.yaml
+      config_hash: b6aae9bd5a1347542af9bbcf5148c9ccaae1bad8acf2efeee4af433746fafa7c
+      weight: 0.5
+    - config: strategies/momentum/configs/baseline_dev.yaml
+      config_hash: 9cfb07154b52e19c5bc62279bce31876592a794e878e726b112f751806fcb239
+      weight: 0.5
+  initial_capital: 1000000

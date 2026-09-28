@@ -1,0 +1,40 @@
+"""Momentum strategy runner: panel -> month-end targets -> rebalance simulator -> metrics."""
+from __future__ import annotations
+
+from pathlib import Path
+
+import polars as pl
+
+from mb.config.loader import Resolved
+from mb.data import datasets
+from mb.engine.rebalance import RebalanceResult, simulate_targets
+from mb.engine.run import score
+from mb.evaluation.metrics import exposure_metrics
+from mb.runs.record import RunResult
+from mb.strategy.momentum.params import Params
+from mb.strategy.momentum.targets import targets
+
+__all__ = ["Params", "run", "simulate"]
+
+
+def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
+    """The panel is cut at period.end, so later data cannot leak in. A target on the last session is never traded."""
+    p = cfg.params
+    assert isinstance(p, Params)
+    period = cfg.strategy.period
+    panel = (pl.scan_parquet(datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE)
+             .filter(pl.col("date") <= period.end)
+             .select("date", "symbol", "security_id", "series", "close", "turnover", "adj_open", "adj_close")
+             .collect())
+    days = sorted(panel.filter(pl.col("date").is_between(period.start, period.end))["date"].unique().to_list())
+    bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
+    return simulate_targets(targets(panel, p, period.start, period.end), bars, days, cfg.market, p.initial_capital)
+
+
+def run(cfg: Resolved, root: Path) -> RunResult:
+    period = cfg.strategy.period
+    res = simulate(cfg, root)
+    fills = res.fills.filter(pl.col("date").is_between(period.start, period.end))
+    traded = (fills["shares"] * fills["price"]).sum() if fills.height else 0.0
+    exposure = exposure_metrics(res.equity, traded, period.start, period.end)
+    return score(cfg, root, res.equity, res.holdings, exposure, {"rebalances": res.rebalances})
