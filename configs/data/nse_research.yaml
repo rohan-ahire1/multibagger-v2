@@ -13,6 +13,8 @@ corporate_actions:
   coverage_file: data/raw/nse_corporate_actions/nse_corporate_actions_coverage.parquet
   overrides_file: configs/data/corporate_actions_overrides.csv
   applied_override_sources: [manual, purpose_parsed, isin_corroborated, etf_inferred]
+  resymbol_by_isin: true
+  verified_moves_file: configs/data/verified_price_moves.csv
   url: https://www.nseindia.com/api/corporates-corporateActions
   timeout_s: 30
   window_sleep_s: 0.6

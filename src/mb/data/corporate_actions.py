@@ -8,7 +8,9 @@ import polars as pl
 
 from mb.config.models import CorporateActionsSource
 
-SHARE_ACTIONS = ("split", "bonus", "face_value", "bonus_split")
+SHARE_ACTIONS = ("split", "bonus", "face_value", "bonus_split", "rights", "demerger")
+# Adjust price only, never volume, and need an explicit `adjustment_factor` (an override row).
+PRICE_ONLY_ACTIONS = ("rights", "demerger")
 _OVERRIDE_TYPES = {
     "isin": pl.Utf8, "ratio_num": pl.Float64, "ratio_den": pl.Float64, "old_face_value": pl.Float64,
     "new_face_value": pl.Float64, "dividend_amount": pl.Float64, "source": pl.Utf8,
@@ -48,13 +50,39 @@ def load_overrides(path: Path, applied_sources: list[str]) -> pl.DataFrame | Non
     return frame.select(_OVERRIDE_COLUMNS)
 
 
-def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date) -> pl.DataFrame:
+def resymbol_by_isin(feed: pl.DataFrame, bars: pl.DataFrame) -> pl.DataFrame:
+    """Move each feed row to the symbol its ISIN traded under on the last session before the ex-date.
+
+    Adds `feed_symbol` (the symbol the feed used). A moved row is dropped if the target symbol already lists the same
+    action type on that date, so a company listed under both symbols is not adjusted twice.
+    """
+    listed = (bars.filter(pl.col("security_id").str.starts_with("isin:"))
+              .select(pl.col("security_id").str.slice(5).alias("isin"), pl.col("date").alias("_before"),
+                      pl.col("symbol").alias("_bar_symbol"))
+              .unique().sort("_before"))
+    keyed = (feed.with_row_index("_i").with_columns((pl.col("ex_date") - pl.duration(days=1)).alias("_before"))
+             .sort("_before")
+             .join_asof(listed, on="_before", by="isin", strategy="backward", check_sortedness=False)
+             .sort("_i")
+             .with_columns(pl.col("symbol").alias("feed_symbol"),
+                           pl.coalesce("_bar_symbol", "symbol").alias("symbol")))
+    moved = keyed.filter(pl.col("symbol") != pl.col("feed_symbol"))
+    native = keyed.filter(pl.col("symbol") == pl.col("feed_symbol"))
+    moved = moved.join(native.select("symbol", "ex_date", "action_type").unique(),
+                       on=["symbol", "ex_date", "action_type"], how="anti")
+    return pl.concat([native, moved]).sort("_i").drop("_i", "_before", "_bar_symbol")
+
+
+def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date, bars: pl.DataFrame) -> pl.DataFrame:
     """Feed + overrides, share actions and dividends only, ex-dated on or before `max_date`.
 
+    Feed rows are re-keyed to bar symbols first (when `resymbol_by_isin`); overrides are written against bar symbols.
+    Price-only actions come from overrides alone: the feed has no factor for them.
     An override states the total multiplier for its symbol-date, so it replaces every feed row there.
     Actions after the last price date belong to a later build.
     """
-    feed = pl.read_parquet(root / cfg.raw_file)
+    feed = pl.read_parquet(root / cfg.raw_file).filter(~pl.col("action_type").is_in(PRICE_ONLY_ACTIONS))
+    feed = resymbol_by_isin(feed, bars) if cfg.resymbol_by_isin else feed.with_columns(pl.col("symbol").alias("feed_symbol"))
     overrides = load_overrides(root / cfg.overrides_file, cfg.applied_override_sources)
     if overrides is not None:
         feed = feed.join(overrides.select("symbol", "ex_date").unique(), on=["symbol", "ex_date"], how="anti")
@@ -67,3 +95,15 @@ def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date) -> pl.
         feed.filter(pl.col("action_type").is_in(keep) & (pl.col("ex_date") <= pl.lit(max_date)))
         .sort(["symbol", "ex_date", "action_type", "source"])
     )
+
+
+def load_verified_moves(path: Path) -> pl.DataFrame:
+    """symbol, date, reason, source. Every row needs a reason and a source."""
+    frame = pl.read_csv(path, try_parse_dates=True, schema_overrides={"symbol": pl.Utf8, "reason": pl.Utf8,
+                                                                       "source": pl.Utf8})
+    missing = {"symbol", "date", "reason", "source"} - set(frame.columns)
+    if missing:
+        raise OverrideError(f"{path} lacks columns {sorted(missing)}")
+    if frame.height and (frame["reason"].is_null().any() or frame["source"].is_null().any()):
+        raise OverrideError(f"{path}: every verified move needs a reason and a source")
+    return frame.select("symbol", pl.col("date").cast(pl.Date), "reason", "source")

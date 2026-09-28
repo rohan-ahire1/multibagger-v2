@@ -8,6 +8,7 @@ ABSLNN50ET,"",split,2021-11-25,,,,,0.1,1:10 inferred from isin_corroborated (obs
 ACCURACY,"",split,2023-02-15,,,,,0.1,FV 10->1 inferred from isin_corroborated (observed ratio 0.116582),isin_corroborated
 ACE,"",split,2008-03-13,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.205519),purpose_parsed
 ADVANIHOTR,"",split,2007-10-22,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.21),purpose_parsed
+AEGISCHEM,"",bonus,2010-08-18,2.0,3.0,,,,"Bonus 2:3; in the NSE feed under AEGISLOG (later symbol), and 2010 bars carry no ISIN to re-key it",manual
 AEGISCHEM,"",split,2015-09-16,,,,,0.1,1:10 inferred from isin_corroborated (observed ratio 0.098944),isin_corroborated
 AFIL,"",split,2025-04-17,,,,,0.1,FV 10->1 inferred from isin_corroborated (observed ratio 0.112395),isin_corroborated
 AGIIL,"",split,2025-10-10,,,,,0.2,FV 5->1 inferred from isin_corroborated (observed ratio 0.231226),isin_corroborated
@@ -233,6 +234,7 @@ KOTAKBANK,"",split,2026-01-14,,,,,0.2,FV 5->1 inferred from purpose_parsed (obse
 KOTAKGOLD,"",split,2015-04-13,,,,,0.10479146539497215,non-round action inferred from isin_corroborated (observed ratio 0.104791),isin_corroborated
 KOTAKGOLD,"",split,2021-07-22,,,,,0.1,1:10 inferred from isin_corroborated (observed ratio 0.099559),isin_corroborated
 KOTAKNIFTY,"",split,2017-07-27,,,,,0.1,1:10 inferred from isin_corroborated (observed ratio 0.100188),isin_corroborated
+KPIT,"",demerger,2019-01-24,,,,,0.623125,"Composite scheme: engineering business demerged to KPIT Engineering, rest renamed Birlasoft (feed: BSOFT, type other). Factor = ex-date price discovery: open 135 / cum close 216.65",manual
 KPRMILL,"",split,2021-09-24,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.219924),purpose_parsed
 KRBL,"",split,2010-02-10,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.117901),purpose_parsed
 KSERASERA,"",split,2015-03-30,,,,,0.11764705882352942,non-round action inferred from isin_corroborated (observed ratio 0.117647),isin_corroborated
@@ -276,6 +278,7 @@ MURLIIND,"",split,2010-03-18,,,,,0.2,FV 10->2 inferred from purpose_parsed (obse
 MVL,"",split,2009-09-18,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.198264),purpose_parsed
 MWL,"",split,2026-07-10,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.098987),purpose_parsed
 NATCOPHARM,"",split,2015-11-26,,,,,0.21090902039866594,non-round action inferred from isin_corroborated (observed ratio 0.210909),isin_corroborated
+NCC,"",rights,2014-09-18,,,,,0.612052,"Rights 7:6 at Rs 20 (FV 2 + premium 18); feed row unparsed. Factor = TERP / cum close = (6*71.55 + 7*20) / 13 / 71.55",manual
 NDL,"",split,2024-09-19,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.104865),purpose_parsed
 NECLIFE,"",split,2008-11-12,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.11205),purpose_parsed
 NESTLEIND,"",split,2024-01-05,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.098332),purpose_parsed

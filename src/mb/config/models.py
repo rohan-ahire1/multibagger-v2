@@ -117,6 +117,11 @@ class CorporateActionsSource(Strict):
     overrides_file: str
     # Override rows are applied only if their source is listed. `seed` rows are excluded on purpose.
     applied_override_sources: list[str]
+    # The feed lists an action under the symbol a company has today; bars use the symbol it traded under then. When
+    # true, a feed row moves to the symbol its ISIN traded under on the last session before the ex-date.
+    resymbol_by_isin: bool
+    # Unexplained jumps reviewed by hand and found to be real price moves (not data errors); they leave the jump list.
+    verified_moves_file: str
     url: str
     timeout_s: float
     window_sleep_s: float

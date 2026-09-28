@@ -11,7 +11,7 @@ import polars as pl
 from mb.config.loader import ConfigError
 from mb.config.models import DataConfig
 from mb.data import adjust, checks, datasets
-from mb.data.corporate_actions import load_actions
+from mb.data.corporate_actions import load_actions, load_verified_moves
 from mb.runs.record import git_state
 from mb.sources import nse_bhavcopy
 
@@ -30,10 +30,12 @@ def _inputs(cfg: DataConfig, root: Path, zips: list[Path]) -> dict:
         h.update(z.name.encode())
         h.update(datasets.sha256_file(z).encode())
     ca, ov = root / cfg.corporate_actions.raw_file, root / cfg.corporate_actions.overrides_file
+    vm = root / cfg.corporate_actions.verified_moves_file
     return {
         "bhavcopy": {"files": len(zips), "first": zips[0].stem, "last": zips[-1].stem, "sha256": h.hexdigest()},
         "corporate_actions": {"file": cfg.corporate_actions.raw_file, "sha256": datasets.sha256_file(ca)},
         "overrides": {"file": cfg.corporate_actions.overrides_file, "sha256": datasets.sha256_file(ov)},
+        "verified_moves": {"file": cfg.corporate_actions.verified_moves_file, "sha256": datasets.sha256_file(vm)},
     }
 
 
@@ -48,12 +50,13 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
     bars = nse_bhavcopy.parse_all(raw_dir, cfg.bhavcopy)
     max_date = bars["date"].max()
 
-    actions = load_actions(cfg.corporate_actions, root, max_date)
+    actions = load_actions(cfg.corporate_actions, root, max_date, bars)
     events, unusable = adjust.expected_share_events(actions)
     matches = adjust.match_share_events(bars, events, cfg.adjustment)
     dividends = adjust.dividend_steps(bars, actions, cfg.adjustment)
     panel = adjust.build_research_panel(bars, matches, dividends)
-    jumps = adjust.unexplained_jumps(panel, cfg.adjustment)
+    verified = load_verified_moves(root / cfg.corporate_actions.verified_moves_file)
+    jumps = adjust.unexplained_jumps(panel, cfg.adjustment, verified)
 
     prev = datasets.previous_version(root, cfg.name, version)
     prev_rows = datasets.read_manifest(prev)["rows"] if prev else None
@@ -84,6 +87,9 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
         "code": git_state(root),
         "inputs": _inputs(cfg, root, zips),
         "share_event_status": dict(sorted(matches.group_by("status").len().iter_rows())),
+        "actions_resymbolled_by_isin": actions.filter(pl.col("feed_symbol").is_not_null()
+                                                      & (pl.col("feed_symbol") != pl.col("symbol"))).height,
+        "verified_moves": verified.height,
         "checks": [r.as_dict() for r in results],
         "outputs": {n: {"sha256": datasets.sha256_file(tmp / n), "rows": t.height} for n, t in tables.items()},
         "built_at": started.isoformat(),

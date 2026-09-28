@@ -67,6 +67,7 @@ def write_raw(root: Path) -> None:
     pl.DataFrame(actions, schema=SCHEMA).write_parquet(ca_dir / "ca.parquet")
     (root / "configs/data").mkdir(parents=True)
     (root / "configs/data/overrides.csv").write_text("symbol,ex_date,action_type,source\n")
+    (root / "configs/data/verified_moves.csv").write_text("symbol,date,reason,source\n")
 
 
 def data_config() -> dict:
@@ -78,7 +79,8 @@ def data_config() -> dict:
         "corporate_actions": {"raw_file": "data/raw/nse_corporate_actions/ca.parquet",
                               "coverage_file": "data/raw/nse_corporate_actions/cov.parquet",
                               "overrides_file": "configs/data/overrides.csv",
-                              "applied_override_sources": ["manual"], "url": "http://z", "timeout_s": 1.0,
+                              "applied_override_sources": ["manual"], "resymbol_by_isin": True,
+                              "verified_moves_file": "configs/data/verified_moves.csv", "url": "http://z", "timeout_s": 1.0,
                               "window_sleep_s": 0.0},
         "adjustment": {"match_window_sessions": 3, "match_tolerance": 1.25, "min_detectable": 1.2,
                        "unexplained_jump": 1.5, "dividend_max_price_fraction": 0.5},

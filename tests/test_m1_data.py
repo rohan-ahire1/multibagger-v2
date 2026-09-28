@@ -11,7 +11,7 @@ from data_fixture import DELIST_AFTER, SPLIT_SESSION, BONUS_SESSION, sessions, w
 from mb.config.loader import ConfigError, load_data_config
 from mb.config.models import AdjustmentConfig
 from mb.data import adjust, build, datasets
-from mb.data.corporate_actions import OverrideError, load_overrides
+from mb.data.corporate_actions import OverrideError, load_overrides, resymbol_by_isin
 from mb.sources import nse_bhavcopy, nse_corporate_actions as nca
 
 ADJ = AdjustmentConfig(match_window_sessions=3, match_tolerance=1.25, min_detectable=1.2,
@@ -115,6 +115,46 @@ def test_dividend_uses_close_before_ex_date():
                          "dividend_amount": [10.0]})
     steps = adjust.dividend_steps(prices, acts, ADJ)
     assert steps["mult"][0] == pytest.approx(0.9)  # 1 - 10/100, not 1 - 10/90
+
+
+def test_feed_row_moves_to_the_symbol_its_isin_traded_under():
+    ss = sessions()
+    bars = pl.DataFrame({"symbol": ["OLDSYM"] * 3 + ["NEWSYM"] * 2, "date": ss[:5],
+                         "security_id": ["isin:INE1"] * 5})
+    feed = pl.DataFrame({"symbol": ["NEWSYM", "NEWSYM", "OTHER"], "isin": ["INE1", "INE1", "INE9"],
+                         "ex_date": [ss[2], ss[4], ss[2]], "action_type": ["bonus", "bonus", "split"]})
+    out = resymbol_by_isin(feed, bars)
+    assert out.select("symbol", "feed_symbol").rows() == [("OLDSYM", "NEWSYM"), ("NEWSYM", "NEWSYM"), ("OTHER", "OTHER")]
+
+
+def test_moved_row_does_not_double_an_action_the_bar_symbol_already_lists():
+    ss = sessions()
+    bars = pl.DataFrame({"symbol": ["OLDSYM"] * 3, "date": ss[:3], "security_id": ["isin:INE1"] * 3})
+    feed = pl.DataFrame({"symbol": ["NEWSYM", "OLDSYM"], "isin": ["INE1", "INE1"], "ex_date": [ss[2], ss[2]],
+                         "action_type": ["bonus", "bonus"]})
+    assert resymbol_by_isin(feed, bars).select("symbol", "feed_symbol").rows() == [("OLDSYM", "OLDSYM")]
+
+
+def test_price_only_action_adjusts_price_not_volume():
+    acts = pl.DataFrame({"symbol": ["AAA", "BBB"], "ex_date": [sessions()[10]] * 2, "action_type": ["demerger", "rights"],
+                         "adjustment_factor": [0.6, None], "source": ["manual", "manual"]})
+    ev, bad = adjust.expected_share_events(acts)
+    assert ev.select("symbol", "expected", "adjusts_volume").rows() == [("AAA", 0.6, False)]
+    assert bad["symbol"].to_list() == ["BBB"]  # no factor, no guess
+    prices = _prices("AAA", [100.0] * 10 + [60.0] * 10).with_columns(
+        pl.col("close").alias("high"), pl.col("close").alias("low"), pl.lit(1000).alias("volume"))
+    no_divs = pl.DataFrame(schema={"symbol": pl.Utf8, "effective_date": pl.Date, "mult": pl.Float64})
+    panel = adjust.build_research_panel(prices, adjust.match_share_events(prices, ev, ADJ), no_divs)
+    assert panel["adj_close"][0] == pytest.approx(60.0) and panel["adj_volume"][0] == 1000
+
+
+def test_verified_move_leaves_the_jump_list_and_a_stale_one_is_an_error():
+    panel = _prices("AAA", [100.0] * 5 + [60.0] * 5).rename({"close": "adj_close"})
+    ok = pl.DataFrame({"symbol": ["AAA"], "date": [sessions()[5]], "reason": ["r"], "source": ["manual"]})
+    assert adjust.unexplained_jumps(panel, ADJ, ok.head(0)).height == 1
+    assert adjust.unexplained_jumps(panel, ADJ, ok).height == 0
+    with pytest.raises(ValueError, match="not unexplained jumps"):
+        adjust.unexplained_jumps(panel, ADJ, ok.with_columns(pl.lit(sessions()[3]).alias("date")))
 
 
 # --- adapters -------------------------------------------------------------------------------

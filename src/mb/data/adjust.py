@@ -13,7 +13,7 @@ from datetime import date
 import polars as pl
 
 from mb.config.models import AdjustmentConfig
-from mb.data.corporate_actions import SHARE_ACTIONS
+from mb.data.corporate_actions import PRICE_ONLY_ACTIONS, SHARE_ACTIONS
 
 _ANCHOR_DATE = date(1990, 1, 1)
 
@@ -82,9 +82,10 @@ def expected_share_events(actions: pl.DataFrame) -> tuple[pl.DataFrame, pl.DataF
         if mult is None or math.isclose(mult, 1.0):
             continue
         rows.append({"symbol": symbol, "ex_date": ex_date, "expected": mult,
-                     "sources": ",".join(sorted({str(r.get("source") or "") for r in chosen}))})
+                     "sources": ",".join(sorted({str(r.get("source") or "") for r in chosen})),
+                     "adjusts_volume": all(r["action_type"] not in PRICE_ONLY_ACTIONS for r in chosen)})
     events = pl.DataFrame(rows, schema={"symbol": pl.Utf8, "ex_date": pl.Date, "expected": pl.Float64,
-                                        "sources": pl.Utf8})
+                                        "sources": pl.Utf8, "adjusts_volume": pl.Boolean})
     bad = pl.DataFrame(unusable, schema={"symbol": pl.Utf8, "ex_date": pl.Date, "action_type": pl.Utf8,
                                          "reason": pl.Utf8})
     return events.sort(["symbol", "ex_date"]), bad.sort(["symbol", "ex_date", "action_type"])
@@ -145,7 +146,7 @@ def match_share_events(prices: pl.DataFrame, events: pl.DataFrame, cfg: Adjustme
         rows.append({**base, "effective_date": dates[j], "observed": gaps[j], "offset": j - idx,
                      "status": "matched", "_err": best[0]})
     schema = {"symbol": pl.Utf8, "ex_date": pl.Date, "expected": pl.Float64, "sources": pl.Utf8,
-              "effective_date": pl.Date, "observed": pl.Float64, "offset": pl.Int64, "status": pl.Utf8,
+              "adjusts_volume": pl.Boolean, "effective_date": pl.Date, "observed": pl.Float64, "offset": pl.Int64, "status": pl.Utf8,
               "_err": pl.Float64}
     matched = pl.DataFrame(rows, schema=schema)
     # Two listed events explaining the same observed jump: keep the closer fit.
@@ -219,14 +220,17 @@ def _join_factor(bars: pl.DataFrame, steps: pl.DataFrame) -> pl.Series:
 def build_research_panel(bars: pl.DataFrame, matches: pl.DataFrame, dividends: pl.DataFrame) -> pl.DataFrame:
     """Canonical bars plus `adj_open..adj_close`, `adj_volume`, `adj_factor`.
 
-    Share events (matched / applied_small) adjust price and volume; dividends adjust price only.
+    Share events (matched / applied_small) adjust price, and volume unless price-only (rights, demerger); dividends
+    adjust price only.
     """
     bars = bars.sort(["symbol", "date"])
     applied = matches.filter(pl.col("status").is_in(["matched", "applied_small"]))
     share = applied.select("symbol", pl.col("effective_date").alias("ex_date"), pl.col("expected").alias("mult"))
+    volume = applied.filter(pl.col("adjusts_volume")).select(
+        "symbol", pl.col("effective_date").alias("ex_date"), pl.col("expected").alias("mult"))
     div = dividends.select("symbol", pl.col("effective_date").alias("ex_date"), "mult")
     price_factor = _join_factor(bars, _factor_steps(pl.concat([share, div])))
-    volume_factor = _join_factor(bars, _factor_steps(share))
+    volume_factor = _join_factor(bars, _factor_steps(volume))
     return bars.with_columns(
         *((pl.col(c) * price_factor).alias(f"adj_{c}") for c in ("open", "high", "low", "close")),
         (pl.col("volume") / volume_factor).round(0).cast(pl.Int64).alias("adj_volume"),
@@ -234,13 +238,20 @@ def build_research_panel(bars: pl.DataFrame, matches: pl.DataFrame, dividends: p
     )
 
 
-def unexplained_jumps(panel: pl.DataFrame, cfg: AdjustmentConfig) -> pl.DataFrame:
-    """Session-to-session adjusted-close moves beyond `unexplained_jump` either way."""
+def unexplained_jumps(panel: pl.DataFrame, cfg: AdjustmentConfig, verified: pl.DataFrame) -> pl.DataFrame:
+    """Session-to-session adjusted-close moves beyond `unexplained_jump` either way, less the verified real moves.
+
+    A verified move that is not in the list is an error: the file would claim something the data does not show.
+    """
     j = cfg.unexplained_jump
-    return (
+    jumps = (
         panel.select("symbol", "date", pl.col("adj_close").alias("close"))
         .sort(["symbol", "date"])
         .with_columns((pl.col("close") / pl.col("close").shift(1).over("symbol")).alias("ratio"))
         .filter((pl.col("ratio") > j) | (pl.col("ratio") < 1 / j))
         .select("symbol", "date", "ratio")
     )
+    stale = verified.join(jumps, on=["symbol", "date"], how="anti")
+    if stale.height:
+        raise ValueError(f"verified moves that are not unexplained jumps: {stale.select('symbol', 'date').rows()}")
+    return jumps.join(verified.select("symbol", "date"), on=["symbol", "date"], how="anti")
