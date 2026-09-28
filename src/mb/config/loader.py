@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ValidationError
 
-from mb.config.models import BaselinesConfig, MarketConfig, StrategyConfig
+from mb.config.models import BaselinesConfig, DataConfig, MarketConfig, StrategyConfig
 
 
 class ConfigError(Exception):
@@ -80,3 +80,10 @@ def enforce_lock(cfg: Resolved, final: bool) -> None:
             f"period.end {cfg.strategy.period.end} reaches the locked period (from {lock}); "
             "use --final for a final evaluation"
         )
+
+
+def load_data_config(path: Path) -> tuple[DataConfig, str]:
+    """Returns the validated data config and its hash."""
+    cfg = _validate(DataConfig, _read_yaml(path.resolve()), str(path))
+    text = yaml.safe_dump(cfg.model_dump(mode="json"), sort_keys=True)
+    return cfg, hashlib.sha256(text.encode()).hexdigest()

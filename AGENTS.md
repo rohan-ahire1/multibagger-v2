@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 done (skeleton). Next: M1 (data layer). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton) and M1 (data layer) done. Next: M2 (engine + metrics). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 
@@ -23,12 +23,15 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | Path | What |
 |---|---|
 | `configs/market/` | Costs, slippage, idle-cash yield (one file per market) |
+| `configs/data/` | Data config (`nse_research.yaml`: sources, adjustment rules, check limits) and CA overrides CSV |
 | `configs/baselines.yaml` | Locked period start (folds and benchmarks come in M3/M4) |
 | `strategies/<name>/configs/` | Strategy configs (one file per version) |
 | `src/mb/config/` | Strict Pydantic models (`models.py`) and loader (`loader.py`) |
 | `src/mb/strategy/` | `registry.py` maps strategy name → params model + runner |
 | `src/mb/runs/record.py` | Run record writer and index |
-| `src/mb/{sources,data,engine,evaluation,live}/` | Empty until their milestones |
+| `src/mb/sources/` | Adapters: `nse_bhavcopy.py` (download + parse to canonical bars), `nse_corporate_actions.py` |
+| `src/mb/data/` | `corporate_actions.py` (feed + overrides), `adjust.py` (jump-matched adjustment), `checks.py`, `build.py`, `datasets.py` |
+| `src/mb/{engine,evaluation,live}/` | Empty until their milestones |
 | `docs/reference/` | v1 reference trades, metrics, resolved settings |
 | `tests/` | `uv run pytest` |
 
@@ -37,6 +40,10 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 ```
 uv run mb backtest <strategy-config> [--final]   # writes runs/<run_id>/
 uv run mb runs list
+uv run mb data build configs/data/nse_research.yaml --version <label>   # new immutable dataset, runs checks
+uv run mb data check nse_research@<label>                              # recorded checks + file hashes
+uv run mb data fetch bhavcopy configs/data/nse_research.yaml --from D --to D
+uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-year Y --end-year Y
 uv run pytest
 ```
 
@@ -47,3 +54,11 @@ Run record: `config.resolved.yaml`, `manifest.json` (code commit, config hash, d
 
 Create `strategies/<name>/`, define a strict `Params` model and a `run(cfg) -> RunResult`, register both in
 `src/mb/strategy/registry.py`.
+
+## Raw data on this Mac
+
+`data/` is git-ignored. `data/raw/nse_bhavcopy/<year>/<date>.zip` are symlinks to v1's
+`~/projects/Multibagger/data/nse_bhavcopy_raw/` (nothing copied; disk is tight). New downloads land beside them as real
+files. `data/raw/nse_corporate_actions/` and `data/raw/benchmarks/` are copies of v1's reference files.
+Datasets go in `data/datasets/<name>/<version>/` (`panel.parquet` = canonical bars + `adj_*` columns).
+Current dataset: `nse_research@2026-09-29` (data through 2026-07-17); it equals v1's sim layer exactly.

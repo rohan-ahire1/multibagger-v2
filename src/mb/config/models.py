@@ -51,3 +51,53 @@ class StrategyConfig(Strict):
         if v.split("@", 1)[1] == "latest":
             raise ValueError("dataset must be pinned; 'latest' is not allowed")
         return v
+
+
+class BhavcopySource(Strict):
+    raw_dir: str
+    series: list[str]
+    legacy_cutoff: date
+    archive_base_url: str
+    legacy_archive_base_url: str
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
+
+
+class CorporateActionsSource(Strict):
+    raw_file: str
+    coverage_file: str
+    overrides_file: str
+    # Override rows are applied only if their source is listed. `seed` rows are excluded on purpose.
+    applied_override_sources: list[str]
+    url: str
+    timeout_s: float
+    window_sleep_s: float
+
+
+class AdjustmentConfig(Strict):
+    match_window_sessions: int
+    match_tolerance: float
+    min_detectable: float
+    unexplained_jump: float
+    dividend_max_price_fraction: float
+
+
+class ChecksConfig(Strict):
+    # A session with fewer rows than this fraction of the trailing median is flagged as partial.
+    min_session_rows_ratio: float
+    session_rows_lookback: int
+    # Sessions reviewed by hand and accepted as thin (checked against the ratio limit only elsewhere).
+    accepted_thin_sessions: list[date]
+    max_session_gap_days: int
+    max_unexplained_jumps: int
+    max_unmatched_share_events: int
+    max_row_count_drift_pct: float
+
+
+class DataConfig(Strict):
+    name: str
+    bhavcopy: BhavcopySource
+    corporate_actions: CorporateActionsSource
+    adjustment: AdjustmentConfig
+    checks: ChecksConfig
