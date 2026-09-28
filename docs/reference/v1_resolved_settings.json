@@ -1,0 +1,225 @@
+{
+  "alert_channels": {
+    "console": {
+      "enabled": true
+    },
+    "telegram": {
+      "enabled": true
+    }
+  },
+  "alerts": {
+    "channels": [
+      "telegram",
+      "console"
+    ],
+    "max_alerts_per_day": 50,
+    "send_breakout_alerts": true,
+    "send_watch_alerts": true,
+    "signal_ranking_mode": "default"
+  },
+  "backtest": {
+    "baseline_tighten_r": 5.0,
+    "exit_mode": "baseline_ema_hybrid",
+    "max_hold_days": 150,
+    "max_signals_per_day": 20,
+    "pending_days": 8,
+    "rs_rank_max": 100.0,
+    "rs_rank_min": 70.0,
+    "sector_alpha_enabled": false,
+    "sector_alpha_mult_high": 1.2,
+    "sector_alpha_mult_low": 0.8,
+    "sector_alpha_threshold_high": 85.0,
+    "sector_alpha_threshold_low": 60.0,
+    "signal_exit_execution": "next_open",
+    "signal_quality_contraction_max": null,
+    "signal_quality_contraction_min": null,
+    "signal_quality_offense_score_max": null,
+    "signal_quality_offense_score_min": null,
+    "signal_quality_pivot_age_max": null,
+    "signal_quality_pivot_age_min": null,
+    "signal_quality_profile": "default",
+    "signal_quality_range10_max": 0.08,
+    "signal_quality_range10_min": null,
+    "signal_quality_setup_streak_max": 0,
+    "signal_quality_setup_streak_min": null,
+    "signal_quality_size_tilt_max_mult": 1.4,
+    "signal_quality_size_tilt_min_mult": 0.6,
+    "signal_quality_size_tilt_mode": "off",
+    "signal_quality_size_tilt_score_max": 8.0,
+    "signal_quality_size_tilt_score_min": 5.5,
+    "signal_quality_vol_mult_min": null,
+    "signal_quality_voldry_max": 0.9,
+    "signal_quality_voldry_min": null,
+    "signal_ranking_mode": "default",
+    "skip_months": [
+      1
+    ],
+    "slippage_bps": 10.0,
+    "stop_trigger_mode": "intraday_hard",
+    "use_extended_exit_model": false,
+    "use_regime_entry_controls": false
+  },
+  "base_dir": "/Users/rohan/projects/Multibagger",
+  "breakout": {
+    "breakout_buffer_atr_mult": 0.5,
+    "breakout_buffer_pct": 0.003,
+    "breakout_vol_max_mult": 20.0,
+    "breakout_vol_mult": 1.0,
+    "max_extension_breakout_pct": 0.3,
+    "require_market_filter": false
+  },
+  "config_dir": "/Users/rohan/projects/Multibagger/config",
+  "data": {
+    "bhavcopy_api_key": "favCapital",
+    "http_timeout_sec": 30,
+    "max_retries": 5,
+    "min_history_days": 320,
+    "redownload_days": 5,
+    "source": "nse_bhavcopy"
+  },
+  "exit_strategy": {
+    "absolute_max_loss_pct": 0.07,
+    "breakeven_activation_r": 2.0,
+    "climax_conditions_required": 3,
+    "climax_min_hold_days": 15,
+    "dead_money_days": null,
+    "dead_money_extend_days": 0,
+    "dead_money_extend_to_breakeven": false,
+    "dead_money_min_mfe_r": 0.75,
+    "dead_money_min_open_r": 0.0,
+    "max_hold_before_tighten": 40,
+    "max_loss_pct": 0.07,
+    "partial_profit_pct": 0.5,
+    "partial_profit_r": 8.0,
+    "soft_expiry_days": 30,
+    "soft_expiry_gain": 0.2,
+    "stagnation_exit_bars": 15,
+    "stagnation_max_mfe_r": 0.4,
+    "stagnation_max_open_r": 0.0,
+    "time_stop_days": null,
+    "trail_activation_r": 1.5,
+    "trail_mode": "adaptive",
+    "trail_pct": 0.1,
+    "trail_pct_bear": 0.15,
+    "trail_pct_bull": 0.25,
+    "trail_widen_r": 3.0
+  },
+  "fundamental_gate": {
+    "availability_date_column": "available_date",
+    "data_path": "data/reference/screener_annual.csv",
+    "enabled": false,
+    "freq": "annual",
+    "min_yoy_growth": 0.25,
+    "pass_if_missing": true,
+    "reporting_lag_days": 75,
+    "require_actual_announcement_date": true
+  },
+  "india_filter": null,
+  "manual_universe": [],
+  "market": {
+    "benchmark_symbol": "NIFTYBEES",
+    "scan_time_ist": "16:10",
+    "timezone": "Asia/Kolkata"
+  },
+  "market_filter": {
+    "benchmark_ema_period": 21,
+    "breadth_strong_pct": 0.4,
+    "breadth_weak_pct": 0.2
+  },
+  "portfolio": {
+    "breadth_soft_floor_pct": null,
+    "breadth_soft_size_mult": 0.5,
+    "cash_yield_apy": 0.0,
+    "drawdown_close_pct": 0.7,
+    "drawdown_half_pct": 0.5,
+    "drawdown_stop_pct": 0.6,
+    "initial_capital": 1000000.0,
+    "max_heat_pct": 1.0,
+    "max_name_pct": 0.2,
+    "max_positions": 20,
+    "max_sector_pct": 1.0,
+    "max_sector_positions": 4,
+    "pyramid_add_interval_r": 0.5,
+    "pyramid_max_adds": 0,
+    "pyramid_risk_frac": 0.5,
+    "pyramid_trigger_r": 1.0,
+    "regime_cooldown_days": 0,
+    "regime_gate_enabled": true,
+    "regime_heat_mult_strong": 1.0,
+    "regime_high_volatility_threshold": 0.25,
+    "risk_per_trade_pct": 0.02
+  },
+  "pullback": {
+    "anchor_ma": "ema21",
+    "dedup_days": 10,
+    "enabled": false,
+    "leader_min_days": 20,
+    "ma_touch_pct": 0.02,
+    "pullback_voldry_max": 0.9,
+    "reversal_upper_range_frac": 0.6666666667,
+    "rs_pullback_min": 70.0
+  },
+  "relative_strength": {
+    "lookbacks": [
+      63
+    ],
+    "rs_rank_max": 100.0,
+    "rs_rank_min": 40.0,
+    "skip_recent_days": 0,
+    "weights": [
+      1.0
+    ]
+  },
+  "risk": {
+    "entry_buffer_atr_mult": 0.5,
+    "entry_buffer_pct": 0.003,
+    "max_stop_pct": 0.07,
+    "struct_stop_atr_mult": 1.0,
+    "target_r": null
+  },
+  "runtime": {
+    "polars_max_threads": 8
+  },
+  "setup_vcp": {
+    "atr_contraction_factor": 1.2,
+    "atr_period": 14,
+    "base_lookback": 65,
+    "base_max_depth_pct": 0.6,
+    "contraction_max_count": 2,
+    "contraction_min_count": 0,
+    "contraction_min_peak_pct": 0.01,
+    "contraction_smooth_window": 5,
+    "contraction_standard_count": 3,
+    "max_extension_from_50sma_pct": 0.4,
+    "max_range10_pct": 0.08,
+    "max_vol_dryup_ratio": 2.0,
+    "pre_alert_proximity_pct": 0.05,
+    "require_progressive": false
+  },
+  "telegram": {
+    "bot_token": null,
+    "chat_id": null,
+    "enabled": false
+  },
+  "trend_template": {
+    "lookback_52w": 252,
+    "max_below_52w_high_pct": 0.45,
+    "min_above_52w_low_pct": 0.1,
+    "sma200_slope_lookback": 21,
+    "sma_fast": 50,
+    "sma_mid": 150,
+    "sma_slow": 200
+  },
+  "universe": {
+    "allowed_series": [
+      "EQ"
+    ],
+    "max_symbols": 1500,
+    "min_adv50_inr": 50000000.0,
+    "min_avg_volume_shares": 200000,
+    "min_price_inr": 50.0
+  },
+  "watchlist": {
+    "max_candidates": 1000
+  }
+}

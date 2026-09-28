@@ -1,0 +1,6 @@
+name: dummy
+version: smoke
+dataset: nse_research@2026-09-28
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params: {}

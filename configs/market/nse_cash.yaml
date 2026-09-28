@@ -1,0 +1,3 @@
+# Market profile. Statutory charges and DP fee are added in M2 with the engine.
+slippage_bps_per_side: 10
+idle_cash_yield_annual: 0.0

@@ -1,0 +1,13 @@
+{
+  "window": [
+    "2010-01-04",
+    "2026-03-17"
+  ],
+  "cagr_pct": 6.39,
+  "max_dd_pct": 23.55,
+  "calmar": 0.27,
+  "trades": 258,
+  "filled_rows_in_csv": 258,
+  "v1_commit": "3f7cf7807b4b2318e3291bda5bea2870ff205710",
+  "SEPA_DATA_DIR": "data/sim_scan"
+}
