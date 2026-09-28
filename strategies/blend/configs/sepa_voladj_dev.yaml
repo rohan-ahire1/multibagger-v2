@@ -1,0 +1,15 @@
+# M5 blend 2 (docs/research/m5.md): half SEPA, half vol-adjusted momentum (best whole-period Calmar in momentum-variants).
+name: blend
+version: sepa_voladj_dev
+dataset: nse_research@2026-09-29b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/sepa/configs/v1_port_dev_b.yaml
+      config_hash: b6aae9bd5a1347542af9bbcf5148c9ccaae1bad8acf2efeee4af433746fafa7c
+      weight: 0.5
+    - config: strategies/momentum/configs/voladj_dev.yaml
+      config_hash: f599c19fe0aae07997c3d2b76399f4b8e5424f99e1514c1c7a5250c56c854d32
+      weight: 0.5
+  initial_capital: 1000000
