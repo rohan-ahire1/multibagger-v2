@@ -3,7 +3,7 @@ locked_from: 2024-01-01
 
 # Development folds. A run reports its numbers on each fold that lies inside its period, and on the whole period.
 folds:
-  - {name: f1_2010_2013, start: 2010-01-01, end: 2013-12-31}
+  - {name: f1_2010_2013, start: 2010-01-04, end: 2013-12-31}
   - {name: f2_2014_2017, start: 2014-01-01, end: 2017-12-31}
   - {name: f3_2018_2023, start: 2018-01-01, end: 2023-12-31}
 
