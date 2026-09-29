@@ -5,7 +5,7 @@ import re
 from datetime import date
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Strict(BaseModel):
@@ -155,6 +155,14 @@ class DataConfig(Strict):
     corporate_actions: CorporateActionsSource
     adjustment: AdjustmentConfig
     checks: ChecksConfig
+
+
+class DataConfigM14(DataConfig):
+    # M14 (docs/research/m14.md): before adjustment, an old symbol's bars take the later symbol its ISIN moved to, so a
+    # renamed stock keeps its history. A subclass, so existing data configs keep their model and hash.
+    link_renames_by_isin: bool
+    # A link is refused when the old symbol's last bar is more than this many calendar days before the new one's first.
+    rename_max_gap_days: int = Field(ge=0)
 
 
 class CalendarSource(Strict):

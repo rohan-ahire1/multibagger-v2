@@ -9,8 +9,8 @@ from pathlib import Path
 import polars as pl
 
 from mb.config.loader import ConfigError
-from mb.config.models import DataConfig
-from mb.data import adjust, checks, datasets
+from mb.config.models import DataConfig, DataConfigM14
+from mb.data import adjust, checks, datasets, renames
 from mb.data.corporate_actions import load_actions, load_verified_moves
 from mb.runs.record import git_state
 from mb.sources import nse_bhavcopy
@@ -49,8 +49,12 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
     zips = nse_bhavcopy.build_zips(raw_dir, cfg.bhavcopy)
     bars = nse_bhavcopy.parse_all(raw_dir, cfg.bhavcopy)
     max_date = bars["date"].max()
+    links = refused = None
+    if isinstance(cfg, DataConfigM14) and cfg.link_renames_by_isin:
+        links, refused = renames.rename_links(bars, cfg.rename_max_gap_days)
+        bars = renames.relabel(bars, links, "date").sort(["symbol", "date"])
 
-    actions = load_actions(cfg.corporate_actions, root, max_date, bars)
+    actions = load_actions(cfg.corporate_actions, root, max_date, bars, links)
     if cfg.bhavcopy.first_date is not None:
         # An action on or before the first session has no prior bar to show it and moves no kept row's adjustment.
         actions = actions.filter(pl.col("ex_date") > bars["date"].min())
@@ -59,6 +63,8 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
     dividends = adjust.dividend_steps(bars, actions, cfg.adjustment)
     panel = adjust.build_research_panel(bars, matches, dividends)
     verified = load_verified_moves(root / cfg.corporate_actions.verified_moves_file)
+    if links is not None:
+        verified = renames.relabel(verified, links, "date")
     if cfg.bhavcopy.first_date is not None:
         verified = verified.filter(pl.col("date") > bars["date"].min())
     jumps = adjust.unexplained_jumps(panel, cfg.adjustment, verified)
@@ -78,6 +84,8 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
         "unexplained_jumps.parquet": jumps.sort(["symbol", "date"]),
         "unusable_actions.parquet": unusable,
     }
+    if links is not None and refused is not None:
+        tables |= {"rename_links.parquet": links, "rename_links_refused.parquet": refused}
     for name, table in tables.items():
         table.write_parquet(tmp / name, compression="zstd")
     manifest = {
@@ -95,6 +103,8 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
         "actions_resymbolled_by_isin": actions.filter(pl.col("feed_symbol").is_not_null()
                                                       & (pl.col("feed_symbol") != pl.col("symbol"))).height,
         "verified_moves": verified.height,
+        **({"rename_links": links.height, "rename_links_refused": dict(sorted(refused.group_by("reason").len().iter_rows()))}
+           if links is not None and refused is not None else {}),
         "checks": [r.as_dict() for r in results],
         "outputs": {n: {"sha256": datasets.sha256_file(tmp / n), "rows": t.height} for n, t in tables.items()},
         "built_at": started.isoformat(),

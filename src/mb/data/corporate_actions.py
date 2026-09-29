@@ -7,6 +7,7 @@ from pathlib import Path
 import polars as pl
 
 from mb.config.models import CorporateActionsSource
+from mb.data.renames import relabel
 
 SHARE_ACTIONS = ("split", "bonus", "face_value", "bonus_split", "rights", "demerger")
 # Adjust price only, never volume, and need an explicit `adjustment_factor` (an override row).
@@ -79,17 +80,21 @@ def resymbol_by_isin(feed: pl.DataFrame, bars: pl.DataFrame) -> pl.DataFrame:
     return pl.concat([native, moved]).sort("_i").drop("_i", "_before", "_bar_symbol", "_from", "_new_isin_symbol")
 
 
-def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date, bars: pl.DataFrame) -> pl.DataFrame:
+def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date, bars: pl.DataFrame,
+                 links: pl.DataFrame | None = None) -> pl.DataFrame:
     """Feed + overrides, share actions and dividends only, ex-dated on or before `max_date`.
 
     Feed rows are re-keyed to bar symbols first (when `resymbol_by_isin`); overrides are written against bar symbols.
     Price-only actions come from overrides alone: the feed has no factor for them.
     An override states the total multiplier for its symbol-date, so it replaces every feed row there.
     Actions after the last price date belong to a later build.
+    `links` (M14 rename links): overrides written against an old symbol move to its later symbol, as its bars did.
     """
     feed = pl.read_parquet(root / cfg.raw_file).filter(~pl.col("action_type").is_in(PRICE_ONLY_ACTIONS))
     feed = resymbol_by_isin(feed, bars) if cfg.resymbol_by_isin else feed.with_columns(pl.col("symbol").alias("feed_symbol"))
     overrides = load_overrides(root / cfg.overrides_file, cfg.applied_override_sources)
+    if overrides is not None and links is not None:
+        overrides = relabel(overrides, links, "ex_date")
     if overrides is not None:
         feed = feed.join(overrides.select("symbol", "ex_date").unique(), on=["symbol", "ex_date"], how="anti")
         overrides = overrides.with_columns(
