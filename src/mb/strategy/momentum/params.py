@@ -202,3 +202,22 @@ class PortfolioM19(PortfolioM12):
 
 class ParamsM19(ParamsM13):
     portfolio: PortfolioM19
+
+
+# M21 option (docs/research/m21.md).
+
+class ExitsM21(Exits):
+    # Set: after each decision close, the picks are followed as held from that close (adjusted closes, target weights,
+    # gold and other fixed symbols left out). At the first close where that value is at or below (1 - this) x its highest
+    # close since the decision, every pick is sold at the next open; the cash waits for the next decision date.
+    book_stop_frac: float | None
+
+    @model_validator(mode="after")
+    def _book(self) -> ExitsM21:
+        if self.book_stop_frac is not None and not 0.0 < self.book_stop_frac < 1.0:
+            raise ValueError("book_stop_frac must be between 0 and 1")
+        return self
+
+
+class ParamsM21(ParamsM19):
+    exits: ExitsM21

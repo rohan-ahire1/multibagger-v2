@@ -8,10 +8,11 @@ from __future__ import annotations
 import math
 from datetime import date
 
+import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, Ranking, RankingM8, RankingM10, RankingM12,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, Ranking, RankingM8, RankingM10, RankingM12,
                                          Sizing, Universe, UniverseM13)
 
 
@@ -266,9 +267,44 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if m11 and m11.portfolio.weighting == "inverse_vol":
         w = inverse_vol_weights(panel, m11.portfolio.inverse_vol_sessions, {d: list(t.weights) for d, t in out.items()})
         out = {d: Target(w[d], t.gross, t.keep_size) for d, t in out.items()}
+    if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
+        out = book_stops(panel, out, p.exits.book_stop_frac, end)
     if isinstance(p, ParamsM19) and p.portfolio.fixed_weights:
         out = {d: _with_fixed(t, p.portfolio.fixed_weights) for d, t in out.items()}
     return out
+
+
+def book_stops(panel: pl.DataFrame, out: dict[date, Target], frac: float, end: date) -> dict[date, Target]:
+    """Add an all-cash target at the first close after a decision where the picks, held from the decision close at their
+    target weights, are at or below (1 - frac) x their highest value since then. Missing closes carry the last one."""
+    dates = sorted(out)
+    names = sorted({s for t in out.values() for s in t.weights})
+    wide = (panel.filter(pl.col("symbol").is_in(names) & pl.col("date").is_between(dates[0], end))
+            .pivot(on="symbol", index="date", values="adj_close").sort("date"))
+    days = wide["date"].to_list()
+    at = {d: i for i, d in enumerate(days)}
+    px = wide.select([pl.col(s) if s in wide.columns else pl.lit(None, pl.Float64).alias(s) for s in names]).fill_null(
+        strategy="forward").to_numpy()
+    col = {s: j for j, s in enumerate(names)}
+    got = dict(out)
+    for k, d in enumerate(dates):
+        t = out[d]
+        total = sum(t.weights.values())
+        if not t.weights or t.gross <= 0.0 or total <= 0.0:
+            continue
+        stop = at[dates[k + 1]] if k + 1 < len(dates) else len(days)
+        i0 = at[d]
+        j = [col[s] for s in t.weights]
+        base = px[i0, j]
+        if np.isnan(base).any():
+            raise ValueError(f"book stop: a pick has no close on {d}")
+        w = np.array([t.weights[s] / total for s in t.weights]) / base
+        path = np.nan_to_num(px[i0 + 1:stop][:, j], nan=0.0) @ w  # a name with no later close keeps its last one
+        peak = np.maximum.accumulate(np.concatenate([[1.0], path]))[1:]
+        hit = np.flatnonzero(path <= (1.0 - frac) * peak)
+        if hit.size and i0 + 1 + hit[0] < stop:
+            got[days[i0 + 1 + hit[0]]] = Target({}, t.gross, frozenset())
+    return dict(sorted(got.items()))
 
 
 def _with_fixed(t: Target, fixed: dict[str, float]) -> Target:
