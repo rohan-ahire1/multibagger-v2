@@ -43,6 +43,9 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `deploy/` | systemd user service + timer for the daily job on the VPS |
 | `configs/reference/` | Symbol → industry map for the sector caps |
 | `docs/reference/` | v1 reference trades, metrics, resolved settings |
+| `configs/dashboard/` | Dashboard bundle config: which runs, groups, paper books, UI sizes |
+| `src/mb/dashboard/` | Bundle exporter (run records + dataset prices + paper books to one JSON) |
+| `web/` | Research dashboard app (React + Vite); see `web/README.md` |
 | `tests/` | `uv run pytest` |
 
 ## Commands
@@ -61,6 +64,7 @@ uv run mb data fetch bhavcopy configs/data/nse_research.yaml --from D --to D
 uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-year Y --end-year Y
 uv run mb paper daily configs/paper/momentum_voladj_stocks.yaml [--no-fetch] [--today D]   # the VPS daily job
 uv run mb paper status configs/paper/momentum_voladj_stocks.yaml
+uv run mb dashboard export configs/dashboard/research.yaml [--data-root D]   # writes web/public/bundle.json; then `npm run dev` in web/
 uv run pytest
 ```
 
