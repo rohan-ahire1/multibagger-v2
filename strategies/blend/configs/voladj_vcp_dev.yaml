@@ -1,0 +1,15 @@
+# M9 question vcp-blend (docs/research/m8_vcp.md): 70% vol-adjusted momentum (paper book 1's params), 30% VCP (close-above-pivot entry).
+name: blend
+version: voladj_vcp_dev
+dataset: nse_research@2026-09-29e
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/voladj_stocks_dev_e.yaml
+      config_hash: d1677f9e210ed1fa49dcbe249b2d79db794ea11e26fab1441553cfb49eb6ce2d
+      weight: 0.7
+    - config: strategies/vcp/configs/vcp_dev.yaml
+      config_hash: 4be805ddac66099acd36f94d9534179462a09f3d29e7bd3522fc859576dce55f
+      weight: 0.3
+  initial_capital: 1000000

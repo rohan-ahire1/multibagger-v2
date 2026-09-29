@@ -254,6 +254,32 @@ What this says:
 - As expected, VCP alone does not beat momentum. Whether it helps as a second book next to momentum is a separate
   question, to be pre-registered before any run.
 
+## Question `vcp-blend`: VCP as a second book beside momentum
+
+Pre-registration, written and committed before any tagged run (2026-09-29). Development period 2010–2023 only,
+dataset `nse_research@2026-09-29e`, adoption metric Calmar.
+
+Why: VCP alone is lumpy and mostly in cash, but its good years (2010–13, 2021, 2023) are not all momentum's good years.
+A fixed slice beside momentum might lower drawdown more than it lowers return.
+
+- **Reference:** `strategies/momentum/configs/voladj_stocks_dev_e.yaml` = paper book 1's params (vol-adjusted momentum,
+  30 names, stocks only) on dataset e. Run on clean code, pinned as `momentum/voladj_stocks_dev_e`, and used as the pin
+  to beat. The question is whether the book we trade gets better.
+- **Variants (two, no others):**
+  - `strategies/blend/configs/voladj_vcp_dev.yaml`: 70% momentum, 30% `vcp_dev`.
+  - `strategies/blend/configs/voladj_vcp_intraday_dev.yaml`: 70% momentum, 30% `vcp_intraday_dev`.
+- **Weights:** 70/30, fixed, never rebalanced between sleeves (the existing blend runner). 30% was chosen before any
+  blend run so that most of the book stays momentum; no other weight is tried.
+- **Adoption:** the usual rule. Beat the pin and both baselines on Calmar on the whole period and on each fold.
+  Also reported, not used to decide: CAGR, max drawdown, daily-return correlation between the sleeves.
+
+Disclosure: every sleeve's own numbers are already known (above, and `docs/research/m8.md`). The sleeve correlation and
+the blends' numbers are not. The intraday variant is included because it was the best VCP, which is a choice made after
+seeing results; read any win for it with that in mind.
+
+Honest expectation: VCP's 2014–17 fold (0.04 for `vcp_dev`) is far below momentum's (1.60 on dataset d), so a blend
+probably loses that fold. If both variants fail, VCP is shelved and the next question is the momentum ideas list.
+
 ## Open questions
 
 1. Swing size of 5 sessions each side misses some tight final areas; 3 sessions may fit better but gives noisier
