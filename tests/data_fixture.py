@@ -73,7 +73,7 @@ def write_raw(root: Path) -> None:
 def data_config() -> dict:
     return {
         "name": "fixture",
-        "bhavcopy": {"raw_dir": "data/raw/nse_bhavcopy", "series": ["EQ"], "legacy_cutoff": date(2024, 1, 1),
+        "bhavcopy": {"raw_dir": "data/raw/nse_bhavcopy", "first_date": None, "series": ["EQ"], "legacy_cutoff": date(2024, 1, 1),
                      "archive_base_url": "http://x", "legacy_archive_base_url": "http://y", "timeout_s": 1.0,
                      "max_retries": 1, "request_sleep_s": 0.0},
         "corporate_actions": {"raw_file": "data/raw/nse_corporate_actions/ca.parquet",

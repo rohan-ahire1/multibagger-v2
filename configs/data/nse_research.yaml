@@ -1,6 +1,7 @@
 name: nse_research
 bhavcopy:
   raw_dir: data/raw/nse_bhavcopy
+  first_date: null
   series: [EQ, BE]
   legacy_cutoff: 2024-01-01
   archive_base_url: https://nsearchives.nseindia.com/content/cm

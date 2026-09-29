@@ -102,6 +102,8 @@ class StrategyConfig(Strict):
 
 class BhavcopySource(Strict):
     raw_dir: str
+    # Build from this session on (null: all files). Adjustment is backward, so the kept rows equal the full build's.
+    first_date: date | None
     series: list[str]
     legacy_cutoff: date
     archive_base_url: str

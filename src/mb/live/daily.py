@@ -32,7 +32,7 @@ def latest_ref(root: Path, name: str) -> str | None:
 
 def ensure_dataset(dcfg: DataConfig, dhash: str, root: Path) -> tuple[str, bool]:
     """The newest version if its inputs and config are unchanged, else a new build labelled by its last session."""
-    zips = nse_bhavcopy.list_zips(root / dcfg.bhavcopy.raw_dir)
+    zips = nse_bhavcopy.build_zips(root / dcfg.bhavcopy.raw_dir, dcfg.bhavcopy)
     inputs = build._inputs(dcfg, root, zips)
     have = versions(root, dcfg.name)
     if have:

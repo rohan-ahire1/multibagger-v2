@@ -35,6 +35,11 @@ def zip_date(path: Path) -> date:
     return date.fromisoformat(path.stem)
 
 
+def build_zips(raw_dir: Path, cfg: BhavcopySource) -> list[Path]:
+    """The zips a build reads: all of them, or those from `first_date` on."""
+    return [z for z in list_zips(raw_dir) if cfg.first_date is None or zip_date(z) >= cfg.first_date]
+
+
 def build_url(cfg: BhavcopySource, d: date) -> str:
     if d < cfg.legacy_cutoff:
         mon = d.strftime("%b").upper()
@@ -146,7 +151,7 @@ def parse_zip(path: Path, cfg: BhavcopySource) -> pl.DataFrame:
 
 
 def parse_all(raw_dir: Path, cfg: BhavcopySource) -> pl.DataFrame:
-    zips = list_zips(raw_dir)
+    zips = build_zips(raw_dir, cfg)
     if not zips:
         raise FileNotFoundError(f"no bhavcopy zips under {raw_dir}")
     frames = []

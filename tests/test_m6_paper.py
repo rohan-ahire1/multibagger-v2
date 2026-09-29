@@ -10,12 +10,13 @@ from pathlib import Path
 import polars as pl
 import pytest
 import yaml
-from data_fixture import write_data_config, write_raw
+from data_fixture import BONUS_SESSION, N_SESSIONS, data_config, sessions, write_data_config, write_raw
 from test_m3_sepa import _cfg, _market
 from test_m5_momentum import _params
 
 from mb.config.loader import ConfigError, Resolved, load_data_config, load_paper_config
 from mb.config.models import CalendarSource, PaperAlerts, PaperConfig, Period, StrategyConfig
+from mb.data import build
 from mb.live import calendar
 from mb.live.daily import ensure_dataset, prune, versions
 from mb.live.paper import Blocked, Book, DataView, Position, Store, advance, history_rows, load_view
@@ -187,6 +188,22 @@ def test_daily_dataset_is_rebuilt_only_when_inputs_change_and_old_versions_are_p
     ref2, built2 = ensure_dataset(dcfg, dhash, tmp_path)
     assert built2 and ref2 == "fixture@2023-03-24.01"
     assert prune(tmp_path, "fixture", 1) == ["2023-03-24"] and versions(tmp_path, "fixture") == ["2023-03-24.01"]
+
+
+def test_a_build_from_first_date_equals_the_full_build_from_that_date(tmp_path):
+    write_raw(tmp_path)
+    full_cfg, full_hash = load_data_config(write_data_config(tmp_path))
+    full = pl.read_parquet(build.build(full_cfg, full_hash, tmp_path, "v1") / "panel.parquet")
+    cut = data_config() | {"name": "cut"}
+    cut["bhavcopy"] = cut["bhavcopy"] | {"first_date": sessions()[BONUS_SESSION]}  # the bonus is on the first kept session
+    (tmp_path / "cut.yaml").write_text(yaml.safe_dump(cut))
+    cfg, h = load_data_config(tmp_path / "cut.yaml")
+    out = build.build(cfg, h, tmp_path, "v1")  # zero unmatched events allowed: the bonus must be dropped, not unmatched
+    short = pl.read_parquet(out / "panel.parquet")
+    cols = ["date", "symbol", "close", "adj_open", "adj_close", "adj_factor"]
+    assert short.select(cols).sort("symbol", "date").equals(
+        full.filter(pl.col("date") >= sessions()[BONUS_SESSION]).select(cols).sort("symbol", "date"))
+    assert json.loads((out / "manifest.json").read_text())["inputs"]["bhavcopy"]["files"] == N_SESSIONS - BONUS_SESSION
 
 
 def test_the_view_keeps_only_the_history_the_strategy_reads(tmp_path):

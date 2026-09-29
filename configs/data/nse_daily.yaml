@@ -1,7 +1,10 @@
-# Daily datasets for paper trading, built on the VPS by `mb paper daily`. Same sources and rules as nse_research.
+# Daily datasets for paper trading, built on the VPS by `mb paper daily`. Same sources and rules as nse_research,
+# from 2023 on.
 name: nse_daily
 bhavcopy:
   raw_dir: data/raw/nse_bhavcopy
+  # The strategy reads ~1 year per stock; 2023 on leaves ample room and keeps the build small.
+  first_date: 2023-01-01
   series: [EQ, BE]
   legacy_cutoff: 2024-01-01
   archive_base_url: https://nsearchives.nseindia.com/content/cm
@@ -28,12 +31,11 @@ adjustment:
 checks:
   min_session_rows_ratio: 0.5
   session_rows_lookback: 20
-  # 2009-05-18: 587 rows vs ~1,250 usual, the day of the market-wide circuit halt after the election result.
-  accepted_thin_sessions: [2009-05-18]
+  accepted_thin_sessions: []
   max_session_gap_days: 7
-  # Tripwire for a broken adjustment pipeline (hundreds of new jumps), not a per-stock review: the paper step refuses
-  # any unexplained jump on a held or picked name by itself. nse_research@2026-09-29c had 1117.
-  max_unexplained_jumps: 1160
-  # nse_research@2026-09-29c had 111.
-  max_unmatched_share_events: 150
+  # Tripwire for a broken adjustment pipeline (dozens of new jumps), not a per-stock review: the paper step refuses
+  # any unexplained jump on a held or picked name by itself. nse_daily@2026-09-28 (from 2023) had 145.
+  max_unexplained_jumps: 200
+  # nse_daily@2026-09-28 had 8.
+  max_unmatched_share_events: 20
   max_row_count_drift_pct: 5

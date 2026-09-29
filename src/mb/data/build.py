@@ -46,16 +46,21 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
     started = datetime.now(UTC)
 
     raw_dir = root / cfg.bhavcopy.raw_dir
-    zips = nse_bhavcopy.list_zips(raw_dir)
+    zips = nse_bhavcopy.build_zips(raw_dir, cfg.bhavcopy)
     bars = nse_bhavcopy.parse_all(raw_dir, cfg.bhavcopy)
     max_date = bars["date"].max()
 
     actions = load_actions(cfg.corporate_actions, root, max_date, bars)
+    if cfg.bhavcopy.first_date is not None:
+        # An action on or before the first session has no prior bar to show it and moves no kept row's adjustment.
+        actions = actions.filter(pl.col("ex_date") > bars["date"].min())
     events, unusable = adjust.expected_share_events(actions)
     matches = adjust.match_share_events(bars, events, cfg.adjustment)
     dividends = adjust.dividend_steps(bars, actions, cfg.adjustment)
     panel = adjust.build_research_panel(bars, matches, dividends)
     verified = load_verified_moves(root / cfg.corporate_actions.verified_moves_file)
+    if cfg.bhavcopy.first_date is not None:
+        verified = verified.filter(pl.col("date") > bars["date"].min())
     jumps = adjust.unexplained_jumps(panel, cfg.adjustment, verified)
 
     prev = datasets.previous_version(root, cfg.name, version)
