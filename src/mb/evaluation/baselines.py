@@ -46,6 +46,11 @@ def momentum_curve(cfg: BaselinesConfig, market: MarketConfig, panel_path: Path,
     return res.equity, res.rebalances
 
 
+def _covers(curve: pl.DataFrame, start: date) -> bool:
+    """The TRI file starts 2010-01-04; a window starting before it has no TRI figures (the adoption check reads None)."""
+    return curve["date"].min() <= start
+
+
 def compute(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: Path, start: date, end: date) -> dict[str, Any]:
     """Both baselines over the run's period and over each development fold inside it.
 
@@ -56,7 +61,7 @@ def compute(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: 
     windows = {"period": (start, end)} | {f.name: (f.start, f.end) for f in cfg.folds if f.start >= start and f.end <= end}
     out: dict[str, Any] = {}
     for label, curve in (("nifty500_tri_buy_and_hold", tri), ("momentum_12_1", mom)):
-        out[label] = {w: equity_metrics(curve, s, e) for w, (s, e) in windows.items()}
+        out[label] = {w: equity_metrics(curve, s, e) if _covers(curve, s) else {} for w, (s, e) in windows.items()}
     out["momentum_12_1"]["period"]["rebalances"] = rebalances
     out["momentum_12_1"]["period"]["avg_open_positions"] = mom.filter(pl.col("date").is_between(start, end))["open_positions"].mean()
     return out
