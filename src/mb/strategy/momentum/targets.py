@@ -12,7 +12,7 @@ import polars as pl
 
 from mb.engine.rebalance import Target
 from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, Ranking, RankingM8, RankingM10, RankingM12,
-                                         Sizing, Universe)
+                                         Sizing, Universe, UniverseM13)
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
@@ -138,6 +138,9 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         eligible = eligible & pl.col(k).is_not_null() & pl.col(k).is_finite()
     if u.exclude_fund_units:
         eligible = eligible & ~pl.col("security_id").str.starts_with("isin:INF")
+    if isinstance(u, UniverseM13) and u.fund_units_by_symbol:
+        funds = panel.filter(pl.col("security_id").str.starts_with("isin:INF"))["symbol"].unique()
+        eligible = eligible & ~pl.col("symbol").is_in(funds.implode())
     out: dict[date, list[str]] = {}
     for d in decision_dates(f, start, end, offset_sessions):
         day = f.filter((pl.col("date") == d) & eligible)

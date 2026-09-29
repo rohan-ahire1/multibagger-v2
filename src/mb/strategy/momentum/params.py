@@ -166,3 +166,21 @@ class PortfolioM12(PortfolioM11):
 class ParamsM12(ParamsM11):
     ranking: RankingM12
     portfolio: PortfolioM12
+
+
+# M13 option (docs/research/m13.md).
+
+class UniverseM13(Universe):
+    # With exclude_fund_units: also drop a symbol that has an `isin:INF` id on any row of the panel read (older
+    # bhavcopies have no ISIN, so a fund's early rows carry a `fallback:` id).
+    fund_units_by_symbol: bool
+
+    @model_validator(mode="after")
+    def _needs_exclude(self) -> UniverseM13:
+        if self.fund_units_by_symbol and not self.exclude_fund_units:
+            raise ValueError("fund_units_by_symbol needs exclude_fund_units")
+        return self
+
+
+class ParamsM13(ParamsM12):
+    universe: UniverseM13
