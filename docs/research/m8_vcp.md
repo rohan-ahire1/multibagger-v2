@@ -1,6 +1,7 @@
 # M8 question 2: Minervini's VCP, built to his rules
 
-Status: **draft for review. No code or backtest yet.** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
+Status: **rules accepted as drafted (2026-09-29); detector built (`src/mb/strategy/vcp/`); pattern check waiting for
+review. No backtest yet.** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
 and *Think & Trade Like a Champion* (2017). Price and volume rules only; the earnings half of SEPA is left out (no
 earnings data yet) and added later only if the pattern shows promise.
 
@@ -97,9 +98,29 @@ higher one and consecutive lows keep the lower one, so highs and lows alternate.
 
 Returns are only computed once you are happy with the charts.
 
+### Result (config `strategies/vcp/configs/vcp_dev.yaml`, hash b2cfbe2f, dataset `nse_research@2026-09-29d`)
+
+`uv run mb vcp check strategies/vcp/configs/vcp_dev.yaml --sample 30 --seed 1` → `reports/vcp-check/vcp_dev/`.
+
+| Stage | Stock-days, 2010–2023 |
+|---|---|
+| Passed the trend template the day before | 257,406 |
+| Valid base | 16,813 |
+| Volume dry-up | 13,159 |
+| Breakout | 521 (361 symbols; 8 in 2012 to 101 in 2023) |
+
+Most days fail the base because price is still above the base's first high (101,931) or the base is under 15 sessions
+(65,328). Breakouts by contraction count: 2 → 377, 3 → 110, 4 → 25, 5 → 8, 6 → 1.
+
+Implementation notes:
+- The engine's fill-relative rules are in `EngineConfigVCP` (older configs keep their hash): an open more than 5% above
+  the pivot drops the signal (`skipped_chase`), and the stop is raised to 8% below the actual fill.
+- Contractions are measured from each swing high to the lowest low before the next swing high; equal highs keep the
+  first; two highs in a row keep the higher. A swing is only used once its 5 right-hand sessions have closed.
+
 ## Backtest plan (after the charts pass)
 
-Development period only, dataset `nse_research@2026-09-29c`, question tag `vcp`. Pin to beat: `sepa/v1_port_dev_b`
+Development period only, dataset `nse_research@2026-09-29d`, question tag `vcp`. Pin to beat: `sepa/v1_port_dev_b`
 (Calmar 0.26); adoption also needs both baselines beaten on every fold. Fixed variants, no others:
 
 | Config | Change |

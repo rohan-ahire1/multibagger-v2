@@ -37,8 +37,14 @@ def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
     return run.Params, run.run
 
 
+def _vcp() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+    from mb.strategy.vcp import run
+
+    return run.Params, run.run
+
+
 _REGISTRY: dict[str, Callable[[], tuple[Any, Callable]]] = {
-    "dummy": _dummy, "sepa": _sepa, "momentum": _momentum, "blend": _blend,
+    "dummy": _dummy, "sepa": _sepa, "momentum": _momentum, "blend": _blend, "vcp": _vcp,
 }
 
 

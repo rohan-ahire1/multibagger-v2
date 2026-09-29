@@ -228,6 +228,30 @@ def paper_status(paper_config: PaperCfg, root: Root = _ROOT) -> None:
         raise _fail(str(e)) from None
 
 
+vcp_app = typer.Typer(no_args_is_help=True)
+app.add_typer(vcp_app, name="vcp", help="VCP pattern tools.")
+
+
+@vcp_app.command("check")
+def vcp_check(
+    config: Annotated[Path, typer.Argument(help="VCP strategy config YAML.")],
+    sample: Annotated[int, typer.Option("--sample", help="Breakouts to chart.")] = 30,
+    seed: Annotated[int, typer.Option("--seed", help="Random seed for the sample.")] = 1,
+    root: Root = _ROOT,
+) -> None:
+    """Funnel and sampled breakout charts, drawn up to the breakout day (no returns) -> reports/vcp-check/<version>/."""
+    from mb.strategy.vcp import check
+
+    try:
+        cfg = load_strategy_config(config, root)
+        enforce_lock(cfg, False)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    page = check.write(cfg, root, root / "reports" / "vcp-check" / cfg.strategy.version, sample, seed)
+    typer.echo(page.with_name("funnel.md").read_text())
+    typer.echo(f"charts {page}")
+
+
 @data_app.command("check")
 def data_check(
     dataset: Annotated[str, typer.Argument(help="<name>@<version>")],
