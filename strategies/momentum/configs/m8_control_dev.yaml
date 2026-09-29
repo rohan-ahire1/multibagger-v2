@@ -1,0 +1,33 @@
+# M8 control (docs/research/m8.md): voladj_dev with every M8 option off. Must equal voladj_dev exactly.
+name: momentum
+version: m8_control_dev
+dataset: nse_research@2026-09-29b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 50000000
+    adv_window_sessions: 50
+    exclude_fund_units: false
+  ranking:
+    lookback_sessions: 252
+    skip_sessions: 21
+    score: return_over_vol
+    second_lookback_sessions: null
+  portfolio:
+    top_n: 30
+    hold_rank_max: 30
+    resize_held: true
+    max_per_sector: null
+  regime:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+    risk_off_gross: 0.0
+  sizing:
+    vol_target_annual: null
+    vol_benchmark_symbol: NIFTYBEES
+    vol_window_sessions: 63
+  initial_capital: 1000000

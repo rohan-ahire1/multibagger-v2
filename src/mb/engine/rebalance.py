@@ -31,6 +31,7 @@ EQUITY_SCHEMA = {"date": pl.Date, "equity": pl.Float64, "cash": pl.Float64, "inv
 class Target:
     weights: dict[str, float]  # relative weights, normalised by their sum
     gross: float               # fraction of equity to invest; the rest stays in cash
+    keep_size: frozenset[str] = frozenset()  # wanted names already held are left as they are, not resized to their goal
 
 
 @dataclass
@@ -93,6 +94,8 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
             for s, w in pending.weights.items():
                 want[col[s]] = True
                 goal[col[s]] = equity_open * pending.gross * w / total if total > 0 else 0.0
+                if s in pending.keep_size and shares[col[s]]:
+                    goal[col[s]] = shares[col[s]] * px[col[s]]
             for j in range(len(names)):  # sells first
                 cur = shares[j] * px[j] if shares[j] else 0.0
                 g = goal[j] if want[j] else 0.0

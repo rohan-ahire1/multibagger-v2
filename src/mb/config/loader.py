@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from mb.config.models import BaselinesConfig, DataConfig, MarketConfig, PaperConfig, StrategyConfig
 
@@ -25,9 +25,10 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     return data
 
 
-def _validate[T: BaseModel](model: type[T], data: dict[str, Any], where: str) -> T:
+def _validate(model: Any, data: dict[str, Any], where: str) -> Any:
+    """`model` is a model class or a union of them."""
     try:
-        return model.model_validate(data)
+        return TypeAdapter(model).validate_python(data)
     except ValidationError as e:
         lines = [f"  {'.'.join(str(p) for p in err['loc']) or '<root>'}: {err['msg']}" for err in e.errors()]
         raise ConfigError(f"invalid config {where}:\n" + "\n".join(lines)) from None

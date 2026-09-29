@@ -46,3 +46,30 @@ class Params(Strict):
     portfolio: Portfolio
     regime: Regime
     initial_capital: float
+
+
+# M8 options (docs/research/m8.md). They live in subclasses so configs written before M8 still validate as `Params` and
+# resolve to the same hash; a config with the extra keys validates as `ParamsM8`.
+
+class RankingM8(Ranking):
+    # Null: one lookback. Otherwise each name gets two percentile ranks among the eligible names at the month-end (the
+    # score over `lookback_sessions`, and the same score over this lookback with the same skip) and is ordered by their mean.
+    second_lookback_sessions: int | None
+
+
+class PortfolioM8(Portfolio):
+    resize_held: bool             # false: a name kept from the last rebalance is not traded; only exits and new names trade
+    max_per_sector: int | None    # at most this many picks per industry (market sector map); unmapped names are not capped
+
+
+class Sizing(Strict):
+    # Null: gross 1. Otherwise gross = min(1, target / annualised stdev of the benchmark's daily log returns over the window).
+    vol_target_annual: float | None
+    vol_benchmark_symbol: str
+    vol_window_sessions: int
+
+
+class ParamsM8(Params):
+    ranking: RankingM8
+    portfolio: PortfolioM8
+    sizing: Sizing

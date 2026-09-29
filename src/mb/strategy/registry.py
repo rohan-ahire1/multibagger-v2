@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
@@ -24,10 +24,11 @@ def _sepa() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
     return run.Params, run.run
 
 
-def _momentum() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+def _momentum() -> tuple[Any, Callable[[Resolved, Path], RunResult]]:
     from mb.strategy.momentum import run
 
-    return run.Params, run.run
+    # A config validates as exactly one of these (unknown keys fail), so pre-M8 configs keep their hash.
+    return run.Params | run.ParamsM8, run.run
 
 
 def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
@@ -36,12 +37,13 @@ def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
     return run.Params, run.run
 
 
-_REGISTRY: dict[str, Callable[[], tuple[type[BaseModel], Callable]]] = {
+_REGISTRY: dict[str, Callable[[], tuple[Any, Callable]]] = {
     "dummy": _dummy, "sepa": _sepa, "momentum": _momentum, "blend": _blend,
 }
 
 
-def params_model(name: str) -> type[BaseModel]:
+def params_model(name: str) -> Any:
+    """A params model class, or a union of them."""
     return _REGISTRY[name]()[0]
 
 

@@ -8,13 +8,13 @@ import polars as pl
 from mb.config.loader import Resolved
 from mb.data import datasets
 from mb.engine.rebalance import RebalanceResult, simulate_targets
-from mb.engine.run import score
+from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params
+from mb.strategy.momentum.params import Params, ParamsM8
 from mb.strategy.momentum.targets import targets
 
-__all__ = ["Params", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -28,7 +28,9 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
              .collect())
     days = sorted(panel.filter(pl.col("date").is_between(period.start, period.end))["date"].unique().to_list())
     bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
-    return simulate_targets(targets(panel, p, period.start, period.end), bars, days, cfg.market, p.initial_capital)
+    tg = targets(panel, p, period.start, period.end, sectors=load_sectors(root, cfg),
+                 days_per_year=cfg.market.trading_days_per_year)
+    return simulate_targets(tg, bars, days, cfg.market, p.initial_capital)
 
 
 def run(cfg: Resolved, root: Path) -> RunResult:
