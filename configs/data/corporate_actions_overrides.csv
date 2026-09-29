@@ -458,3 +458,7 @@ WELSPUNIND,"",split,2016-03-21,,,,,0.10391614345003725,non-round action inferred
 WINSOMYARN,"",split,2010-01-21,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.11054),purpose_parsed
 WSTCSTPAPR,"",split,2007-10-26,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.212648),purpose_parsed
 TATACHEM,"",demerger,2020-03-04,,,,,0.434813,"Consumer products business demerged to Tata Consumer Products (feed: demerger, no factor). Factor = ex-date price discovery: open 315 / cum close 724.45",manual
+SWELECTES,"",dividend,2012-07-17,,,,,0.564679,"Rs 120 interim + Rs 3 final dividend (feed parsed only the Rs 3) against prior close Rs 282.55, after the UPS business sale; symbol was NUMERICPW until 2012-07-09 (M15)",manual
+GFLLIMITED,"",demerger,2019-08-06,,,,,0.114662,"Fluorochemicals business demerged to Gujarat Fluorochemicals (FLUOROCHEM); GUJFLUORO renamed GFLLIMITED 2019-07-25 (feed: demerger, no factor). Factor = ex-date price discovery: open 101 / cum close 880.85 (M15)",manual
+BORORENEW,"",demerger,2020-03-06,,,,,0.251589,"Consumer glass business demerged to Borosil Ltd; BOROSIL renamed BORORENEW 2020-02-20 (feed: demerger, no factor). Factor = ex-date price discovery: open 47.5 / cum close 188.8 (M15)",manual
+DEEPENR,"",demerger,2020-11-10,,,,,0.646298,"Oil and gas services business demerged to Deep Industries (DEEPINDS); DEEPIND renamed DEEPENR 2020-09-30 (feed: demerger, no factor). Factor = ex-date price discovery: open 44.95 / cum close 69.55 (M15)",manual
