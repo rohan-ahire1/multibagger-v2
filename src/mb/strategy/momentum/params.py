@@ -221,3 +221,21 @@ class ExitsM21(Exits):
 
 class ParamsM21(ParamsM19):
     exits: ExitsM21
+
+
+# M22 option (docs/research/m22.md).
+
+class PortfolioM22(PortfolioM19):
+    # Set: a fixed symbol is held at a decision date only if its adjusted close is above its close this many sessions
+    # (rows) earlier; otherwise its weight goes to the picks (Moskowitz, Ooi & Pedersen 2012, time-series momentum).
+    fixed_trend_sessions: int | None
+
+    @model_validator(mode="after")
+    def _trend(self) -> PortfolioM22:
+        if self.fixed_trend_sessions is not None and self.fixed_trend_sessions < 1:
+            raise ValueError("fixed_trend_sessions must be at least 1")
+        return self
+
+
+class ParamsM22(ParamsM21):
+    portfolio: PortfolioM22

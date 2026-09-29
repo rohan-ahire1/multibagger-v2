@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, Ranking, RankingM8, RankingM10, RankingM12,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12,
                                          Sizing, Universe, UniverseM13)
 
 
@@ -270,8 +270,23 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
         out = book_stops(panel, out, p.exits.book_stop_frac, end)
     if isinstance(p, ParamsM19) and p.portfolio.fixed_weights:
-        out = {d: _with_fixed(t, p.portfolio.fixed_weights) for d, t in out.items()}
+        fixed = p.portfolio.fixed_weights
+        n = p.portfolio.fixed_trend_sessions if isinstance(p, ParamsM22) else None
+        up = trend_up(panel, sorted(fixed), n, sorted(out)) if n is not None else {}
+        out = {d: _with_fixed(t, {s: w for s, w in fixed.items() if n is None or up[(d, s)]}) for d, t in out.items()}
     return out
+
+
+def trend_up(panel: pl.DataFrame, symbols: list[str], sessions: int, dates: list[date]) -> dict[tuple[date, str], bool]:
+    """(date, symbol) -> adjusted close above the close `sessions` rows earlier. Missing data is an error."""
+    t = (panel.filter(pl.col("symbol").is_in(symbols)).sort("symbol", "date")
+         .with_columns(pl.col("adj_close").shift(sessions).over("symbol").alias("then"))
+         .filter(pl.col("date").is_in(dates)))
+    got = {(d, s): c > b for d, s, c, b in t.select("date", "symbol", "adj_close", "then").iter_rows() if b is not None}
+    missing = [(d, s) for d in dates for s in symbols if (d, s) not in got]
+    if missing:
+        raise ValueError(f"fixed_trend_sessions: no close or no close {sessions} sessions earlier for {missing[:3]}")
+    return got
 
 
 def book_stops(panel: pl.DataFrame, out: dict[date, Target], frac: float, end: date) -> dict[date, Target]:
@@ -309,6 +324,8 @@ def book_stops(panel: pl.DataFrame, out: dict[date, Target], frac: float, end: d
 
 def _with_fixed(t: Target, fixed: dict[str, float]) -> Target:
     """Fixed symbols at their weight of the invested equity; the picks share the rest in their relative weights."""
+    if not fixed:
+        return t
     total = sum(t.weights.values())
     rest = 1.0 - sum(fixed.values())
     both = sorted(set(fixed) & set(t.weights))
