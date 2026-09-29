@@ -4,11 +4,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import polars as pl
 import pytest
 
 from mb.config.loader import load_strategy_config
 from mb.engine.config import EngineConfigVCP
 from mb.strategy.vcp.pattern import _Alternating, scan, swing_points
+from mb.strategy.vcp.run import Scan, signals
 from test_m2_engine import bars, days, engine, market, run, signal, sig_frame, simulate
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -123,6 +125,12 @@ def test_the_stop_is_raised_to_the_limit_below_the_fill():
     assert r.trades.row(0, named=True)["stop"] == pytest.approx(104 * 0.92)
 
 
+def test_a_signal_for_a_held_name_is_dropped():
+    rows = [(99, 99, 99, 99), (100, 101, 99.5, 100), (100, 101, 99.5, 100)] + [(100,) * 4] * 3
+    r = run([signal("AAA", 0, 100.0, 95.0), signal("AAA", 1, 100.0, 95.0)], [bars("AAA", rows)], eng=_vcp_engine())
+    assert r.trades.height == 1 and r.skipped["status"].to_list() == ["skipped_held"]
+
+
 def test_after_breakeven_a_close_below_the_sma_exits_next_open():
     up = [(100 * 1.03 ** i,) * 4 for i in range(1, 15)]
     top = up[-1][3]
@@ -140,3 +148,35 @@ def test_pre_m9_engine_configs_are_unchanged():
     r = simulate(sig_frame(signal("AAA", 0, 100.0, 95.0)), bars("AAA", [(99,) * 4, (106, 107, 105, 106)] + [(106,) * 4] * 3),
                  {}, engine(), market())
     assert r.trades.row(0, named=True)["stop"] == 95.0
+
+
+# --- intraday trigger (vcp_intraday_dev) ----------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def intraday():
+    return load_strategy_config(ROOT / "strategies/vcp/configs/vcp_intraday_dev.yaml", ROOT).params
+
+
+def test_the_intraday_buy_stop_uses_only_earlier_sessions(intraday):
+    reasons, found = _scan(_vcp(), intraday)
+    assert found[-1].day == 126 and reasons[-1] == (126, "buy_stop")
+    a = _vcp()
+    a["volume"][126] = 0.1  # the day's own volume and close cannot matter
+    a["close"][126] = 90.0
+    assert _scan(a, intraday)[0] == reasons
+
+
+def test_a_buy_stop_is_used_up_once_price_reaches_the_pivot(intraday):
+    a = _vcp()
+    a["high"][124] = 95.5  # too late to become a swing high
+    reasons, found = _scan(a, intraday)
+    assert reasons[-2:] == [(125, "pivot_already_crossed"), (126, "pivot_already_crossed")]
+    assert found[-1].day == 124
+
+
+def test_an_intraday_signal_is_dated_the_session_before(params, intraday):
+    _, found = _scan(_vcp(), params)
+    frame = pl.DataFrame({"date": days(127), "market_ok_prev": [True] * 127})
+    sc = Scan(frame, pl.DataFrame(), {"AAA": found}, {"AAA": 0})
+    assert signals(sc, params)["signal_date"].to_list() == [days(127)[126]]
+    assert signals(sc, intraday)["signal_date"].to_list() == [days(127)[125]]

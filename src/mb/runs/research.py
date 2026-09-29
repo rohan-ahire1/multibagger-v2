@@ -156,11 +156,8 @@ def report(runs_dir: Path, question: str, against: str, metric: str) -> tuple[st
              f"{sum(1 for m in runs if m['final'])}.",
              f"- Compared against: `{against}` (run {pinned_dir.name}). Adoption metric: `{metric}`.", ""]
     adopted = False
-    seen: set[str] = set()
-    for m in runs:
-        if m["config_hash"] in seen:
-            continue
-        seen.add(m["config_hash"])
+    latest = {m["config_hash"]: m for m in runs}  # runs are in run-id (time) order: a config's newest run is reported
+    for m in latest.values():
         cand = json.loads((runs_dir / m["run_id"] / "metrics.json").read_text())
         rows = verdict(cand, pinned, metric)
         ok = all(r["passes"] for r in rows)

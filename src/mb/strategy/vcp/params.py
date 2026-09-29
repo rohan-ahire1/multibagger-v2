@@ -1,6 +1,8 @@
 """VCP strategy parameters (docs/research/m8_vcp.md). Every value comes from the strategy YAML; nothing here has a default."""
 from __future__ import annotations
 
+from typing import Literal
+
 from mb.config.models import Strict
 from mb.engine.config import EngineConfigVCP
 
@@ -52,7 +54,14 @@ class VolumeDryUp(Strict):
 
 
 class Breakout(Strict):
+    """Signal at the close of the day that closes through the pivot on volume; the engine buys the next session."""
     min_volume_to_avg: float
+
+
+class IntradayBreakout(Strict):
+    """vcp_intraday_dev: at each close, a buy-stop at the pivot for the next session while the setup holds. Daily bars
+    cannot see the volume at the moment price crosses the pivot, so there is no volume check."""
+    trigger: Literal["intraday"]
 
 
 class MarketFilter(Strict):
@@ -68,6 +77,6 @@ class Params(Strict):
     swings: Swings
     base: Base
     volume: VolumeDryUp
-    breakout: Breakout
+    breakout: Breakout | IntradayBreakout
     market: MarketFilter
     engine: EngineConfigVCP

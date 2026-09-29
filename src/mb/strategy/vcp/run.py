@@ -12,7 +12,7 @@ from mb.data import datasets
 from mb.engine.run import evaluate, load_bars
 from mb.runs.record import RunResult
 from mb.strategy.vcp.features import features
-from mb.strategy.vcp.params import Params
+from mb.strategy.vcp.params import IntradayBreakout, Params
 from mb.strategy.vcp.pattern import Found, scan
 
 __all__ = ["Params", "run"]
@@ -57,8 +57,10 @@ def detect(cfg: Resolved, root: Path) -> Scan:
 
 
 def signals(sc: Scan, p: Params) -> pl.DataFrame:
-    """One signal per breakout: a buy-stop at the pivot for the next session, stop at the last contraction's low."""
+    """One signal per breakout: a buy-stop at the pivot for the next session, stop at the last contraction's low. An
+    intraday trigger's buy-stop is for the found day itself, so its signal is dated the session before."""
     f = sc.frame
+    lag = 1 if isinstance(p.breakout, IntradayBreakout) else 0
     market_ok = f["market_ok_prev"].to_numpy()
     dates = f["date"].to_list()
     rows = []
@@ -67,7 +69,7 @@ def signals(sc: Scan, p: Params) -> pl.DataFrame:
         for h in hits:
             if p.market.enabled and not market_ok[o + h.day]:
                 continue
-            rows.append((sym, dates[o + h.day], h.pivot, h.stop, 1.0, len(h.contractions)))
+            rows.append((sym, dates[o + h.day - lag], h.pivot, h.stop, 1.0, len(h.contractions)))
     return pl.DataFrame(rows, schema={"symbol": pl.String, "signal_date": pl.Date, "entry_ref": pl.Float64,
                                       "stop": pl.Float64, "size_mult": pl.Float64, "contractions": pl.Int64},
                         orient="row").sort("signal_date", "symbol")

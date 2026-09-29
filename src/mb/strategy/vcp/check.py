@@ -76,7 +76,7 @@ def _markdown(cfg: Resolved, fun: pl.DataFrame, why: pl.DataFrame) -> str:
 W, PH, VH, GAP, PAD_L, PAD_R, PAD_T = 720.0, 250.0, 70.0, 14.0, 8.0, 56.0, 12.0
 PRE_SESSIONS = 40
 REASON_TEXT = {
-    "breakout": "Breakout", "no_swing_high": "No swing high in the window", "above_base_high":
+    "breakout": "Breakout", "buy_stop": "Buy-stop placed at the pivot", "no_swing_high": "No swing high in the window", "above_base_high":
     "Price already above the base high", "base_too_short": "Base shorter than the minimum", "too_few_contractions":
     "Too few contractions", "too_many_contractions": "Too many contractions", "first_too_deep":
     "First contraction too deep", "not_contracting": "A contraction not shallower than the one before",

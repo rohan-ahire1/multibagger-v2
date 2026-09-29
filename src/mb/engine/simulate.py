@@ -220,6 +220,8 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
                  sector_counts: dict[str, int], sector_values: dict[str, float]) -> str:
         """Returns 'filled', 'wait' (try again next session), or the reason the signal is dropped."""
         o, h = s.open[k], s.high[k]
+        if vcp_entry is not None and any(p.symbol == pend.symbol for p in book.positions):
+            return "skipped_held"  # one position per name
         if not (o >= pend.entry_ref or h >= pend.entry_ref):
             return "wait"
         if vcp_entry is not None and o > pend.entry_ref * (1.0 + vcp_entry.max_open_above_ref_pct):

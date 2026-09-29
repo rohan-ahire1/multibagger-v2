@@ -11,7 +11,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
-from mb.strategy.vcp.params import Params
+from mb.strategy.vcp.params import IntradayBreakout, Params
 
 # Why a candidate day (trend template passed the day before) is not a breakout. The first failed rule is recorded.
 REASONS = (
@@ -19,9 +19,11 @@ REASONS = (
     "first_too_deep", "not_contracting", "last_too_deep", "not_tightening", "pivot_too_low", "volume_not_lower",
     "no_quiet_day", "no_close_above_pivot", "pivot_already_crossed", "breakout_volume_low",
 )
+# "buy_stop" replaces "breakout" for an intraday trigger: day D gets a buy-stop at the pivot, from sessions up to D-1 only.
 # Funnel stage a reason belongs to: 1 = failed the base, 2 = failed the dry-up, 3 = failed the breakout, 4 = breakout.
 STAGE = {r: 1 for r in REASONS[1:11]} | {"volume_not_lower": 2, "no_quiet_day": 2, "no_close_above_pivot": 3,
-                                          "pivot_already_crossed": 3, "breakout_volume_low": 3, "breakout": 4}
+                                          "pivot_already_crossed": 3, "breakout_volume_low": 3, "breakout": 4,
+                                          "buy_stop": 4}
 
 
 @dataclass(frozen=True)
@@ -102,9 +104,10 @@ def scan(high: np.ndarray, low: np.ndarray, close: np.ndarray, volume: np.ndarra
             continue
         reason, contractions = _base(high, low, alt, d, b)
         if contractions:
-            reason = _dry_up(volume, vol_avg, contractions, d, p) or _breakout(close, volume, vol_avg, contractions, d, p)
+            reason = (_dry_up(volume, vol_avg, contractions, d, p)
+                      or _breakout(high, close, volume, vol_avg, contractions, d, p))
         reasons.append((d, reason))
-        if reason == "breakout":
+        if STAGE[reason] == 4:
             start = bisect_left(alt.t, contractions[0].high_i)
             swings = tuple(zip(alt.t[start:], alt.is_high[start:], alt.px[start:], strict=True))
             found.append(Found(d, tuple(contractions), swings))
@@ -154,9 +157,12 @@ def _dry_up(volume: np.ndarray, vol_avg: np.ndarray, cs: list[Contraction], d: i
     return ""
 
 
-def _breakout(close: np.ndarray, volume: np.ndarray, vol_avg: np.ndarray, cs: list[Contraction], d: int,
-              p: Params) -> str:
+def _breakout(high: np.ndarray, close: np.ndarray, volume: np.ndarray, vol_avg: np.ndarray, cs: list[Contraction],
+              d: int, p: Params) -> str:
     pivot = cs[-1].high
+    if isinstance(p.breakout, IntradayBreakout):
+        # A buy-stop fills once price reaches the pivot, so the order is used up after the first session that does.
+        return "pivot_already_crossed" if high[cs[-1].high_i + 1:d].max() >= pivot else "buy_stop"
     if not close[d] > pivot:
         return "no_close_above_pivot"
     if close[cs[-1].high_i + 1:d].max() > pivot:  # the breakout is the first close through the pivot
