@@ -26,7 +26,7 @@ from mb.config.loader import Resolved
 from mb.config.models import PaperConfig
 from mb.data import datasets
 from mb.live import calendar
-from mb.strategy.momentum.params import Params, ParamsM8
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10
 from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
@@ -92,8 +92,12 @@ def check_supported(p: Params) -> None:
                          ("sizing.vol_target_annual", p.sizing.vol_target_annual)) if v is not None]
     if not p.portfolio.resize_held:
         on.append("portfolio.resize_held: false")
+    if isinstance(p, ParamsM10):  # they read more history than `history_rows` loads
+        on += [k for k, v in (("ranking.high_window_sessions", p.ranking.high_window_sessions),
+                              ("ranking.residual_beta_sessions", p.ranking.residual_beta_sessions),
+                              ("ranking.frog_candidates_per_slot", p.ranking.frog_candidates_per_slot)) if v is not None]
     if on:
-        raise ValueError(f"paper trading does not support these M8 options yet: {', '.join(on)}")
+        raise ValueError(f"paper trading does not support these M8/M10 options yet: {', '.join(on)}")
 
 
 def history_rows(p: Params) -> int:

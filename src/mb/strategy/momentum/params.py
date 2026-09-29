@@ -73,3 +73,35 @@ class ParamsM8(Params):
     ranking: RankingM8
     portfolio: PortfolioM8
     sizing: Sizing
+
+
+# M10 options (docs/research/m10.md), again in subclasses so M8 configs keep their model and hash.
+
+class RankingM10(RankingM8):
+    # Set: score = adj_close / highest adj_high over this many sessions, the decision date included (George & Hwang 2004).
+    # Ties (many names sit at 1.0) are broken by the `score` above.
+    high_window_sessions: int | None
+    # Set: residual momentum (Blitz, Huij & Martens 2011). Daily log returns are regressed on the benchmark's over this
+    # many sessions ending `skip_sessions` before the decision date; score = sum / stdev of the residuals over the
+    # lookback-to-skip span.
+    residual_beta_sessions: int | None
+    residual_benchmark_symbol: str
+    # Set: the best ceil(this x top_n) names by the score are reordered by information discreteness, lowest first
+    # (Da, Gurun & Warachka 2014), ties by the score; the rest follow in score order.
+    frog_candidates_per_slot: float | None
+
+    @model_validator(mode="after")
+    def _one_score(self) -> RankingM10:
+        scores = [k for k in ("high_window_sessions", "residual_beta_sessions", "second_lookback_sessions")
+                  if getattr(self, k) is not None]
+        if len(scores) > 1:
+            raise ValueError(f"at most one of these ranking options may be set: {', '.join(scores)}")
+        if self.residual_beta_sessions is not None and self.residual_beta_sessions < self.lookback_sessions - self.skip_sessions:
+            raise ValueError("residual_beta_sessions must cover the lookback-to-skip span")
+        if self.frog_candidates_per_slot is not None and self.frog_candidates_per_slot < 1.0:
+            raise ValueError("frog_candidates_per_slot must be at least 1")
+        return self
+
+
+class ParamsM10(ParamsM8):
+    ranking: RankingM10

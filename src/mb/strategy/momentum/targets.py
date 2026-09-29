@@ -5,12 +5,13 @@ decision date, and the engine trades at the next session's open.
 """
 from __future__ import annotations
 
+import math
 from datetime import date
 
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import Params, ParamsM8, Ranking, RankingM8, Sizing, Universe
+from mb.strategy.momentum.params import Params, ParamsM8, Ranking, RankingM8, RankingM10, Sizing, Universe
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
@@ -29,8 +30,51 @@ def _score(r: Ranking, lookback: int) -> pl.Expr:
     return (mom / vol).over("symbol")
 
 
-def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date) -> dict[date, list[str]]:
-    """For each month-end in [start, end], the eligible symbols best first (ties by symbol)."""
+def _log_ret() -> pl.Expr:
+    return (pl.col("adj_close") / pl.col("adj_close").shift(1)).log()
+
+
+def _residual_score(r: RankingM10) -> pl.Expr:
+    """Residual momentum, per symbol, from rolling sums of the stock's (y) and benchmark's (x) daily log returns.
+
+    alpha and beta: least squares over `residual_beta_sessions` rows; residuals e = y - alpha - beta x over the last
+    lookback - skip of those rows; both windows end `skip_sessions` rows before the row scored. Score = sum(e) / stdev(e).
+    """
+    assert r.residual_beta_sessions is not None
+    big, n = r.residual_beta_sessions, r.lookback_sessions - r.skip_sessions
+    x, y = pl.col("_bench_ret"), pl.col("_ret")
+
+    def s(e: pl.Expr, w: int) -> pl.Expr:
+        return e.rolling_sum(w, min_samples=w).shift(r.skip_sessions)
+
+    bx, by, bxx, bxy = s(x, big), s(y, big), s(x * x, big), s(x * y, big)
+    beta = (big * bxy - bx * by) / (big * bxx - bx * bx)
+    alpha = (by - beta * bx) / big
+    sx, sy, sxx, syy, sxy = s(x, n), s(y, n), s(x * x, n), s(y * y, n), s(x * y, n)
+    sum_e = sy - n * alpha - beta * sx
+    sum_e2 = syy + n * alpha ** 2 + beta ** 2 * sxx - 2 * alpha * sy - 2 * beta * sxy + 2 * alpha * beta * sx
+    var = (sum_e2 - sum_e ** 2 / n) / (n - 1)
+    return (sum_e / var.sqrt()).over("symbol")
+
+
+def _discreteness(r: Ranking) -> pl.Expr:
+    """Information discreteness over the lookback-to-skip span: sign(return) x (share of down days - share of up days)."""
+    n = r.lookback_sessions - r.skip_sessions
+    ret = pl.col("_ret")
+
+    def share(e: pl.Expr) -> pl.Expr:
+        return e.cast(pl.Float64).rolling_sum(n, min_samples=n).shift(r.skip_sessions) / n
+
+    mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
+    return (mom.sign() * (share(ret < 0.0) - share(ret > 0.0))).over("symbol")
+
+
+def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
+           top_n: int | None = None) -> dict[date, list[str]]:
+    """For each month-end in [start, end], the eligible symbols best first (ties by symbol).
+
+    `top_n` is needed only by the M10 frog-in-the-pan option.
+    """
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
     cols = [pl.col("turnover").rolling_mean(u.adv_window_sessions, min_samples=u.adv_window_sessions).over("symbol").alias("adv"),
             mom.over("symbol").alias("mom")]
@@ -41,13 +85,38 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date)
     second = r.second_lookback_sessions if isinstance(r, RankingM8) else None
     if second is not None:
         cols.append(_score(r, second).alias("score2"))
-    f = panel.sort("symbol", "date").with_columns(cols).filter(pl.col("date").is_between(start, end))
+    m10 = r if isinstance(r, RankingM10) else None
+    keys: list[str] = []  # M10: sort keys ahead of the usual score (all descending)
+    f = panel.sort("symbol", "date")
+    if m10 is not None and (m10.residual_beta_sessions is not None or m10.frog_candidates_per_slot is not None):
+        f = f.with_columns(_log_ret().over("symbol").alias("_ret"))
+    if m10 is not None and m10.high_window_sessions is not None:
+        w = m10.high_window_sessions
+        cols.append((pl.col("adj_close") / pl.col("adj_high").rolling_max(w, min_samples=w)).over("symbol").alias("near_high"))
+        keys.append("near_high")
+    if m10 is not None and m10.residual_beta_sessions is not None:
+        bench = (panel.filter(pl.col("symbol") == m10.residual_benchmark_symbol)
+                 .select("date", pl.col("adj_close").log().alias("_bench_log")))
+        if bench.is_empty():
+            raise ValueError(f"residual benchmark {m10.residual_benchmark_symbol} is not in the panel")
+        f = (f.join(bench, on="date", how="left").sort("symbol", "date")
+             .with_columns((pl.col("_bench_log") - pl.col("_bench_log").shift(1)).over("symbol").alias("_bench_ret")))
+        cols.append(_residual_score(m10).alias("residual"))
+        keys.append("residual")
+    frog = m10.frog_candidates_per_slot if m10 is not None else None
+    if frog is not None:
+        if top_n is None:
+            raise ValueError("frog_candidates_per_slot needs top_n")
+        cols.append(_discreteness(r).alias("discreteness"))
+    f = f.with_columns(cols).filter(pl.col("date").is_between(start, end))
     score = pl.col("mom") / pl.col("vol") if r.score == "return_over_vol" else pl.col("mom")
     f = f.with_columns(score.alias("score"))
     eligible = (pl.col("series").is_in(u.allowed_series) & (pl.col("close") >= u.min_price_inr) & (pl.col("adv") >= u.min_adv_inr)
                 & pl.col("score").is_not_null() & pl.col("score").is_finite())
     if second is not None:
         eligible = eligible & pl.col("score2").is_not_null() & pl.col("score2").is_finite()
+    for k in keys + (["discreteness"] if frog is not None else []):
+        eligible = eligible & pl.col(k).is_not_null() & pl.col(k).is_finite()
     if u.exclude_fund_units:
         eligible = eligible & ~pl.col("security_id").str.starts_with("isin:INF")
     out: dict[date, list[str]] = {}
@@ -58,7 +127,14 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date)
             n = pl.len().cast(pl.Float64)
             day = day.with_columns(((pl.col("score").rank("average") + pl.col("score2").rank("average")) / (2.0 * n))
                                    .alias("score"))
-        out[d] = day.sort("score", "symbol", descending=[True, False])["symbol"].to_list()
+        day = day.sort(*keys, "score", "symbol", descending=[True] * (len(keys) + 1) + [False])
+        order = day["symbol"].to_list()
+        if frog is not None:
+            assert top_n is not None
+            k = math.ceil(frog * top_n)
+            head = day.head(k).with_row_index("_pos").sort("discreteness", "_pos")["symbol"].to_list()
+            order = head + order[k:]
+        out[d] = order
     return out
 
 
@@ -114,7 +190,7 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
             days_per_year: int | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target."""
-    ranks = ranked(panel, p.universe, p.ranking, start, end)
+    ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n)
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
     m8 = p if isinstance(p, ParamsM8) else None
     cap = m8.portfolio.max_per_sector if m8 else None
