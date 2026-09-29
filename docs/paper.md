@@ -3,6 +3,12 @@
 The M5 final strategy (`strategies/momentum/configs/voladj_final.yaml`, pinned by hash in
 `configs/paper/momentum_voladj.yaml`) runs as a paper book on the VPS from the 2026-09-30 close with ₹10L.
 
+A second book, `configs/paper/momentum_top40.yaml` (the M8 40-name variant, `docs/research/m8.md`), starts on the same
+close with its own ₹10L. It has no final run; this book is its test. Each book has its own files, units and alerts
+(titled by book name). `deploy/mb-paper-top40.*` runs it five minutes after the first. Both jobs take the same lock,
+so they never download or build the shared daily dataset at the same time. The book refuses M8 options it cannot trade yet
+(second lookback, sector cap, no-resize, volatility target).
+
 ## What runs
 
 `mb paper daily configs/paper/momentum_voladj.yaml`, from the systemd user timer in `deploy/` (Mon–Fri 19:45 and
@@ -20,7 +26,7 @@ The M5 final strategy (`strategies/momentum/configs/voladj_final.yaml`, pinned b
 
 Running it twice a day, or re-running after a fix, is safe: each session is committed once.
 
-## Files (VPS, `~/projects/multibagger-v2/data/paper/momentum_voladj/`)
+## Files (VPS, `~/projects/multibagger-v2/data/paper/<book name>/`)
 
 | Path | What |
 |---|---|

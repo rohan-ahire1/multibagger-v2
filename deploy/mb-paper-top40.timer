@@ -1,0 +1,11 @@
+# Five minutes after mb-paper.timer; the shared lock makes it wait if that run is still going.
+[Unit]
+Description=multibagger paper trading daily job (momentum_top40)
+
+[Timer]
+OnCalendar=Mon..Fri 19:50 Asia/Kolkata
+OnCalendar=Mon..Fri 23:20 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

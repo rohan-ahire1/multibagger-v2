@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+from datetime import date
 from pathlib import Path
 
 import polars as pl
@@ -12,6 +13,7 @@ from test_m5_momentum import _bars, _days, _frame, _params
 
 from mb.config.loader import ConfigError, load_paper_config, load_strategy_config
 from mb.engine.rebalance import Target, simulate_targets
+from mb.live.paper import check_supported
 from mb.strategy.momentum.params import Params, ParamsM8
 from mb.strategy.momentum.targets import ranked, targets
 
@@ -111,3 +113,16 @@ def test_volatility_target_scales_gross_by_benchmark_volatility():
     assert all(t.gross == 1.0 for t in tg.values())
     with pytest.raises(ValueError, match="days_per_year"):
         targets(panel, _m8(sizing={"vol_target_annual": 0.1}), days[30], days[-1], sectors={})
+
+
+# --- paper ----------------------------------------------------------------------------------------------------------
+
+def test_the_top40_paper_book_loads_and_the_book_refuses_options_it_cannot_trade():
+    cfg, strat = load_paper_config(ROOT / "configs/paper/momentum_top40.yaml", ROOT)
+    assert cfg.start == date(2026, 9, 30) and strat.params.portfolio.top_n == 40
+    check_supported(strat.params)
+    check_supported(_params())
+    for over in ({"ranking": {"second_lookback_sessions": 126}}, {"portfolio": {"max_per_sector": 6}},
+                 {"portfolio": {"resize_held": False}}, {"sizing": {"vol_target_annual": 0.2}}):
+        with pytest.raises(ValueError, match="does not support"):
+            check_supported(_m8(**over))

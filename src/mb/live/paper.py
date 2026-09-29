@@ -26,7 +26,7 @@ from mb.config.loader import Resolved
 from mb.config.models import PaperConfig
 from mb.data import datasets
 from mb.live import calendar
-from mb.strategy.momentum.params import Params
+from mb.strategy.momentum.params import Params, ParamsM8
 from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
@@ -81,6 +81,19 @@ class DataView:
     panel: pl.DataFrame                     # PANEL_COLUMNS
     share_mult: dict[tuple[date, str], float]  # (session, symbol) -> price multiplier of applied share-count events
     jumps: pl.DataFrame                     # symbol, date, ratio
+
+
+def check_supported(p: Params) -> None:
+    """The book trades a plain month-end rebalance. M8 options that need more than that are refused, not ignored."""
+    if not isinstance(p, ParamsM8):
+        return
+    on = [k for k, v in (("ranking.second_lookback_sessions", p.ranking.second_lookback_sessions),
+                         ("portfolio.max_per_sector", p.portfolio.max_per_sector),
+                         ("sizing.vol_target_annual", p.sizing.vol_target_annual)) if v is not None]
+    if not p.portfolio.resize_held:
+        on.append("portfolio.resize_held: false")
+    if on:
+        raise ValueError(f"paper trading does not support these M8 options yet: {', '.join(on)}")
 
 
 def history_rows(p: Params) -> int:
@@ -307,6 +320,7 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
     """
     p = strat.params
     assert isinstance(p, Params)
+    check_supported(p)
     costs = Costs.of(strat)
     all_days = sorted(view.panel["date"].unique().to_list())
     todo = [d for d in all_days if d >= cfg.start and (book.as_of is None or d > book.as_of)]
