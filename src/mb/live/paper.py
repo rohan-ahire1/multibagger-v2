@@ -29,7 +29,7 @@ from mb.config.loader import Resolved
 from mb.config.models import PaperConfig
 from mb.data import datasets
 from mb.live import calendar
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22
 from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
@@ -114,12 +114,12 @@ def check_supported(p: Params) -> None:
     if isinstance(p, ParamsM12):
         on += [k for k, v in (("ranking.max_filter_frac", p.ranking.max_filter_frac),
                               ("portfolio.min_momentum", p.portfolio.min_momentum)) if v is not None]
-    if isinstance(p, ParamsM19) and p.portfolio.fixed_weights:
-        on.append("portfolio.fixed_weights")
     if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
         on.append("exits.book_stop_frac")
+    if isinstance(p, ParamsM22) and p.portfolio.fixed_trend_sessions is not None:
+        on.append("portfolio.fixed_trend_sessions")
     if on:
-        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M19/M21 options yet: {', '.join(on)}")
+        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22 options yet: {', '.join(on)}")
 
 
 def history_rows(p: Params) -> int:
@@ -340,17 +340,19 @@ def _fill(book: Book, s: date, bars: dict[str, tuple], costs: Costs, notes: list
     return fills, closed
 
 
-def _orders(book: Book, s: date, picks: dict[str, float], gross: float, bars: dict[str, tuple], costs: Costs) -> list[dict]:
+def _orders(book: Book, s: date, picks: dict[str, float], gross: float, bars: dict[str, tuple], costs: Costs,
+            last: dict[str, float] | None = None) -> list[dict]:
     """Whole-share orders that move the book to the target, sized off this close. Integer rounding leaves a small band
     where a held name is not traded: it is sold down only above floor(goal / close) shares and bought up only below
-    floor(goal / cost-loaded close)."""
+    floor(goal / cost-loaded close). A fixed-weight symbol (M19) that did not trade this session is sized off its last
+    close (`last`); ranked picks always have a bar."""
     equity = book.equity()
     total = sum(picks.values())
     out: list[dict] = []
     for sym in sorted(set(book.positions) - set(picks)):
         out.append({"symbol": sym, "side": "sell", "shares": book.positions[sym].shares, "ref_price": book.positions[sym].last_close})
     for sym in sorted(picks):
-        ref = bars[sym][1]
+        ref = bars[sym][1] if sym in bars else (last or {})[sym]
         goal = equity * gross * picks[sym] / total if total > 0 else 0.0
         held = book.positions[sym].shares if sym in book.positions else 0
         hi, lo = math.floor(goal / ref), math.floor(goal / costs.buy(ref))
@@ -416,11 +418,14 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
             lo = all_days[max(0, i - p.ranking.lookback_sessions)]
             blocks += _jump_blocks(view, set(picks), lo, s)
             if not blocks:
-                orders = _orders(work, s, picks, gross, bars, costs)
+                last = {k: v for k, v in cut.filter(pl.col("symbol").is_in(sorted(set(picks) - set(bars))))
+                        .sort("date").group_by("symbol").agg(pl.col("close").last()).iter_rows()}
+                orders = _orders(work, s, picks, gross, bars, costs, last)
                 work.pending = {"decided": s.isoformat(), "orders": [{k: o[k] for k in ("symbol", "side", "shares")}
                                                                      for o in orders]}
                 decision = {"picks": sorted(picks), "gross": gross, "equity_at_close": work.equity(), "orders": orders}
-                if isinstance(p, ParamsM11) and p.portfolio.weighting != "equal":  # equal-weight records keep their shape
+                fixed = isinstance(p, ParamsM19) and bool(p.portfolio.fixed_weights)
+                if isinstance(p, ParamsM11) and (p.portfolio.weighting != "equal" or fixed):  # equal-weight records keep their shape
                     total = sum(picks.values())
                     decision["weights"] = {k: picks[k] / total for k in sorted(picks)}
         if blocks:

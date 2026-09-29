@@ -68,7 +68,6 @@ def test_a_fixed_symbol_that_is_also_picked_is_an_error():
         targets(panel, _m19({"A": 0.2}, portfolio={"top_n": 3, "hold_rank_max": 3}), days[30], days[-1])
 
 
-def test_paper_trading_refuses_fixed_weights():
+def test_paper_trading_accepts_fixed_weights():  # refused until M24 added paper support
     check_supported(_m19({}))
-    with pytest.raises(ValueError, match="fixed_weights"):
-        check_supported(_m19({"GOLD": 0.2}))
+    check_supported(_m19({"GOLD": 0.2}))

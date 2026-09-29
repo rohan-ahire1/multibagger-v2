@@ -1,0 +1,26 @@
+# DRAFT, not deployed (docs/research/m19.md, m20.md, m24.md): book 2 (40 names, inverse-vol over 126 sessions) with
+# GOLDBEES held at 20% of equity and topped up at each month-end. Candidate book; runs only if the user approves holding
+# an ETF in a paper book (then set start to the next month-end and add a timer). Dev run 20260929-202720-5f07ff7a
+# (pin momentum/m19_gold20_invvol_b2): 22.80% CAGR / 32.05% max DD / Calmar 0.712; passed the M20 cost, bootstrap and
+# capacity checks. Params and market costs come from the strategy config, pinned by its resolved hash; its dataset and
+# period are not used.
+name: momentum_top40_gold
+strategy_config: strategies/momentum/configs/m19_gold20_invvol_b2.yaml
+strategy_config_hash: 5f07ff7ac7399917801d0e1f798b3c2c1d7148ecc5d1641f73572c9d206c7295
+# The linked daily data, as in its reference runs: a held name follows a symbol rename.
+data_config: configs/data/nse_daily_linked.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4
