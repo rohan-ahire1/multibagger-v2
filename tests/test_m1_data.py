@@ -136,6 +136,14 @@ def test_feed_row_moves_to_the_symbol_its_isin_traded_under():
     assert out.select("symbol", "feed_symbol").rows() == [("OLDSYM", "NEWSYM"), ("NEWSYM", "NEWSYM"), ("OTHER", "OTHER")]
 
 
+def test_an_action_that_brought_a_new_isin_goes_to_the_symbol_trading_it_from_the_ex_date():
+    ss = sessions()
+    bars = pl.DataFrame({"symbol": ["OLDSYM"] * 4, "date": ss[:4],
+                         "security_id": ["isin:INE1OLD"] * 2 + ["isin:INE1NEW"] * 2})
+    feed = pl.DataFrame({"symbol": ["NEWSYM"], "isin": ["INE1NEW"], "ex_date": [ss[2]], "action_type": ["split"]})
+    assert resymbol_by_isin(feed, bars).select("symbol", "feed_symbol").rows() == [("OLDSYM", "NEWSYM")]
+
+
 def test_moved_row_does_not_double_an_action_the_bar_symbol_already_lists():
     ss = sessions()
     bars = pl.DataFrame({"symbol": ["OLDSYM"] * 3, "date": ss[:3], "security_id": ["isin:INE1"] * 3})

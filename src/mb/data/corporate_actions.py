@@ -53,6 +53,9 @@ def load_overrides(path: Path, applied_sources: list[str]) -> pl.DataFrame | Non
 def resymbol_by_isin(feed: pl.DataFrame, bars: pl.DataFrame) -> pl.DataFrame:
     """Move each feed row to the symbol its ISIN traded under on the last session before the ex-date.
 
+    The feed lists an action under the company's current ISIN. When a split or bonus brought a new ISIN, no bars carry
+    it before the ex-date, so the row goes to the symbol that ISIN first traded under from the ex-date on.
+
     Adds `feed_symbol` (the symbol the feed used). A moved row is dropped if the target symbol already lists the same
     action type on that date, so a company listed under both symbols is not adjusted twice.
     """
@@ -63,14 +66,17 @@ def resymbol_by_isin(feed: pl.DataFrame, bars: pl.DataFrame) -> pl.DataFrame:
     keyed = (feed.with_row_index("_i").with_columns((pl.col("ex_date") - pl.duration(days=1)).alias("_before"))
              .sort("_before")
              .join_asof(listed, on="_before", by="isin", strategy="backward", check_sortedness=False)
+             .with_columns(pl.col("ex_date").alias("_from")).sort("_from")
+             .join_asof(listed.rename({"_before": "_from", "_bar_symbol": "_new_isin_symbol"}), on="_from", by="isin",
+                        strategy="forward", check_sortedness=False)
              .sort("_i")
              .with_columns(pl.col("symbol").alias("feed_symbol"),
-                           pl.coalesce("_bar_symbol", "symbol").alias("symbol")))
+                           pl.coalesce("_bar_symbol", "_new_isin_symbol", "symbol").alias("symbol")))
     moved = keyed.filter(pl.col("symbol") != pl.col("feed_symbol"))
     native = keyed.filter(pl.col("symbol") == pl.col("feed_symbol"))
     moved = moved.join(native.select("symbol", "ex_date", "action_type").unique(),
                        on=["symbol", "ex_date", "action_type"], how="anti")
-    return pl.concat([native, moved]).sort("_i").drop("_i", "_before", "_bar_symbol")
+    return pl.concat([native, moved]).sort("_i").drop("_i", "_before", "_bar_symbol", "_from", "_new_isin_symbol")
 
 
 def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date, bars: pl.DataFrame) -> pl.DataFrame:

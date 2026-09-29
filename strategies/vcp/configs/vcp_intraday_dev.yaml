@@ -2,7 +2,7 @@
 # (no volume check). Development period only.
 name: vcp
 version: vcp_intraday_dev
-dataset: nse_research@2026-09-29d
+dataset: nse_research@2026-09-29e
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
