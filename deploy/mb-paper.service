@@ -9,6 +9,6 @@ Type=oneshot
 WorkingDirectory=%h/projects/multibagger-v2
 # MB_NTFY_TOPIC=<topic>, mode 0600
 EnvironmentFile=%h/.config/multibagger/alerts.env
-ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb paper daily configs/paper/momentum_voladj.yaml
+ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb paper daily configs/paper/momentum_voladj_stocks.yaml
 Nice=10
 TimeoutStartSec=3600

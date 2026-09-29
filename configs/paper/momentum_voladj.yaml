@@ -1,3 +1,4 @@
+# Retired before its start: its strategy config lets fund units in. Replaced by momentum_voladj_stocks.yaml.
 # M6 paper trading of vol-adjusted momentum (docs/research/m5.md), run daily on the VPS by `mb paper daily`.
 # Params and market costs come from the strategy config, pinned by its resolved hash (the M5 final run
 # 20260928-212343-a4a84df3). Its dataset and period are not used: the book runs on the newest nse_daily version.

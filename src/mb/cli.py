@@ -184,7 +184,7 @@ def data_build(
 
 paper_app = typer.Typer(no_args_is_help=True)
 app.add_typer(paper_app, name="paper", help="Daily paper trading.")
-PaperCfg = Annotated[Path, typer.Argument(help="Paper config YAML, e.g. configs/paper/momentum_voladj.yaml.")]
+PaperCfg = Annotated[Path, typer.Argument(help="Paper config YAML, e.g. configs/paper/momentum_voladj_stocks.yaml.")]
 
 
 @paper_app.command("daily")

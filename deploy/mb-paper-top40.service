@@ -1,13 +1,13 @@
-# Second paper book (configs/paper/momentum_top40.yaml, docs/paper.md). Install like mb-paper.service. Both jobs take
+# Second paper book (configs/paper/momentum_top40_stocks.yaml, docs/paper.md). Install like mb-paper.service. Both jobs take
 # the same lock, so they never download or build the shared daily dataset at the same time.
 [Unit]
-Description=multibagger paper trading daily job (momentum_top40)
+Description=multibagger paper trading daily job (momentum_top40_stocks)
 
 [Service]
 Type=oneshot
 WorkingDirectory=%h/projects/multibagger-v2
 # MB_NTFY_TOPIC=<topic>, mode 0600
 EnvironmentFile=%h/.config/multibagger/alerts.env
-ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb paper daily configs/paper/momentum_top40.yaml
+ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb paper daily configs/paper/momentum_top40_stocks.yaml
 Nice=10
 TimeoutStartSec=3600

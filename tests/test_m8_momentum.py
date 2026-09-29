@@ -126,3 +126,11 @@ def test_the_top40_paper_book_loads_and_the_book_refuses_options_it_cannot_trade
                  {"portfolio": {"resize_held": False}}, {"sizing": {"vol_target_annual": 0.2}}):
         with pytest.raises(ValueError, match="does not support"):
             check_supported(_m8(**over))
+
+
+def test_the_running_paper_books_are_stocks_only():
+    for name, top_n in (("momentum_voladj_stocks", 30), ("momentum_top40_stocks", 40)):
+        cfg, strat = load_paper_config(ROOT / f"configs/paper/{name}.yaml", ROOT)
+        assert cfg.name == name and cfg.start == date(2026, 9, 30)
+        assert strat.params.universe.exclude_fund_units and strat.params.portfolio.top_n == top_n
+        check_supported(strat.params)

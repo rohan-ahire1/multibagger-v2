@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics), M3 (baselines + SEPA port), M4 (research loop) and M5 (momentum + blends, `docs/research/m5.md`) done. M6 (paper trading on the VPS, `docs/paper.md`) running from the 2026-09-30 close; M8 added a second book (40 names, `docs/research/m8.md`). Next: M7 (live with Dhan). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics), M3 (baselines + SEPA port), M4 (research loop) and M5 (momentum + blends, `docs/research/m5.md`) done. M6 (paper trading on the VPS, `docs/paper.md`) running from the 2026-09-30 close; M8 added a second book (40 names, `docs/research/m8.md`). Both books are stocks only (`docs/paper.md`). Next: M7 (live with Dhan). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 
@@ -59,8 +59,8 @@ uv run mb data build configs/data/nse_research.yaml --version <label>   # new im
 uv run mb data check nse_research@<label>                              # recorded checks + file hashes
 uv run mb data fetch bhavcopy configs/data/nse_research.yaml --from D --to D
 uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-year Y --end-year Y
-uv run mb paper daily configs/paper/momentum_voladj.yaml [--no-fetch] [--today D]   # the VPS daily job
-uv run mb paper status configs/paper/momentum_voladj.yaml
+uv run mb paper daily configs/paper/momentum_voladj_stocks.yaml [--no-fetch] [--today D]   # the VPS daily job
+uv run mb paper status configs/paper/momentum_voladj_stocks.yaml
 uv run pytest
 ```
 

@@ -1,3 +1,4 @@
+# Retired before its start: its strategy config lets fund units in. Replaced by momentum_top40_stocks.yaml.
 # M8 second paper book (docs/research/m8.md): vol-adjusted momentum holding 40 names, the one momentum-m8 variant that
 # passed on the development period (run 20260929-065335-1df714a6). No final run on the spent test window; this forward
 # book is its test. Runs beside momentum_voladj, which it does not replace. Params and market costs come from the

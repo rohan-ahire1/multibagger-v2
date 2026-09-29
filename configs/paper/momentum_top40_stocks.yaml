@@ -1,0 +1,23 @@
+# M8 paper book 2 (docs/paper.md, docs/research/m8.md): vol-adjusted momentum, 40 names, stocks only.
+# m8_top40_dev_d's params (run 20260929-065335-1df714a6) with fund units excluded; dev run 20260929-074916-cd4d9211.
+# No final run on the spent test window; this forward book is its test. Params and market costs come from the
+# strategy config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_top40_stocks
+strategy_config: strategies/momentum/configs/m8_top40_stocks_dev_d.yaml
+strategy_config_hash: cd4d92118b59a451f812a5ee5d112689f1ea93f4394f10d752473e96eb0e2084
+data_config: configs/data/nse_daily.yaml
+start: 2026-09-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

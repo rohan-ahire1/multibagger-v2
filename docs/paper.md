@@ -1,17 +1,38 @@
 # M6: paper trading
 
-The M5 final strategy (`strategies/momentum/configs/voladj_final.yaml`, pinned by hash in
-`configs/paper/momentum_voladj.yaml`) runs as a paper book on the VPS from the 2026-09-30 close with ₹10L.
+Two paper books run on the VPS from the 2026-09-30 close, ₹10L each, stocks only:
 
-A second book, `configs/paper/momentum_top40.yaml` (the M8 40-name variant, `docs/research/m8.md`), starts on the same
-close with its own ₹10L. It has no final run; this book is its test. Each book has its own files, units and alerts
-(titled by book name). `deploy/mb-paper-top40.*` runs it five minutes after the first. Both jobs take the same lock,
-so they never download or build the shared daily dataset at the same time. The book refuses M8 options it cannot trade yet
-(second lookback, sector cap, no-resize, volatility target).
+- `configs/paper/momentum_voladj_stocks.yaml`: the M5 final strategy's params (`voladj_final.yaml`, 30 names) with fund
+  units excluded, pinned by hash through `strategies/momentum/configs/voladj_stocks_dev_d.yaml`.
+- `configs/paper/momentum_top40_stocks.yaml`: the M8 40-name variant (`docs/research/m8.md`) with fund units excluded,
+  through `m8_top40_stocks_dev_d.yaml`. It has no final run; this book is its test.
+
+Each book has its own files, units and alerts (titled by book name). `deploy/mb-paper-top40.*` runs the second book five
+minutes after the first. Both jobs take the same lock, so they never download or build the shared daily dataset at the
+same time. The book refuses M8 options it cannot trade yet (second lookback, sector cap, no-resize, volatility target).
+
+## Stocks only (changed before the start)
+
+The first books, `momentum_voladj.yaml` and `momentum_top40.yaml`, were retired on 2026-09-29 before their first session.
+Their strategy configs have `exclude_fund_units: false`, and the vol-adjusted score (return over volatility) ranks liquid
+and money-market ETFs first because they barely move: at the 2026-09-28 close, 8 of the 30 picks and 9 of the 40 were
+fund units, holding near-cash returns in stock slots. The replacements differ only in `exclude_fund_units: true`
+(ISINs starting INF are dropped). Dev period, dataset `nse_research@2026-09-29d`:
+
+| Config | Run | CAGR % | Max DD % | Calmar | f1 | f2 | f3 |
+|---|---|---|---|---|---|---|---|
+| `m8_control_dev_d` (voladj, funds allowed) | 20260929-065259-99baaabb | 25.23 | 40.38 | 0.625 | 0.279 | 1.600 | 0.696 |
+| `voladj_stocks_dev_d` | 20260929-074906-afd6d499 | 25.51 | 39.77 | 0.641 | 0.273 | 1.600 | 0.727 |
+| `m8_top40_dev_d` (funds allowed) | 20260929-065335-1df714a6 | 25.11 | 38.79 | 0.647 | 0.308 | 1.705 | 0.701 |
+| `m8_top40_stocks_dev_d` | 20260929-074916-cd4d9211 | 25.12 | 38.79 | 0.648 | 0.288 | 1.706 | 0.713 |
+
+Both stock-only configs beat the 12-1 baseline and the Nifty 500 TRI on Calmar in every fold and over the whole period.
+The funds-allowed voladj_final run held fund units in a few earlier years and most often in 2025. This was a
+fix to what the book can hold, chosen before any paper result, not a tuned variant.
 
 ## What runs
 
-`mb paper daily configs/paper/momentum_voladj.yaml`, from the systemd user timer in `deploy/` (Mon–Fri 19:45 and
+`mb paper daily configs/paper/momentum_voladj_stocks.yaml`, from the systemd user timer in `deploy/` (Mon–Fri 19:45 and
 23:15 IST):
 
 1. Download the holiday list, new bhavcopy zips and this year's corporate actions into `data/raw/`.
@@ -36,7 +57,7 @@ Running it twice a day, or re-running after a fix, is safe: each session is comm
 | `replays/<session>.md` | Replay result |
 | `daily/<date>-<time>.json` | Log of each run: downloads, build, problems |
 
-`mb paper status configs/paper/momentum_voladj.yaml` prints the book and the latest replay.
+`mb paper status configs/paper/momentum_voladj_stocks.yaml` prints the book and the latest replay.
 Logs: `journalctl --user -u mb-paper`.
 
 ## When an alert says the book stopped

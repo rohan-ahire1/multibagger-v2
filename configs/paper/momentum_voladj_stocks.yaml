@@ -1,0 +1,22 @@
+# M6 paper book 1 (docs/paper.md): vol-adjusted momentum, 30 names, stocks only. voladj_final's params (M5 final run
+# 20260928-212343-a4a84df3) with fund units excluded; dev run 20260929-074906-afd6d499. Params and market costs come
+# from the strategy config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_voladj_stocks
+strategy_config: strategies/momentum/configs/voladj_stocks_dev_d.yaml
+strategy_config_hash: afd6d4997e4af17358771f4359bf380120d1ae0a26c28e682884bd53d7b55218
+data_config: configs/data/nse_daily.yaml
+start: 2026-09-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4
