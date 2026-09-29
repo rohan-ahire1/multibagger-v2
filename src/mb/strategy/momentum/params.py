@@ -140,3 +140,29 @@ class ParamsM11(ParamsM10):
     portfolio: PortfolioM11
     schedule: Schedule
     exits: Exits
+
+
+# M12 options (docs/research/m12.md).
+
+class RankingM12(RankingM10):
+    # Set: at each decision date the ceil(this x n) ranked names with the highest one-day simple return over
+    # `max_window_sessions` (decision date included) are removed (Bali, Cakici & Whitelaw 2011).
+    max_filter_frac: float | None
+    max_window_sessions: int
+
+    @model_validator(mode="after")
+    def _max(self) -> RankingM12:
+        if self.max_filter_frac is not None and not 0.0 < self.max_filter_frac < 1.0:
+            raise ValueError("max_filter_frac must be between 0 and 1")
+        return self
+
+
+class PortfolioM12(PortfolioM11):
+    # Set: a name is ranked only if its lookback-to-skip return is above this; each slot stays 1 / top_n, so empty
+    # slots are cash (Antonacci's absolute momentum).
+    min_momentum: float | None
+
+
+class ParamsM12(ParamsM11):
+    ranking: RankingM12
+    portfolio: PortfolioM12

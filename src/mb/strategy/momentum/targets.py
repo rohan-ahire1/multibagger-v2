@@ -11,7 +11,8 @@ from datetime import date
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM11, Ranking, RankingM8, RankingM10, Sizing, Universe
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, Ranking, RankingM8, RankingM10, RankingM12,
+                                         Sizing, Universe)
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
@@ -80,10 +81,11 @@ def _discreteness(r: Ranking) -> pl.Expr:
 
 
 def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
-           top_n: int | None = None, offset_sessions: int = 0) -> dict[date, list[str]]:
+           top_n: int | None = None, offset_sessions: int = 0, min_momentum: float | None = None) -> dict[date, list[str]]:
     """For each month-end in [start, end], the eligible symbols best first (ties by symbol).
 
-    `top_n` is needed only by the M10 frog-in-the-pan option; `offset_sessions` moves the decision date (M11).
+    `top_n` is needed only by the M10 frog-in-the-pan option; `offset_sessions` moves the decision date (M11);
+    `min_momentum` drops names whose lookback-to-skip return is not above it (M12).
     """
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
     cols = [pl.col("turnover").rolling_mean(u.adv_window_sessions, min_samples=u.adv_window_sessions).over("symbol").alias("adv"),
@@ -114,6 +116,11 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         cols.append(_residual_score(m10).alias("residual"))
         keys.append("residual")
     frog = m10.frog_candidates_per_slot if m10 is not None else None
+    max_frac = r.max_filter_frac if isinstance(r, RankingM12) else None
+    if isinstance(r, RankingM12) and max_frac is not None:
+        w = r.max_window_sessions
+        cols.append((pl.col("adj_close") / pl.col("adj_close").shift(1) - 1.0).rolling_max(w, min_samples=w)
+                    .over("symbol").alias("maxret"))
     if frog is not None:
         if top_n is None:
             raise ValueError("frog_candidates_per_slot needs top_n")
@@ -125,13 +132,18 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
                 & pl.col("score").is_not_null() & pl.col("score").is_finite())
     if second is not None:
         eligible = eligible & pl.col("score2").is_not_null() & pl.col("score2").is_finite()
-    for k in keys + (["discreteness"] if frog is not None else []):
+    if min_momentum is not None:
+        eligible = eligible & (pl.col("mom") > min_momentum)
+    for k in keys + (["discreteness"] if frog is not None else []) + (["maxret"] if max_frac is not None else []):
         eligible = eligible & pl.col(k).is_not_null() & pl.col(k).is_finite()
     if u.exclude_fund_units:
         eligible = eligible & ~pl.col("security_id").str.starts_with("isin:INF")
     out: dict[date, list[str]] = {}
     for d in decision_dates(f, start, end, offset_sessions):
         day = f.filter((pl.col("date") == d) & eligible)
+        if max_frac is not None:
+            drop = day.sort("maxret", "symbol", descending=[True, False]).head(math.ceil(max_frac * day.height))["symbol"]
+            day = day.filter(~pl.col("symbol").is_in(drop.implode()))
         if second is not None:  # mean of the two percentile ranks, 1 = best
             # Ranks are summed before dividing so equal means tie exactly and fall back to the symbol order.
             n = pl.len().cast(pl.Float64)
@@ -218,8 +230,9 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             days_per_year: int | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target."""
     m11 = p if isinstance(p, ParamsM11) else None
+    min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
-                   m11.schedule.decision_offset_sessions if m11 else 0)
+                   m11.schedule.decision_offset_sessions if m11 else 0, min_mom)
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
     m8 = p if isinstance(p, ParamsM8) else None
     cap = m8.portfolio.max_per_sector if m8 else None
@@ -243,6 +256,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         gross = 1.0 if not p.regime.enabled or regime[d] else p.regime.risk_off_gross
         if scale:
             gross *= scale[d]
+        if min_mom is not None:  # each slot stays 1 / top_n; empty slots are cash
+            gross *= len(pick) / p.portfolio.top_n
         out[d] = Target({s: 1.0 for s in pick}, gross, frozenset() if resize else frozenset(keep))
         held = pick if gross > 0.0 else []
     if m11 and m11.portfolio.weighting == "inverse_vol":
