@@ -500,3 +500,13 @@ SHANKARA,"",demerger,2025-09-24,,,,,0.257446,"Demerger (feed: demerger), no fact
 ALLCARGO,"",demerger,2025-11-12,,,,,0.312961,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 10.6 / cum close 33.87 (M18)",manual
 DCMSRIND,"",demerger,2025-12-26,,,,,0.296236,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 51 / cum close 172.16 (M18)",manual
 GUJENERGY,"",demerger,2026-07-02,,,,,0.852941,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 290 / cum close 340 (M18)",manual
+ANSALINFRA,"",split,2006-05-10,,,,,0.5,"Not in the feed. Ex-date trades at 856.25 = 0.525 x cum close 1630.85 (half, plus the 5% upper band) on 1,283 shares, then rises 5% a day; a halving, not a crash (M26)",manual
+ANSALINFRA,"",split,2007-04-23,,,,,0.5,"Not in the feed. Ex-date open 257.25 = 0.525 x cum close 490 (half, plus the 5% upper band), then rises 5% a day; a halving, not a crash (M26)",manual
+KPIT,"",bonus_split,2007-01-04,,,,,0.2,"Bonus 1:1 + FV 5->2 (feed: BSOFT, 'Bonus-1:1 Spl-Rs 5/ To 2/', parsed as the bonus only). Ex-date close 141.25 / cum close 688.1 = 0.2053 (M26)",manual
+COREPROTEC,"",split,2007-06-06,,,,,0.2,"FV 10->2 (feed: 'Agm/Div-5%/Spl-Rs10tors2', unparsed). Ex-date open 128.95 / cum close 592.35 = 0.2177 (M26)",manual
+DABUR,"",bonus,2006-01-19,,,,,0.5,"Bonus 1:1, not in the feed. Ex-date open 111.6 / cum close 220.95 = 0.5051 (M26)",manual
+HOTELEELA,"",split,2006-09-08,,,,,0.2,"FV 10->2, not in the feed. Ex-date open 58.95 / cum close 294.7 = 0.2000 (M26)",manual
+INDIABULLS,"",demerger,2007-01-02,,,,,0.46249,"Scheme of arrangement: real estate business demerged to Indiabulls Real Estate (feed: other). Factor = ex-date close 305.45 / cum close 660.45; the open (198) was before price discovery ended, the day traded 198-347 (M26)",manual
+IVRCLINFRA,"",split,2006-03-29,,,,,0.2,"FV 10->2, not in the feed. Ex-date open 300 / cum close 1490.2 = 0.2013 (M26)",manual
+KALPATPOWR,"",split,2006-04-13,,,,,0.5,"Halving, not in the feed. Ex-date open 970.1 / cum close 1931.9 = 0.5021 (M26)",manual
+NAGARCONST,"",bonus,2006-09-20,,,,,0.5,"Halving (bonus 1:1 or FV split), not in the feed. Ex-date open 153 / cum close 296.2 = 0.5165 (M26)",manual
