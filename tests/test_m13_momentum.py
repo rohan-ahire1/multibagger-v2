@@ -8,7 +8,7 @@ import pytest
 from test_m5_momentum import _days, _frame
 from test_m12_momentum import _m12
 
-from mb.config.loader import load_strategy_config
+from mb.config.loader import load_paper_config, load_strategy_config
 from mb.live.paper import check_supported
 from mb.strategy.momentum.params import ParamsM12, ParamsM13
 from mb.strategy.momentum.targets import ranked, targets
@@ -65,3 +65,11 @@ def test_off_equals_m12_and_paper_accepts_the_option():
     m12 = _m12(universe={"exclude_fund_units": True}, ranking=base)
     assert targets(panel, off, days[25], days[-1]) == targets(panel, m12, days[25], days[-1])
     check_supported(_m13())
+
+
+def test_the_draft_inverse_vol_paper_book_uses_the_checked_config():
+    cfg, strat = load_paper_config(ROOT / "configs/paper/momentum_top40_invvol.yaml", ROOT)
+    assert cfg.strategy_config.endswith("m14_linked_invvol_b2.yaml")
+    u = strat.params.universe
+    assert u.exclude_fund_units and u.fund_units_by_symbol and strat.params.portfolio.weighting == "inverse_vol"
+    check_supported(strat.params)
