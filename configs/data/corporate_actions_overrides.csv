@@ -493,3 +493,4 @@ VEDL,"",demerger,2026-04-30,,,,,0.374224,"Demerger (feed: demerger), no factor. 
 TRIVENI,"",demerger,2026-07-22,,,,,0.614952,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 289.95 / cum close 471.5 (M18)",manual
 INDIAGLYCO,"",demerger,2026-09-02,,,,,0.202393,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 225 / cum close 1111.7 (M18)",manual
 HEG,"",demerger,2026-09-07,,,,,0.357020,"Demerger (feed: demerger, under HEGAM), no factor. Factor = ex-date price discovery: open 260 / cum close 728.25 (M18)",manual
+SILVERADD,"",bonus_split,2026-08-28,,,,,0.1,"DSP Silver ETF unit split FV 10 -> 1, record date 2026-08-28 (not in the feed; new ISIN INF740KA1ZQ0). Ex-date open 23.97 / cum close 228.41 = 0.1049 (M18)",manual

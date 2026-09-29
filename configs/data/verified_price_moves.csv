@@ -2,3 +2,4 @@ symbol,date,reason,source
 IGL,2012-04-10,"Real crash: PNGRB order cutting IGL's network tariff and compression charge; volume 47.2m shares vs 0.68m the session before, no corporate action in the feed",manual
 DHFL,2018-09-21,"Real crash: intraday fall to 274.75 from 615 on debt-default fears after IL&FS; volume 115.3m shares vs 5.46m the session before, no corporate action in the feed",manual
 FINANTECH,2013-08-01,"Real crash: NSEL payment default (National Spot Exchange, its subsidiary); volume 26.7m shares vs 0.62m the session before, no corporate action in the feed",manual
+POLICYBZR,2026-09-24,"Real crash: IRDAI consultation paper (2026-09-23) proposing caps on insurer commissions to distributors; close 1886.30 -> 1207.20 (-36%), volume about 27m shares vs 2.5m the session before, no corporate action in the feed (Business Today, 2026-09-24)",manual
