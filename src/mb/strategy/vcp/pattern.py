@@ -16,12 +16,12 @@ from mb.strategy.vcp.params import Params
 # Why a candidate day (trend template passed the day before) is not a breakout. The first failed rule is recorded.
 REASONS = (
     "breakout", "no_swing_high", "above_base_high", "base_too_short", "too_few_contractions", "too_many_contractions",
-    "first_too_deep", "not_contracting", "last_too_deep", "pivot_too_low", "volume_not_lower", "no_quiet_day",
-    "no_close_above_pivot", "breakout_volume_low",
+    "first_too_deep", "not_contracting", "last_too_deep", "not_tightening", "pivot_too_low", "volume_not_lower",
+    "no_quiet_day", "no_close_above_pivot", "pivot_already_crossed", "breakout_volume_low",
 )
 # Funnel stage a reason belongs to: 1 = failed the base, 2 = failed the dry-up, 3 = failed the breakout, 4 = breakout.
-STAGE = {r: 1 for r in REASONS[1:10]} | {"volume_not_lower": 2, "no_quiet_day": 2, "no_close_above_pivot": 3,
-                                          "breakout_volume_low": 3, "breakout": 4}
+STAGE = {r: 1 for r in REASONS[1:11]} | {"volume_not_lower": 2, "no_quiet_day": 2, "no_close_above_pivot": 3,
+                                          "pivot_already_crossed": 3, "breakout_volume_low": 3, "breakout": 4}
 
 
 @dataclass(frozen=True)
@@ -138,6 +138,8 @@ def _base(high: np.ndarray, low: np.ndarray, alt: _Alternating, d: int, b) -> tu
         return "not_contracting", []
     if cs[-1].depth > b.max_last_depth:
         return "last_too_deep", []
+    if cs[-1].depth > b.max_last_to_first_depth * cs[0].depth:
+        return "not_tightening", []
     if cs[-1].high < b.min_pivot_to_base_high * px0:
         return "pivot_too_low", []
     return "", cs
@@ -155,8 +157,10 @@ def _dry_up(volume: np.ndarray, vol_avg: np.ndarray, cs: list[Contraction], d: i
 def _breakout(close: np.ndarray, volume: np.ndarray, vol_avg: np.ndarray, cs: list[Contraction], d: int,
               p: Params) -> str:
     pivot = cs[-1].high
-    if not (close[d] > pivot >= close[d - 1]):
+    if not close[d] > pivot:
         return "no_close_above_pivot"
+    if close[cs[-1].high_i + 1:d].max() > pivot:  # the breakout is the first close through the pivot
+        return "pivot_already_crossed"
     if not volume[d] >= p.breakout.min_volume_to_avg * vol_avg[d]:
         return "breakout_volume_low"
     return "breakout"

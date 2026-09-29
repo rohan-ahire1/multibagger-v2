@@ -33,6 +33,7 @@ params:
     max_contractions: 6
     max_first_depth: 0.35
     max_last_depth: 0.10
+    max_last_to_first_depth: 0.67
     min_pivot_to_base_high: 0.85
   volume:
     avg_sessions: 50

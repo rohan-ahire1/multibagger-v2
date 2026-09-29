@@ -42,6 +42,7 @@ class Base(Strict):
     max_contractions: int
     max_first_depth: float
     max_last_depth: float
+    max_last_to_first_depth: float  # overall tightening: last depth at most this fraction of the first
     min_pivot_to_base_high: float  # the pivot (last swing high) is at least this fraction of the base-start high
 
 

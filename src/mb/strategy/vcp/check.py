@@ -80,7 +80,8 @@ REASON_TEXT = {
     "Price already above the base high", "base_too_short": "Base shorter than the minimum", "too_few_contractions":
     "Too few contractions", "too_many_contractions": "Too many contractions", "first_too_deep":
     "First contraction too deep", "not_contracting": "A contraction not shallower than the one before",
-    "last_too_deep": "Last contraction too deep", "pivot_too_low": "Pivot too far below the base high",
+    "last_too_deep": "Last contraction too deep", "not_tightening": "Last contraction not much shallower than the first",
+    "pivot_already_crossed": "Already closed above the pivot earlier", "pivot_too_low": "Pivot too far below the base high",
     "volume_not_lower": "Volume in the last contraction not lower", "no_quiet_day": "No quiet day in the last contraction",
     "no_close_above_pivot": "No close through the pivot", "breakout_volume_low": "Breakout volume too low",
 }

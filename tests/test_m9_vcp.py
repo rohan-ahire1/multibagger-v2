@@ -88,6 +88,15 @@ def test_each_rule_can_reject_the_pattern(params):
     assert _scan(a, params)[0][-1] == (126, "no_quiet_day")
     assert _scan(_vcp(last_low=83.0), params)[0][-1] == (126, "not_contracting")
     assert _scan(_vcp(last_low=85.6), params)[0][-1] == (126, "last_too_deep")
+    strict = params.model_copy(update={"base": params.base.model_copy(update={"max_last_to_first_depth": 0.2})})
+    assert _scan(_vcp(), strict)[0][-1] == (126, "not_tightening")
+
+
+def test_only_the_first_close_through_the_pivot_is_a_breakout(params):
+    a = _vcp()
+    a["close"][120] = 95.5  # a close above the 95.19 pivot; the high is left alone so no new swing high forms
+    reasons, found = _scan(a, params)
+    assert reasons[-1] == (126, "pivot_already_crossed") and not found
 
 
 # --- engine: VCP entry rules and the SMA trail --------------------------------------------------------------------

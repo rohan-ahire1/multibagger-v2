@@ -1,7 +1,7 @@
 # M8 question 2: Minervini's VCP, built to his rules
 
-Status: **rules accepted as drafted (2026-09-29); detector built (`src/mb/strategy/vcp/`); pattern check waiting for
-review. No backtest yet.** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
+Status: **rules accepted as drafted (2026-09-29); detector built (`src/mb/strategy/vcp/`); pattern check done in two
+rounds, two rules added (2026-09-29). No backtest yet.** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
 and *Think & Trade Like a Champion* (2017). Price and volume rules only; the earnings half of SEPA is left out (no
 earnings data yet) and added later only if the pattern shows promise.
 
@@ -65,6 +65,7 @@ higher one and consecutive lows keep the lower one, so highs and lows alternate.
 - **Count:** 2 to 6 contractions.
 - **Each shallower:** every contraction's depth is less than the one before it.
 - **First contraction** at most **35%** deep; **last** at most **10%**.
+- **Overall tightening:** the last contraction is at most **0.67** × the first (added after round 1).
 - **Pivot high near the top:** the last swing high (the pivot) is at least **0.85** × the base start high.
 
 ### 6. Volume dry-up
@@ -75,8 +76,8 @@ higher one and consecutive lows keep the lower one, so highs and lows alternate.
 ### 7. Breakout and entry
 
 - **Pivot** = the high of the last swing high.
-- **Signal:** the day's close is above the pivot, the previous close was not, and volume is at least **1.4** × the
-  50-session average (40% above).
+- **Signal:** the day's close is above the pivot, no close since the pivot high was (added after round 1: only the
+  first close through the pivot counts), and volume is at least **1.4** × the 50-session average (40% above).
 - **Entry:** next session's open, skipped if that open is more than **5%** above the pivot (Minervini: don't chase).
 
 ### 8. Stop, sizing, exits
@@ -98,9 +99,9 @@ higher one and consecutive lows keep the lower one, so highs and lows alternate.
 
 Returns are only computed once you are happy with the charts.
 
-### Result (config `strategies/vcp/configs/vcp_dev.yaml`, hash b2cfbe2f, dataset `nse_research@2026-09-29d`)
+### Round 1 (config `strategies/vcp/configs/vcp_dev.yaml`, hash b2cfbe2f, dataset `nse_research@2026-09-29d`)
 
-`uv run mb vcp check strategies/vcp/configs/vcp_dev.yaml --sample 30 --seed 1` → `reports/vcp-check/vcp_dev/`.
+`uv run mb vcp check strategies/vcp/configs/vcp_dev.yaml --sample 30 --seed 1` → `reports/vcp-check/vcp_dev_round1/`.
 
 | Stage | Stock-days, 2010–2023 |
 |---|---|
@@ -118,6 +119,76 @@ Implementation notes:
 - Contractions are measured from each swing high to the lowest low before the next swing high; equal highs keep the
   first; two highs in a row keep the higher. A swing is only used once its 5 right-hand sessions have closed.
 
+Chart review (Claude's judgment, 30 charts): **16 clear VCPs, 7 marginal, 7 not VCPs.** The seven failures: BGRENERGY
+(13% → 10%, one-day shakeout), INDIANB (loose final area), KIRLOSENG (14% → 13% → 6%, choppy), MARKSANS (9% → 8% with a
+lower low), RNAM (V-shaped crash), SOBHA (wide and loose), ZENSARTECH (had already closed above the pivot days earlier).
+
+Two faults explain most of them, and both are measurable across all 521 breakouts:
+- **Stale pivot** (49 breakouts): price had already closed above the pivot earlier, so the "breakout" was a second
+  attempt. Minervini buys the first move through the pivot.
+- **No real tightening** (48 breakouts): the last contraction was more than 0.67 × the first. No chart judged a clear
+  VCP had a ratio above 0.615.
+
+Together these drop 93 of 521. Both became rules (`not_tightening`, `pivot_already_crossed`).
+
+Rules tested on round 1 and **not** adopted:
+- Each contraction at most 0.75 × the one before (used by several screeners): drops good charts where two middle
+  contractions are similar.
+- Higher lows through the base: only one failed chart had a lower low.
+- Daily-range tightness (mean range of the last 10 sessions / mean range in the first contraction): failed charts sat at
+  0.63–0.96 but clear VCPs spread 0.48–1.10, so a cut at 0.70 drops about 8 good charts.
+
+Known weakness, not fixed: the 5-session swing sometimes misses the true tight final area (FINCABLES, SRTRANSFIN), so
+the last contraction starts earlier than the eye would put it and the stop is wider.
+
+### Round 2 (hash 5737198e, same dataset, fresh sample)
+
+`uv run mb vcp check strategies/vcp/configs/vcp_dev.yaml --sample 30 --seed 2` → `reports/vcp-check/vcp_dev/`.
+
+| Stage | Stock-days, 2010–2023 |
+|---|---|
+| Passed the trend template the day before | 257,406 |
+| Valid base | 14,722 |
+| Volume dry-up | 11,678 |
+| Breakout | 428 (318 symbols; 8 in 2011 and 2012 to 85 in 2023) |
+
+The new rules removed 2,091 days as `not_tightening` and 2,385 as `pivot_already_crossed`.
+
+Chart review, different random sample: **22 clear VCPs, 6 marginal, 2 not VCPs** (round 1: 16 / 7 / 7).
+- Not VCPs: IBVENTURES (22% → 18% → 8%, second low below the first, pivot 10% under the base high, flat 50-day SMA),
+  PRICOLLTD (wide spiky bars; the last contraction is a one-day shakeout).
+- Marginal: DPWIRES (weak close on the breakout day), GICHSGFIN and METROBRAND (pivot 9–12% under the base high), IRFC
+  (lower low in the middle), SHAKTIPUMP (last contraction 10%, stop 9.8% away), SIEMENS (last contraction a one-day drop).
+- Clear examples: TATAELXSI 2021 (17% → 5% → 4%), FILATEX 2021 (23% → 14% → 7%), MOTHERSUMI 2021 (21% → 11% → 7%),
+  VIJAYABANK 2017 (15% → 9% → 6%).
+
+Checked and not adopted: raising the pivot floor from 0.85 to 0.90 of the base high. Clear VCPs sit at 0.875–0.90 too
+(BALRAMCHIN, DIXON, BAJAJFINSV), so it would cut good charts along with the marginal ones.
+
+Verdict: the detector now finds real VCPs about three times in four, and nearly all of the rest are borderline, not
+wrong. Good enough to backtest.
+
+### What the research says (checked 2026-09-29)
+
+Minervini's own numbers, as restated by practitioners and open-source screeners, match the rules above:
+- Base 3–65 weeks; 2–6 contractions, usually 2–4, each roughly half the one before; first usually 10–35%, last 3–10%.
+- Volume dries up to the base's lowest in the final contraction ("so low you wonder if trading halted"), for several
+  quiet days.
+- Breakout: close above the pivot (high of the last contraction) on volume at least 40–50% above the 50-day average.
+  Stop under the last contraction's low.
+- Failure signs: contractions that widen, heavy-volume selling inside the base, a weak-volume breakout that falls back.
+- Screeners (tradermonty, phuazz) add a per-step ratio of at most 0.75 and a first contraction of at least ~8%; we
+  tested the ratio and rejected it (above).
+
+Sources: [luxalgo concept](https://www.luxalgo.com/library/concept/volatility-contraction-pattern/),
+[luxalgo indicator](https://www.luxalgo.com/library/indicator/volatility-contraction-pattern/),
+[tradermonty vcp-screener](https://tradermonty.github.io/claude-trading-skills/en/skills/vcp-screener/),
+[phuazz/vcp-screener](https://github.com/phuazz/vcp-screener),
+[finermarketpoints checklist](https://www.finermarketpoints.com/post/vcp-criteria-complete-checklist),
+[elearnmarkets](https://www.elearnmarkets.com/school/units/trade-like-a-stock-market-wizard/a-picture-is-worth-a-million-dollars),
+[deepvue](https://deepvue.com/screener/volatility-contraction-pattern/),
+[tradingsim](https://www.tradingsim.com/blog/volatility-contraction-pattern).
+
 ## Backtest plan (after the charts pass)
 
 Development period only, dataset `nse_research@2026-09-29d`, question tag `vcp`. Pin to beat: `sepa/v1_port_dev_b`
@@ -132,8 +203,7 @@ Development period only, dataset `nse_research@2026-09-29d`, question tag `vcp`.
 Honest expectation: VCP holds cash most of the time, so on its own it likely won't beat vol-adjusted momentum's Calmar.
 Its likely value is as a second book beside momentum; that comparison is a separate, later question.
 
-## Questions for you
+## Open questions
 
-1. Are the bold numbers right, or do you follow different values (e.g. last contraction ≤ 8%, 1.5× volume)?
-2. Swing size of 5 sessions each side: OK, or do you want to see charts with 3 and 5 first?
-3. Do you have example VCPs on NSE stocks (symbol + date) that the detector must find?
+1. Swing size of 5 sessions each side misses some tight final areas; 3 sessions may fit better but gives noisier
+   swings. Not changed yet.
