@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* Tokens from the approved mockup. Light is the default; the theme script in index.html sets data-theme. */
+:root, :root[data-theme="light"] {
+  --bg: #f4f5f7; --surface: #ffffff; --s2: #f6f7f9; --border: #e3e6eb; --bstrong: #cbd0d9;
+  --ink: #172033; --soft: #586174; --faint: #8991a1;
+  --accent: #3563e9; --accent-soft: #edf2ff; --accent-border: #c9d7fb;
+  --up: #16835d; --up-soft: #e9f7f1; --up-border: #bfe5d3;
+  --down: #cf4b51; --down-soft: #fff0f0; --down-border: #f5c9cb;
+  --warn: #ad700d; --warn-soft: #fff6e4; --warn-border: #f1dcaf;
+  --up-rgb: 22,131,93; --down-rgb: 207,75,81; --strong-text: #ffffff;
+  --up-row: rgba(22,131,93,0.045); --down-row: rgba(207,75,81,0.045);
+  --row-line: #eef0f3; --grid: #eef0f3;
+  --tint: rgba(246,247,249,0.7); --topbar: rgba(255,255,255,0.82); --overlay: rgba(15,23,42,0.28);
+  --accent-fill: rgba(53,99,233,0.07); --down-fill: rgba(207,75,81,0.12); --lock-band: rgba(137,145,161,0.07);
+  --shadow: 0 1px 2px rgba(16,24,40,0.03), 0 8px 24px rgba(16,24,40,0.04);
+  --shadow-sm: 0 1px 2px rgba(16,24,40,0.06);
+  --shadow-float: 0 12px 40px rgba(16,24,40,0.14), 0 2px 6px rgba(16,24,40,0.06);
+  --pill: 0 1px 2px rgba(16,24,40,0.08);
+  --series-1: #d97706; --series-2: #7c3aed; --series-3: #0891b2;
+  --page: radial-gradient(900px 520px at 0% 0%, rgba(53,99,233,0.05), transparent 60%), radial-gradient(900px 520px at 100% 100%, rgba(22,131,93,0.04), transparent 60%), #f4f5f7;
+}
+:root[data-theme="dark"] {
+  --bg: #0c111b; --surface: #121925; --s2: #192230; --border: #263244; --bstrong: #3b485c;
+  --ink: #eef2f8; --soft: #aab4c4; --faint: #707d91;
+  --accent: #7c9df5; --accent-soft: #1c2a4b; --accent-border: #2d4170;
+  --up: #52c994; --up-soft: #16382c; --up-border: #1f5140;
+  --down: #f27d82; --down-soft: #422329; --down-border: #5c2e35;
+  --warn: #e1ad55; --warn-soft: #3b2e1c; --warn-border: #564226;
+  --up-rgb: 82,201,148; --down-rgb: 242,125,130; --strong-text: #0c111b;
+  --up-row: rgba(82,201,148,0.05); --down-row: rgba(242,125,130,0.05);
+  --row-line: #1d2636; --grid: #1d2636;
+  --tint: rgba(25,34,48,0.6); --topbar: rgba(18,25,37,0.82); --overlay: rgba(3,6,12,0.6);
+  --accent-fill: rgba(124,157,245,0.09); --down-fill: rgba(242,125,130,0.16); --lock-band: rgba(112,125,145,0.08);
+  --shadow: 0 1px 2px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.2);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-float: 0 16px 48px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+  --pill: 0 1px 2px rgba(0,0,0,0.35);
+  --series-1: #f0a93b; --series-2: #b08cf7; --series-3: #38bdd8;
+  --page: radial-gradient(900px 520px at 0% 0%, rgba(124,157,245,0.06), transparent 60%), radial-gradient(900px 520px at 100% 100%, rgba(82,201,148,0.04), transparent 60%), #0c111b;
+}
+
+@theme inline {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: var(--bg); --color-surface: var(--surface); --color-s2: var(--s2);
+  --color-border: var(--border); --color-bstrong: var(--bstrong);
+  --color-ink: var(--ink); --color-soft: var(--soft); --color-faint: var(--faint);
+  --color-accent: var(--accent); --color-accent-soft: var(--accent-soft); --color-accent-border: var(--accent-border);
+  --color-up: var(--up); --color-up-soft: var(--up-soft); --color-up-border: var(--up-border);
+  --color-down: var(--down); --color-down-soft: var(--down-soft); --color-down-border: var(--down-border);
+  --color-warn: var(--warn); --color-warn-soft: var(--warn-soft); --color-warn-border: var(--warn-border);
+  --color-row-line: var(--row-line); --color-tint: var(--tint);
+}
+
+@layer base {
+html, body, #root { height: 100%; }
+body {
+  margin: 0; font-family: "Inter", system-ui, sans-serif; font-size: 14px; letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
+  background: var(--page); color: var(--ink); overflow: hidden;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; letter-spacing: inherit; }
+button:disabled { opacity: .4; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input { font: inherit; color: inherit; letter-spacing: inherit; }
+}
+@layer components {
+.card { border-radius: 12px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+}
