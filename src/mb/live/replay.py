@@ -1,10 +1,11 @@
 """Replay: the backtest over the paper period on today's dataset, compared with what the paper book did.
 
-The picks at every month-end must match exactly. Equity will differ a little (whole shares, orders sized off the close,
+The picks at every month-end must match exactly (and the weights, for a book that records them). Equity will differ a little (whole shares, orders sized off the close,
 fills of the rounded share counts), and the gap is reported and alerted on above the configured limit.
 """
 from __future__ import annotations
 
+import math
 from datetime import date
 from typing import Any
 
@@ -31,6 +32,8 @@ def replay(cfg: PaperConfig, strat: Resolved, view: DataView, days: list[dict[st
     sim = simulate_targets(tg, bars, sessions, strat.market, cfg.initial_capital)
 
     paper = {date.fromisoformat(d["session"]): (d["decision"]["picks"], d["decision"]["gross"]) for d in days if d["decision"]}
+    weights = {date.fromisoformat(d["session"]): d["decision"]["weights"] for d in days
+               if d["decision"] and "weights" in d["decision"]}
     # The backtest treats the last session as a month-end; that is only a decision if the book made one there.
     bt = {d: (sorted(t.weights), t.gross) for d, t in tg.items() if d != as_of or d in paper}
     mismatches = []
@@ -41,6 +44,12 @@ def replay(cfg: PaperConfig, strat: Resolved, view: DataView, days: list[dict[st
         elif a != b:
             mismatches.append({"date": d.isoformat(), "paper_only": sorted(set(a[0]) - set(b[0])),
                                "backtest_only": sorted(set(b[0]) - set(a[0])), "gross": [a[1], b[1]]})
+        elif d in weights:
+            t = tg[d].weights
+            total = sum(t.values())
+            off = {k: [w, t[k] / total] for k, w in weights[d].items() if not math.isclose(w, t[k] / total, rel_tol=1e-9)}
+            if off:
+                mismatches.append({"date": d.isoformat(), "weights": off})
     bt_eq = dict(zip(sim.equity["date"].to_list(), sim.equity["equity"].to_list()))
     gaps = [(d["session"], (d["equity"] / bt_eq[date.fromisoformat(d["session"])] - 1) * 100) for d in days
             if date.fromisoformat(d["session"]) in bt_eq]

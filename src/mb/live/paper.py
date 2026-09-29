@@ -101,15 +101,14 @@ def check_supported(p: Params) -> None:
             on.append("schedule.decision_offset_sessions")
         if p.exits.stop_loss_frac is not None:
             on.append("exits.stop_loss_frac")
-        if p.portfolio.weighting != "equal":
-            on.append("portfolio.weighting")
     if on:
         raise ValueError(f"paper trading does not support these M8/M10/M11 options yet: {', '.join(on)}")
 
 
 def history_rows(p: Params) -> int:
     """Rows per symbol the strategy reads before a date: every window is a per-symbol shift or rolling over rows."""
-    return max(p.ranking.lookback_sessions, p.universe.adv_window_sessions, p.regime.sma_sessions if p.regime.enabled else 0)
+    inv = p.portfolio.inverse_vol_sessions if isinstance(p, ParamsM11) and p.portfolio.weighting == "inverse_vol" else 0
+    return max(p.ranking.lookback_sessions, p.universe.adv_window_sessions, p.regime.sma_sessions if p.regime.enabled else 0, inv)
 
 
 def load_view(root: Path, ref: str, start: date, p: Params) -> DataView:
@@ -372,6 +371,9 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
                 work.pending = {"decided": s.isoformat(), "orders": [{k: o[k] for k in ("symbol", "side", "shares")}
                                                                      for o in orders]}
                 decision = {"picks": sorted(picks), "gross": gross, "equity_at_close": work.equity(), "orders": orders}
+                if isinstance(p, ParamsM11) and p.portfolio.weighting != "equal":  # equal-weight records keep their shape
+                    total = sum(picks.values())
+                    decision["weights"] = {k: picks[k] / total for k in sorted(picks)}
         if blocks:
             raise Blocked(s, blocks)
 

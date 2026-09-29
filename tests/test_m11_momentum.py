@@ -11,7 +11,7 @@ from test_m10_momentum import _prices, _wiggle
 
 from mb.config.loader import load_strategy_config
 from mb.engine.rebalance import Target, simulate_targets
-from mb.live.paper import check_supported
+from mb.live.paper import check_supported, history_rows
 from mb.strategy.momentum.params import ParamsM10, ParamsM11
 from mb.strategy.momentum.targets import decision_dates, month_ends, targets
 
@@ -36,12 +36,18 @@ def test_m10_configs_keep_their_model_and_m11_configs_route_to_m11():
     assert type(load_strategy_config(ROOT / "strategies/momentum/configs/m11_control_b1.yaml", ROOT).params) is ParamsM11
 
 
-def test_paper_trading_refuses_m11_options_but_not_the_control():
+def test_paper_trading_refuses_offset_and_stop_but_takes_inverse_vol():
     check_supported(_m11())
-    for k, v in (("schedule", {"decision_offset_sessions": 5}), ("exits", {"stop_loss_frac": 0.1}),
-                 ("portfolio", {"weighting": "inverse_vol"})):
+    check_supported(_m11(portfolio={"weighting": "inverse_vol"}))
+    for k, v in (("schedule", {"decision_offset_sessions": 5}), ("exits", {"stop_loss_frac": 0.1})):
         with pytest.raises(ValueError, match="M11"):
             check_supported(_m11(**{k: v}))
+
+
+def test_paper_history_covers_the_inverse_vol_window():
+    long = {"weighting": "inverse_vol", "inverse_vol_sessions": 400}
+    assert history_rows(_m11(portfolio=long)) == 400
+    assert history_rows(_m11(portfolio=long | {"weighting": "equal"})) == history_rows(_params())
 
 
 def test_bad_values_are_refused():
@@ -110,3 +116,27 @@ def test_stop_reference_resets_at_each_rebalance():
     tg = {days[0]: Target({"A": 1.0}, 1.0), days[3]: Target({"A": 1.0}, 1.0)}
     res = simulate_targets(tg, bars, days, market(), 1000.0, 0.10)
     assert res.holdings["status"].to_list() == ["open"]
+
+
+def test_an_inverse_vol_paper_book_matches_its_backtest_replay(tmp_path):
+    from datetime import date
+
+    from test_m6_paper import _days as _paper_days
+    from test_m6_paper import _hol, _panel, _paper_cfg, _strat, _view
+
+    from mb.live.paper import Book, Store, advance
+    from mb.live.replay import replay
+
+    days = _paper_days(date(2023, 6, 1), 200)
+    view = _view(_panel(days, {"AAA": 0.004, "BBB": 0.002, "CCC": -0.001, "DDD": 0.003, "EEE": 0.0}))
+    cfg = _paper_cfg(date(2023, 8, 1))
+    plain = _strat(True, portfolio={"top_n": 3, "hold_rank_max": 3})
+    strat = type(plain)(plain.strategy, _m11(portfolio={"top_n": 3, "hold_rank_max": 3, "weighting": "inverse_vol",
+                                                        "inverse_vol_sessions": 10}), plain.market, plain.baselines, plain.strategy_path)
+    store = Store(tmp_path, cfg.name)
+    _, recs, _ = advance(Book(None, cfg.initial_capital), cfg, strat, view, _hol(days), store)
+    decisions = [r["decision"] for r in recs if r["decision"]]
+    assert decisions and all(len(set(d["weights"].values())) == 3 for d in decisions)  # unequal weights, recorded
+    rep = replay(cfg, strat, view, store.days())
+    assert rep["decision_mismatches"] == [] and rep["ok"]
+    assert abs(rep["equity_gap_pct"]) < 0.5
