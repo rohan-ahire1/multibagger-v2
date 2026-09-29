@@ -68,6 +68,7 @@ def world(tmp_path: Path) -> tuple[Path, Path]:
 def toy_config(**over: object) -> dash_config.DashboardConfig:
     raw = {"name": "toy", "output": "out/bundle.json", "runs_dir": "runs", "sector_map": "configs/reference/sector_map.csv",
            "groups": ["G"], "bundle": {"equity_decimals": 0, "price_decimals": 2, "chart_weeks_before": 1, "chart_weeks_after": 1},
+           "ui": {"page_size": 15, "return_buckets": [-10, 0, 10], "range_years": [3, 1], "heat_full_pct": 12},
            "paper": {"preview_dataset": REF, "next_in_line": 3, "recent_fills": 5, "books": []},
            "runs": [{"run": "run-mom", "label": "Momentum", "group": "G"}, {"pin": "sepa/pin", "label": "SEPA", "group": "G", "tag": "Locked"}]}
     raw.update(over)
@@ -87,6 +88,8 @@ def test_bundle_shape(world):
     assert mom["config"] == "strategies/x/cfg.yaml"          # recorded absolute path made repo-relative
     assert b["tri"][1] is None and b["tri"][0] == 1000.0        # TRI only on some sessions
     assert b["weeks"][-1] == len(b["cal"]) - 1
+    assert b["ui"]["range_years"] == [3, 1] and b["adoption_metric"] == "calmar"
+    assert (mom["px_source"], sepa["px_source"]) == ("dataset", "recorded")
 
 
 def test_trade_prices_recorded_or_from_dataset(world):

@@ -31,6 +31,13 @@ class Bundle(Strict):
     chart_weeks_after: int        # ... and after exit; prices are exported for these windows only
 
 
+class Ui(Strict):
+    page_size: int                # rows per page in the trades table
+    return_buckets: list[float]   # edges of the return-per-trade histogram, in %, ascending
+    range_years: list[int]        # trailing-window presets in the date range, in years
+    heat_full_pct: float          # a monthly return this size (%) gets the darkest heatmap cell
+
+
 class PaperBook(Strict):
     config: str                   # configs/paper/<name>.yaml
     label: str
@@ -52,6 +59,7 @@ class DashboardConfig(Strict):
     sector_map: str               # relative to --root
     groups: list[str]             # picker sections, in order
     bundle: Bundle
+    ui: Ui
     paper: Paper
     runs: list[RunEntry]
 

@@ -367,6 +367,7 @@ def build(cfg: DashboardConfig, root: Path, data_root: Path, config_file: str) -
             "question": r.manifest.get("question"), "period": [d if isinstance(d, str) else d.isoformat() for d in r.manifest["period"]],
             "equity": aligned(cal_index, n, e["date"].to_list(), e["equity"].to_list(), ed),
             "positions": aligned(cal_index, n, e["date"].to_list(), e["open_positions"].to_list(), None),
+            "px_source": "recorded" if "entry_price" in r.trades.columns else "dataset",
             "trades": trades, "metrics": r.metrics["strategy"], "folds": r.metrics.get("folds", {}),
             "baselines": r.metrics.get("baselines", {}),
         })
@@ -381,6 +382,7 @@ def build(cfg: DashboardConfig, root: Path, data_root: Path, config_file: str) -
         "tri": aligned(cal_index, n, list(tri), list(tri.values()), 2),
         "locked_from": base.locked_from.isoformat(),
         "folds": [[f.name, f.start.isoformat(), f.end.isoformat()] for f in base.folds],
+        "adoption_metric": base.adoption.metric, "ui": cfg.ui.model_dump(),
         "chart": {"weeks_before": cfg.bundle.chart_weeks_before, "weeks_after": cfg.bundle.chart_weeks_after},
         "paper": paper,
     }

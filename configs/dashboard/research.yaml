@@ -18,6 +18,13 @@ bundle:
   chart_weeks_before: 26
   chart_weeks_after: 13
 
+# Interface settings the web app reads from the bundle.
+ui:
+  page_size: 15
+  return_buckets: [-60, -40, -30, -20, -10, 0, 10, 20, 30, 50, 100, 200]
+  range_years: [5, 3, 1]
+  heat_full_pct: 12
+
 paper:
   preview_dataset: nse_research@2026-09-29d
   next_in_line: 6
