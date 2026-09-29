@@ -184,3 +184,21 @@ class UniverseM13(Universe):
 
 class ParamsM13(ParamsM12):
     universe: UniverseM13
+
+
+# M19 option (docs/research/m19.md).
+
+class PortfolioM19(PortfolioM12):
+    # Each symbol here is held at its weight of equity at every decision date, outside the ranking and universe filters;
+    # the picks share the rest with their usual relative weights.
+    fixed_weights: dict[str, float]
+
+    @model_validator(mode="after")
+    def _fixed(self) -> PortfolioM19:
+        if any(not w > 0.0 for w in self.fixed_weights.values()) or not sum(self.fixed_weights.values()) < 1.0:
+            raise ValueError("fixed_weights must be positive and sum to less than 1")
+        return self
+
+
+class ParamsM19(ParamsM13):
+    portfolio: PortfolioM19

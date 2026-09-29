@@ -28,7 +28,7 @@ def _momentum() -> tuple[Any, Callable[[Resolved, Path], RunResult]]:
     from mb.strategy.momentum import run
 
     # A config validates as exactly one of these (unknown keys fail), so pre-M8 configs keep their hash.
-    return run.Params | run.ParamsM8 | run.ParamsM10 | run.ParamsM11 | run.ParamsM12 | run.ParamsM13, run.run
+    return run.Params | run.ParamsM8 | run.ParamsM10 | run.ParamsM11 | run.ParamsM12 | run.ParamsM13 | run.ParamsM19, run.run
 
 
 def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:

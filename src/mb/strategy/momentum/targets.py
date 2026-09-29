@@ -11,7 +11,7 @@ from datetime import date
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, Ranking, RankingM8, RankingM10, RankingM12,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, Ranking, RankingM8, RankingM10, RankingM12,
                                          Sizing, Universe, UniverseM13)
 
 
@@ -266,4 +266,17 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if m11 and m11.portfolio.weighting == "inverse_vol":
         w = inverse_vol_weights(panel, m11.portfolio.inverse_vol_sessions, {d: list(t.weights) for d, t in out.items()})
         out = {d: Target(w[d], t.gross, t.keep_size) for d, t in out.items()}
+    if isinstance(p, ParamsM19) and p.portfolio.fixed_weights:
+        out = {d: _with_fixed(t, p.portfolio.fixed_weights) for d, t in out.items()}
     return out
+
+
+def _with_fixed(t: Target, fixed: dict[str, float]) -> Target:
+    """Fixed symbols at their weight of the invested equity; the picks share the rest in their relative weights."""
+    total = sum(t.weights.values())
+    rest = 1.0 - sum(fixed.values())
+    both = sorted(set(fixed) & set(t.weights))
+    if both:
+        raise ValueError(f"fixed_weights symbols were also picked: {both}")
+    w = {s: v / total * rest for s, v in t.weights.items()} if total > 0 else {}
+    return Target(w | fixed, t.gross if w else t.gross * sum(fixed.values()), t.keep_size)
