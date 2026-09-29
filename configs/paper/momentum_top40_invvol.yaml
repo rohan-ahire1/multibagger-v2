@@ -6,7 +6,8 @@
 name: momentum_top40_invvol
 strategy_config: strategies/momentum/configs/m14_linked_invvol_b2.yaml
 strategy_config_hash: 6dbddb2793b012c90f567e5dd5e87076f090e03b93d2373bf7e2ae82cca199b7
-data_config: configs/data/nse_daily.yaml
+# The linked daily data, as in its reference runs: a held name follows a symbol rename.
+data_config: configs/data/nse_daily_linked.yaml
 start: 2026-10-30
 initial_capital: 1000000
 keep_datasets: 3

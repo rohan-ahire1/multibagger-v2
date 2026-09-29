@@ -31,9 +31,11 @@ def replay(cfg: PaperConfig, strat: Resolved, view: DataView, days: list[dict[st
     bars = cut.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
     sim = simulate_targets(tg, bars, sessions, strat.market, cfg.initial_capital)
 
-    paper = {date.fromisoformat(d["session"]): (d["decision"]["picks"], d["decision"]["gross"]) for d in days if d["decision"]}
-    weights = {date.fromisoformat(d["session"]): d["decision"]["weights"] for d in days
-               if d["decision"] and "weights" in d["decision"]}
+    # Picks are recorded under the symbols of their day; a later rename in this dataset relabels them.
+    paper = {(dt := date.fromisoformat(d["session"])): (sorted(view.renamed(k, dt) for k in d["decision"]["picks"]),
+                                                        d["decision"]["gross"]) for d in days if d["decision"]}
+    weights = {(dt := date.fromisoformat(d["session"])): {view.renamed(k, dt): w for k, w in d["decision"]["weights"].items()}
+               for d in days if d["decision"] and "weights" in d["decision"]}
     # The backtest treats the last session as a month-end; that is only a decision if the book made one there.
     bt = {d: (sorted(t.weights), t.gross) for d, t in tg.items() if d != as_of or d in paper}
     mismatches = []

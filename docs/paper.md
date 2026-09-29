@@ -47,6 +47,18 @@ fix to what the book can hold, chosen before any paper result, not a tuned varia
 
 Running it twice a day, or re-running after a fix, is safe: each session is committed once.
 
+## Symbol renames (M14)
+
+When a company changes its NSE symbol (same ISIN), `nse_daily` ends the old symbol and starts the new one with no
+history. A held name then gets no bars ("held, no trade" notes) and is sold at its last close at the next month-end,
+and the new symbol cannot be ranked for about a year. The two running books keep this behaviour, which matches their
+backtest references (`docs/research/m14.md`). The undeployed inverse-vol draft (`momentum_top40_invvol.yaml`) reads
+`configs/data/nse_daily_linked.yaml` instead: the old symbol's bars carry the new symbol, and the book moves a position
+bought (and orders decided) under the old symbol to the new one before that session's corporate actions (a `rename`
+entry in the day's `corporate_actions`). Replay maps recorded picks the same way. Built locally at the 2026-09-28 close,
+the linked daily data has 199 links since 2023 (HEG → HEGAM on 2026-09-22 is the newest), the same 144 unexplained
+jumps as `nse_daily`, and the same picks for all three books at that close.
+
 ## Files (VPS, `~/projects/multibagger-v2/data/paper/<book name>/`)
 
 | Path | What |

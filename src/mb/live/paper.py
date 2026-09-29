@@ -10,6 +10,9 @@ Each session after the book's last one is processed in order:
 
 A session with a problem (an unexplained price jump on a held or picked name) is not committed: the book stays at the
 session before it, and the next run retries once the data is fixed.
+
+On a dataset built with `link_renames_by_isin` (M14), a renamed stock's bars all carry its later symbol, so a position
+and pending orders under the old symbol move to the later one first (step 0).
 """
 from __future__ import annotations
 
@@ -81,6 +84,13 @@ class DataView:
     panel: pl.DataFrame                     # PANEL_COLUMNS
     share_mult: dict[tuple[date, str], float]  # (session, symbol) -> price multiplier of applied share-count events
     jumps: pl.DataFrame                     # symbol, date, ratio
+    # old symbol -> [(first session of the later symbol, final symbol)]: the old symbol's rows before that session
+    # carry the final symbol. Empty unless the dataset links renames.
+    renames: dict[str, list[tuple[date, str]]] = field(default_factory=dict)
+
+    def renamed(self, sym: str, as_of: date) -> str:
+        """The symbol that `sym`, as it was known on `as_of`, carries in this dataset."""
+        return next((to for before, to in self.renames.get(sym, []) if as_of < before), sym)
 
 
 def check_supported(p: Params) -> None:
@@ -126,8 +136,12 @@ def load_view(root: Path, ref: str, start: date, p: Params) -> DataView:
     mult: dict[tuple[date, str], float] = {}
     for d, s, e in m.select("effective_date", "symbol", "expected").iter_rows():
         mult[(d, s)] = mult.get((d, s), 1.0) * e
+    renames: dict[str, list[tuple[date, str]]] = {}
+    if (path / "rename_links.parquet").exists():
+        for old, before, final in pl.read_parquet(path / "rename_links.parquet").sort("before").select("old", "before", "final").iter_rows():
+            renames.setdefault(old, []).append((before, final))
     return DataView(ref, manifest["outputs"][datasets.PANEL_FILE]["sha256"], panel, mult,
-                    pl.read_parquet(path / "unexplained_jumps.parquet"))
+                    pl.read_parquet(path / "unexplained_jumps.parquet"), renames)
 
 
 # --- store ----------------------------------------------------------------------------------------------------------
@@ -201,6 +215,34 @@ def _session_bars(view: DataView, sessions: list[date]) -> dict[date, dict[str, 
         if d in out:
             out[d][s] = (o, c, fa, pc, pf)
     return out
+
+
+def _renames(book: Book, view: DataView, notes: list[str]) -> list[dict]:
+    """Moves positions bought, and orders decided, under a symbol that this dataset has relabelled."""
+    done: list[dict] = []
+    for sym in sorted(book.positions):
+        to = view.renamed(sym, book.positions[sym].entry)
+        if to == sym:
+            continue
+        pos = book.positions.pop(sym)
+        if to in book.positions:  # cannot happen for a clean link; kept whole rather than dropped
+            have = book.positions[to]
+            have.shares += pos.shares
+            have.paid += pos.paid
+            have.received += pos.received
+            have.entry = min(have.entry, pos.entry)
+            notes.append(f"{sym} -> {to}: merged into an existing position")
+        else:
+            book.positions[to] = pos
+        done.append({"symbol": to, "kind": "rename", "from": sym, "shares": pos.shares})
+    if book.pending:
+        decided = date.fromisoformat(book.pending["decided"])
+        for o in book.pending["orders"]:
+            to = view.renamed(o["symbol"], decided)
+            if to != o["symbol"]:
+                done.append({"symbol": to, "kind": "rename_order", "from": o["symbol"], "side": o["side"]})
+                o["symbol"] = to
+    return done
 
 
 def _corporate_actions(book: Book, s: date, bars: dict[str, tuple], view: DataView, notes: list[str]) -> list[dict]:
@@ -347,7 +389,7 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
         work = Book.from_json(json.loads(json.dumps(book.to_json())))  # a session commits whole or not at all
         notes: list[str] = []
         bars = bars_by_day[s]
-        ca = _corporate_actions(work, s, bars, view, notes)
+        ca = _renames(work, view, notes) + _corporate_actions(work, s, bars, view, notes)
         fills, closed = _fill(work, s, bars, costs, notes)
         for sym, pos in work.positions.items():
             if sym in bars:
