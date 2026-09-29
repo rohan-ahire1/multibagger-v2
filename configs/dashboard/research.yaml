@@ -1,0 +1,70 @@
+# Research dashboard bundle (docs: web/README.md). Run with: uv run mb dashboard export configs/dashboard/research.yaml
+# Every number in the dashboard comes from these run records, the dataset named under paper, and the paper configs.
+name: research
+output: web/public/bundle.json     # relative to --root
+runs_dir: runs                     # relative to the data root (--data-root, default --root)
+sector_map: configs/reference/sector_map.csv
+
+groups:
+  - Vol-adj momentum
+  - M8 variants
+  - M5 variants
+  - Blends
+  - Baselines and SEPA
+
+bundle:
+  equity_decimals: 2
+  price_decimals: 2
+  chart_weeks_before: 26
+  chart_weeks_after: 13
+
+paper:
+  preview_dataset: nse_research@2026-09-29d
+  next_in_line: 6
+  recent_fills: 12
+  books:
+    - config: configs/paper/momentum_voladj_stocks.yaml
+      label: Top 30
+      backtest_run: 20260929-074906-afd6d499
+      timer_file: deploy/mb-paper.timer
+    - config: configs/paper/momentum_top40_stocks.yaml
+      label: Top 40
+      backtest_run: 20260929-074916-cd4d9211
+      timer_file: deploy/mb-paper-top40.timer
+
+runs:
+  - {run: 20260929-074906-afd6d499, label: "Vol-adj momentum · Top 30 stocks", group: Vol-adj momentum, tag: Paper book 1,
+     note: "Paper book 1. Top 30 with fund units excluded, development period."}
+  - {run: 20260929-074916-cd4d9211, label: "Vol-adj momentum · Top 40 stocks", group: Vol-adj momentum, tag: Paper book 2,
+     note: "Paper book 2. Top 40 with fund units excluded, development period."}
+  - {run: 20260928-212343-a4a84df3, label: "Vol-adj momentum · Top 30 (final)", group: Vol-adj momentum,
+     note: "The M5 final run, crosses the locked window. Fund units allowed."}
+  - {run: 20260929-065335-1df714a6, label: "Vol-adj momentum · Top 40", group: Vol-adj momentum,
+     note: "The M8 variant that passed. Fund units allowed."}
+  - {pin: momentum/voladj_dev, label: "Vol-adj momentum · Top 30 (dev)", group: Vol-adj momentum,
+     note: "M5 pin on the development period."}
+
+  - {run: 20260929-065328-e16b6613, label: "M8 · Top 20", group: M8 variants}
+  - {run: 20260929-065343-942a56ce, label: "M8 · No resize", group: M8 variants}
+  - {run: 20260929-065351-b2127f08, label: "M8 · 12m + 6m rank", group: M8 variants}
+  - {run: 20260929-065359-9427ce81, label: "M8 · Sector cap 6", group: M8 variants}
+  - {run: 20260929-065406-cff7e8c9, label: "M8 · Vol target 20%", group: M8 variants}
+  - {run: 20260929-065259-99baaabb, label: "M8 · Control", group: M8 variants,
+     note: "The M8 control: every M8 option off, on dataset d."}
+
+  - {pin: momentum/baseline_dev, label: "Momentum 12-1 (baseline)", group: M5 variants,
+     note: "Plain 12-1 momentum, the yardstick."}
+  - {run: 20260928-211419-e5fa194a, label: "M5 · Stocks only", group: M5 variants}
+  - {run: 20260928-211428-f3c434e9, label: "M5 · Regime filter", group: M5 variants}
+  - {run: 20260928-211445-36055242, label: "M5 · Hold buffer 60", group: M5 variants}
+  - {run: 20260928-211453-7e03b62f, label: "M5 · All four combined", group: M5 variants}
+
+  - {run: 20260928-211513-7530cfc6, label: "Blend · SEPA + momentum", group: Blends}
+  - {run: 20260928-211555-27b0886d, label: "Blend · SEPA + vol-adj", group: Blends}
+
+  - {pin: sepa/v1_port_dev_b, label: "SEPA v1 port (dev, b)", group: Baselines and SEPA,
+     note: "v1's SEPA/VCP port on dataset b."}
+  - {pin: sepa/v1_port_dev, label: "SEPA v1 port (dev)", group: Baselines and SEPA,
+     note: "v1's SEPA/VCP port on the first dataset."}
+  - {run: 20260928-201856-74c7b90c, label: "SEPA v1 port (final)", group: Baselines and SEPA,
+     note: "v1 parity run, 2010–2026."}

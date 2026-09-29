@@ -247,3 +247,29 @@ def data_check(
     if changed:
         raise _fail(f"files differ from manifest hashes: {changed}")
     typer.echo("files match manifest hashes")
+
+
+dashboard_app = typer.Typer(no_args_is_help=True)
+app.add_typer(dashboard_app, name="dashboard", help="The research dashboard (web/).")
+
+
+@dashboard_app.command("export")
+def dashboard_export(
+    config: Annotated[Path, typer.Argument(help="Dashboard config YAML, e.g. configs/dashboard/research.yaml.")],
+    root: Root = _ROOT,
+    data_root: Annotated[Path | None, typer.Option("--data-root", envvar="MB_DATA_ROOT",
+                                                   help="Folder holding runs/ and data/ (default: --root).")] = None,
+) -> None:
+    """Write the JSON bundle the dashboard loads, from run records, the dataset and the paper books."""
+    from mb.dashboard import config as dash_config
+    from mb.dashboard import export
+
+    try:
+        cfg = dash_config.load(config.resolve())
+        rel = export.rel_path(str(config.resolve()), root)
+        bundle = export.build(cfg, root, data_root or root, rel)
+        out = root / cfg.output
+        size = export.write(bundle, out)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"wrote {out} ({size / 1e6:.2f} MB): {len(bundle['runs'])} runs, {len(bundle['paper']['books'])} paper books, data to {bundle['data_to']}")

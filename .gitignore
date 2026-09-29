@@ -5,3 +5,7 @@ __pycache__/
 /data/
 /runs/
 reports/
+node_modules/
+web/dist/
+web/public/bundle.json
+*.tsbuildinfo
