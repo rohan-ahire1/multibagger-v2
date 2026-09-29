@@ -494,3 +494,9 @@ TRIVENI,"",demerger,2026-07-22,,,,,0.614952,"Demerger (feed: demerger), no facto
 INDIAGLYCO,"",demerger,2026-09-02,,,,,0.202393,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 225 / cum close 1111.7 (M18)",manual
 HEG,"",demerger,2026-09-07,,,,,0.357020,"Demerger (feed: demerger, under HEGAM), no factor. Factor = ex-date price discovery: open 260 / cum close 728.25 (M18)",manual
 SILVERADD,"",bonus_split,2026-08-28,,,,,0.1,"DSP Silver ETF unit split FV 10 -> 1, record date 2026-08-28 (not in the feed; new ISIN INF740KA1ZQ0). Ex-date open 23.97 / cum close 228.41 = 0.1049 (M18)",manual
+KHADIM,"",demerger,2025-06-06,,,,,0.821953,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 254.6 / cum close 309.75 (M18)",manual
+DBREALTY,"",demerger,2025-07-18,,,,,0.867089,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 204 / cum close 235.27 (M18)",manual
+SHANKARA,"",demerger,2025-09-24,,,,,0.257446,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 255 / cum close 990.5 (M18)",manual
+ALLCARGO,"",demerger,2025-11-12,,,,,0.312961,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 10.6 / cum close 33.87 (M18)",manual
+DCMSRIND,"",demerger,2025-12-26,,,,,0.296236,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 51 / cum close 172.16 (M18)",manual
+GUJENERGY,"",demerger,2026-07-02,,,,,0.852941,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 290 / cum close 340 (M18)",manual
