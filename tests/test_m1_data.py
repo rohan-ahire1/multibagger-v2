@@ -117,6 +117,15 @@ def test_dividend_uses_close_before_ex_date():
     assert steps["mult"][0] == pytest.approx(0.9)  # 1 - 10/100, not 1 - 10/90
 
 
+def test_dividend_with_an_explicit_factor_is_used_as_given_above_the_cap():
+    prices = _prices("AAA", [100.0, 100.0, 2.0, 2.0])
+    acts = pl.DataFrame({"symbol": ["AAA", "AAA"], "ex_date": [sessions()[2], sessions()[3]],
+                         "action_type": ["dividend", "dividend"], "dividend_amount": [None, 90.0],
+                         "adjustment_factor": [0.02, None]})
+    steps = adjust.dividend_steps(prices, acts, ADJ)
+    assert steps.rows() == [("AAA", sessions()[2], 0.02)]  # the 90-on-2 amount row is still dropped by the cap
+
+
 def test_feed_row_moves_to_the_symbol_its_isin_traded_under():
     ss = sessions()
     bars = pl.DataFrame({"symbol": ["OLDSYM"] * 3 + ["NEWSYM"] * 2, "date": ss[:5],

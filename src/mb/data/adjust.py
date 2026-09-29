@@ -165,13 +165,30 @@ def dividend_steps(prices: pl.DataFrame, actions: pl.DataFrame, cfg: AdjustmentC
     """Dividend multipliers on the first session on or after each ex-date.
 
     m = 1 - D / prev_close, prev_close being the last close strictly before the ex-date.
-    Dividends above `dividend_max_price_fraction` of the price are dropped as implausible.
+    Dividends above `dividend_max_price_fraction` of the price are dropped as implausible. A row with an explicit
+    `adjustment_factor` (a reviewed override) is used as given, cap included.
     """
-    divs = actions.filter((pl.col("action_type") == "dividend") & (pl.col("dividend_amount") > 0)).select(
+    schema = {"symbol": pl.Utf8, "effective_date": pl.Date, "mult": pl.Float64}
+    if "adjustment_factor" not in actions.columns:
+        actions = actions.with_columns(pl.lit(None, dtype=pl.Float64).alias("adjustment_factor"))
+    is_div = pl.col("action_type") == "dividend"
+    has_factor = pl.col("adjustment_factor").fill_null(0.0) > 0
+    divs = actions.filter(is_div & ~has_factor & (pl.col("dividend_amount") > 0)).select(
         "symbol", "ex_date", "dividend_amount")
-    if divs.is_empty():
-        return pl.DataFrame(schema={"symbol": pl.Utf8, "effective_date": pl.Date, "mult": pl.Float64})
+    explicit = actions.filter(is_div & has_factor).select("symbol", "ex_date", pl.col("adjustment_factor").cast(pl.Float64)
+                                                          .alias("mult"))
+    if divs.is_empty() and explicit.is_empty():
+        return pl.DataFrame(schema=schema)
     closes = prices.select("symbol", "date", "close").sort(["symbol", "date"])
+    explicit = (
+        explicit.sort(["symbol", "ex_date"])
+        .join_asof(
+            closes.select("symbol", pl.col("date").alias("effective_date"), pl.col("date").alias("ex_date")),
+            on="ex_date", by="symbol", strategy="forward", check_sortedness=False,
+        )
+        .filter(pl.col("effective_date").is_not_null())
+        .select(list(schema))
+    )
     divs = (
         divs.sort(["symbol", "ex_date"])
         .with_columns((pl.col("ex_date") - pl.duration(days=1)).alias("_before"))
@@ -184,7 +201,9 @@ def dividend_steps(prices: pl.DataFrame, actions: pl.DataFrame, cfg: AdjustmentC
         .with_columns((1 - pl.col("dividend_amount") / pl.col("close")).alias("mult"))
         .filter(pl.col("mult").is_between(1.0 - cfg.dividend_max_price_fraction, 1.0, closed="left")
                 & pl.col("effective_date").is_not_null())
+        .select(list(schema))
     )
+    divs = pl.concat([divs, explicit])
     return divs.group_by(["symbol", "effective_date"]).agg(pl.col("mult").product()).sort(["symbol", "effective_date"])
 
 
