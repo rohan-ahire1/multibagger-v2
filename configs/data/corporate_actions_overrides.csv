@@ -457,3 +457,4 @@ WEL,"",split,2024-11-12,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed 
 WELSPUNIND,"",split,2016-03-21,,,,,0.10391614345003725,non-round action inferred from isin_corroborated (observed ratio 0.103916),isin_corroborated
 WINSOMYARN,"",split,2010-01-21,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.11054),purpose_parsed
 WSTCSTPAPR,"",split,2007-10-26,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.212648),purpose_parsed
+TATACHEM,"",demerger,2020-03-04,,,,,0.434813,"Consumer products business demerged to Tata Consumer Products (feed: demerger, no factor). Factor = ex-date price discovery: open 315 / cum close 724.45",manual

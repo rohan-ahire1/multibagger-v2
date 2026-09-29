@@ -1,7 +1,7 @@
-# M10 (docs/research/m10.md), book 1 (30 names, reference voladj_stocks_dev_e): rank by adj_close / 252-session high (George & Hwang 2004), ties by the vol-adjusted score.
+# M10 (docs/research/m10.md), book 1 (30 names, reference voladj_stocks_dev_f): rank by adj_close / 252-session high (George & Hwang 2004), ties by the vol-adjusted score.
 name: momentum
 version: m10_high52_b1
-dataset: nse_research@2026-09-29e
+dataset: nse_research@2026-09-29f
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:

@@ -1,7 +1,7 @@
-# M10 (docs/research/m10.md), book 2 (40 names, reference m8_top40_stocks_dev_e): residual momentum vs NIFTYBEES, 756-session beta (Blitz, Huij & Martens 2011).
+# M10 (docs/research/m10.md), book 2 (40 names, reference m8_top40_stocks_dev_f): residual momentum vs NIFTYBEES, 756-session beta (Blitz, Huij & Martens 2011).
 name: momentum
 version: m10_residual_b2
-dataset: nse_research@2026-09-29e
+dataset: nse_research@2026-09-29f
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:

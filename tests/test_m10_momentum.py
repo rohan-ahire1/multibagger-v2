@@ -43,7 +43,7 @@ def _prices(rets: list[float]) -> list[float]:
 # --- configs --------------------------------------------------------------------------------------------------------
 
 def test_m8_configs_keep_their_model_and_m10_configs_route_to_m10():
-    assert type(load_strategy_config(ROOT / "strategies/momentum/configs/m8_top40_stocks_dev_e.yaml", ROOT).params) is ParamsM8
+    assert type(load_strategy_config(ROOT / "strategies/momentum/configs/m8_top40_stocks_dev_f.yaml", ROOT).params) is ParamsM8
     assert type(load_strategy_config(ROOT / "strategies/momentum/configs/m10_control_b1.yaml", ROOT).params) is ParamsM10
 
 

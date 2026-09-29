@@ -1,7 +1,7 @@
-# M10 (docs/research/m10.md), book 1 (30 names, reference voladj_stocks_dev_e): every M10 option off; must equal book 1's reference exactly.
+# M10 (docs/research/m10.md), book 1 (30 names, reference voladj_stocks_dev_f): every M10 option off; must equal book 1's reference exactly.
 name: momentum
 version: m10_control_b1
-dataset: nse_research@2026-09-29e
+dataset: nse_research@2026-09-29f
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:

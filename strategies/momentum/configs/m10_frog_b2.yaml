@@ -1,7 +1,7 @@
-# M10 (docs/research/m10.md), book 2 (40 names, reference m8_top40_stocks_dev_e): top 2 x top_n by the usual score reordered by information discreteness (Da, Gurun & Warachka 2014).
+# M10 (docs/research/m10.md), book 2 (40 names, reference m8_top40_stocks_dev_f): top 2 x top_n by the usual score reordered by information discreteness (Da, Gurun & Warachka 2014).
 name: momentum
 version: m10_frog_b2
-dataset: nse_research@2026-09-29e
+dataset: nse_research@2026-09-29f
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
