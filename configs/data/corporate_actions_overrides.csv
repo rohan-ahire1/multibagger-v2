@@ -487,3 +487,9 @@ KAMDHENU,"",demerger,2022-09-06,,,,,0.509375,"Paints business demerged to Kamdhe
 MIRZAINT,"",demerger,2023-03-29,,,,,0.130512,"Footwear retail demerged to RedTape (feed: demerger), no factor. Factor = ex-date price discovery: open 33 / cum close 252.85 (M16)",manual
 EDELWEISS,"",demerger,2023-06-02,,,,,0.526316,"Wealth business demerged to Nuvama (feed: demerger), no factor. Factor = ex-date price discovery: open 35 / cum close 66.5 (M16)",manual
 NIITLTD,"",demerger,2023-06-08,,,,,0.227306,"Corporate learning business demerged to NIIT Learning Systems (feed: demerger), no factor. Factor = ex-date price discovery: open 92.15 / cum close 405.4 (M16)",manual
+TATAMOTORS,"",demerger,2025-10-14,,,,,0.605373,"Commercial vehicles business demerged (feed: demerger, under TMPV), no factor. Factor = ex-date price discovery: open 400 / cum close 660.75 (M18)",manual
+SKFINDIA,"",demerger,2025-10-15,,,,,0.459228,"Industrial business demerged (feed: demerger), no factor. Factor = ex-date price discovery: open 2300 / cum close 5008.4 (M18)",manual
+VEDL,"",demerger,2026-04-30,,,,,0.374224,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 289.5 / cum close 773.6 (M18)",manual
+TRIVENI,"",demerger,2026-07-22,,,,,0.614952,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 289.95 / cum close 471.5 (M18)",manual
+INDIAGLYCO,"",demerger,2026-09-02,,,,,0.202393,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 225 / cum close 1111.7 (M18)",manual
+HEG,"",demerger,2026-09-07,,,,,0.357020,"Demerger (feed: demerger, under HEGAM), no factor. Factor = ex-date price discovery: open 260 / cum close 728.25 (M18)",manual
