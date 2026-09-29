@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ValidationError
 
-from mb.config.models import BaselinesConfig, DataConfig, MarketConfig, StrategyConfig
+from mb.config.models import BaselinesConfig, DataConfig, MarketConfig, PaperConfig, StrategyConfig
 
 
 class ConfigError(Exception):
@@ -90,6 +90,18 @@ def enforce_lock(cfg: Resolved, final: bool) -> None:
             f"period.end {cfg.strategy.period.end} (plus settle window: {reach}) reaches the locked period (from {lock}); "
             "use --final for a final evaluation"
         )
+
+
+def load_paper_config(path: Path, root: Path) -> tuple[PaperConfig, Resolved]:
+    """The paper config and its strategy config, which must still resolve to the pinned hash and be a momentum config."""
+    cfg = _validate(PaperConfig, _read_yaml(path.resolve()), str(path))
+    strat = load_strategy_config(root / cfg.strategy_config, root)
+    if strat.strategy.name != "momentum":
+        raise ConfigError(f"{cfg.strategy_config}: paper trading supports momentum configs only")
+    if strat.hash() != cfg.strategy_config_hash:
+        raise ConfigError(f"{cfg.strategy_config} resolves to hash {strat.hash()[:12]}, not the pinned "
+                          f"{cfg.strategy_config_hash[:12]}; a changed strategy needs a new paper config")
+    return cfg, strat
 
 
 def load_data_config(path: Path) -> tuple[DataConfig, str]:

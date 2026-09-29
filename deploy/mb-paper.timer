@@ -1,0 +1,11 @@
+# NSE publishes the bhavcopy in the early evening. The late run catches a late file; running twice is safe.
+[Unit]
+Description=multibagger paper trading daily job
+
+[Timer]
+OnCalendar=Mon..Fri 19:45 Asia/Kolkata
+OnCalendar=Mon..Fri 23:15 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

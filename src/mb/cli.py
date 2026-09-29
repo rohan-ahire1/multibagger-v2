@@ -158,8 +158,10 @@ def fetch_corporate_actions(
         cfg, _ = load_data_config(data_config)
     except ConfigError as e:
         raise _fail(str(e)) from None
-    merged = nse_corporate_actions.fetch(cfg.corporate_actions, root, start_year, end_year)
+    merged, failed = nse_corporate_actions.fetch(cfg.corporate_actions, root, start_year, end_year)
     typer.echo(f"{merged.height} corporate actions in {cfg.corporate_actions.raw_file}")
+    if failed:
+        raise _fail(f"windows starting {', '.join(map(str, failed))} failed and kept their previous data")
 
 
 @data_app.command("build")
@@ -178,6 +180,52 @@ def data_build(
     except (ConfigError, builder.CheckFailure) as e:
         raise _fail(str(e)) from None
     typer.echo(f"built {cfg.name}@{version} -> {out}")
+
+
+paper_app = typer.Typer(no_args_is_help=True)
+app.add_typer(paper_app, name="paper", help="Daily paper trading.")
+PaperCfg = Annotated[Path, typer.Argument(help="Paper config YAML, e.g. configs/paper/momentum_voladj.yaml.")]
+
+
+@paper_app.command("daily")
+def paper_daily(
+    paper_config: PaperCfg,
+    fetch: Annotated[bool, typer.Option("--fetch/--no-fetch", help="Download and rebuild first (off: newest dataset).")] = True,
+    today: Annotated[str | None, typer.Option("--today", help="Run as of this date, YYYY-MM-DD (default: today in IST).")] = None,
+    root: Root = _ROOT,
+) -> None:
+    """Update data, advance the paper book, replay the backtest and alert. Exit 1 means something needs a person."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    from mb.live import daily
+    from mb.live.alerts import Alerter
+    from mb.config.loader import load_paper_config
+
+    day = date.fromisoformat(today) if today else datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    try:
+        code = daily.run(paper_config, root, day, fetch)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    except Exception as e:  # noqa: BLE001 - a crash must still reach the phone
+        try:
+            cfg, _ = load_paper_config(paper_config, root)
+            Alerter(cfg.alerts).send(f"{cfg.name}: daily job crashed", f"{type(e).__name__}: {e}", "high", ("rotating_light",))
+        finally:
+            raise
+    typer.echo(daily.status(paper_config, root))
+    raise typer.Exit(code)
+
+
+@paper_app.command("status")
+def paper_status(paper_config: PaperCfg, root: Root = _ROOT) -> None:
+    """The book, pending orders and the latest replay."""
+    from mb.live import daily
+
+    try:
+        typer.echo(daily.status(paper_config, root))
+    except ConfigError as e:
+        raise _fail(str(e)) from None
 
 
 @data_app.command("check")

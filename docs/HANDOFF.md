@@ -90,6 +90,8 @@ sources `manual`, `purpose_parsed`, `isin_corroborated`, `etf_inferred` (applied
 - `~/projects/nse-market-collector/` — separate TypeScript project collecting Dhan intraday
   WebSocket snapshots. Unrelated to daily research; relevant only for a future intraday strategy.
 - No Python `duckdb` installed on the VPS.
+- `~/projects/multibagger-v2/` — the M6 paper job (`docs/paper.md`), uv in `~/.local/bin`, raw data copied from this Mac.
+  The VPS clock is not IST; the timer names Asia/Kolkata.
 
 ### This Mac
 

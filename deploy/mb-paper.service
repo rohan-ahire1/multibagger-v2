@@ -1,0 +1,15 @@
+# Daily paper job (docs/paper.md). Install: cp deploy/mb-paper.* ~/.config/systemd/user/ && systemctl --user daemon-reload
+# && systemctl --user enable --now mb-paper.timer. Exit 1 marks the unit failed; the alert has already been sent.
+[Unit]
+Description=multibagger paper trading daily job
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/multibagger-v2
+# MB_NTFY_TOPIC=<topic>, mode 0600
+EnvironmentFile=%h/.config/multibagger/alerts.env
+# The dataset build peaks near 5 GB with all cores; two threads keep it well inside the VPS's memory.
+Environment=POLARS_MAX_THREADS=2
+ExecStart=%h/.local/bin/uv run --frozen mb paper daily configs/paper/momentum_voladj.yaml
+Nice=10
+TimeoutStartSec=3600

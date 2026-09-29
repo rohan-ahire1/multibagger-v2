@@ -153,3 +153,44 @@ class DataConfig(Strict):
     corporate_actions: CorporateActionsSource
     adjustment: AdjustmentConfig
     checks: ChecksConfig
+
+
+class CalendarSource(Strict):
+    url: str                  # NSE holiday list (JSON, one list per market segment)
+    segment: str              # the cash-market segment key
+    raw_dir: str              # dated snapshots, newest used
+    timeout_s: float
+
+
+class PaperAlerts(Strict):
+    ntfy_url: str
+    topic_env: str            # environment variable holding the ntfy topic; unset means alerts go to the log only
+    heartbeat_weekday: int    # 0 = Monday; a short status push on that weekday so silence is noticeable
+
+    @field_validator("heartbeat_weekday")
+    @classmethod
+    def _weekday(cls, v: int) -> int:
+        if not 0 <= v <= 6:
+            raise ValueError("heartbeat_weekday must be 0..6")
+        return v
+
+
+class PaperConfig(Strict):
+    name: str
+    strategy_config: str          # a momentum strategy config; its params, market and baselines are used
+    strategy_config_hash: str     # the resolved hash it had when paper trading started; any change is refused
+    data_config: str              # the daily dataset is built from this
+    start: date                   # the book is cash until the first month-end on or after this date
+    initial_capital: float
+    keep_datasets: int            # daily dataset versions kept; older ones are deleted (they rebuild from raw)
+    max_missing_sessions: int     # trading days the newest data may trail today before a stale-data alert
+    replay_max_equity_gap_pct: float  # paper vs backtest-replay equity gap that raises an alert
+    calendar: CalendarSource
+    alerts: PaperAlerts
+
+    @field_validator("keep_datasets")
+    @classmethod
+    def _keep(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("keep_datasets must be at least 1")
+        return v

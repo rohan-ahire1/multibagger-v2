@@ -136,6 +136,7 @@ final evaluation, the locked period (§7).
 
 A daily job (VPS, after close): update data → build new dataset version → run checks →
 compute signals → engine produces tomorrow's orders → paper book or broker adapter.
+The M6 paper job is described in `docs/paper.md`.
 
 The Dhan broker adapter places entries, places exchange-side stop orders (GTT), and
 reconciles actual holdings against the engine's expected book every day. Any mismatch

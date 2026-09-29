@@ -147,8 +147,10 @@ def merge_fetched(existing: pl.DataFrame | None, fetched: pl.DataFrame,
     return dedupe(pl.concat([kept, fetched.select(list(SCHEMA)).cast(SCHEMA)]))
 
 
-def fetch(cfg: CorporateActionsSource, root: Path, start_year: int, end_year: int) -> pl.DataFrame:
-    """Fetch half-year windows and merge into the raw file (never overwrite other windows)."""
+def fetch(cfg: CorporateActionsSource, root: Path, start_year: int, end_year: int) -> tuple[pl.DataFrame, list[date]]:
+    """Fetch half-year windows and merge into the raw file (never overwrite other windows).
+
+    Returns the merged table and the start dates of windows that failed (they keep their previous data)."""
     out_path, cov_path = root / cfg.raw_file, root / cfg.coverage_file
     existing = pl.read_parquet(out_path) if out_path.exists() else None
     session = build_session()
@@ -181,4 +183,4 @@ def fetch(cfg: CorporateActionsSource, root: Path, start_year: int, end_year: in
         new_cov = pl.concat([prior.join(good, on="window_start", how="anti"), good,
                              failed.join(prior, on="window_start", how="anti")]).sort("window_start")
     new_cov.write_parquet(cov_path)
-    return merged
+    return merged, [c["window_start"] for c in coverage if c["status"] == "fetch_failed"]
