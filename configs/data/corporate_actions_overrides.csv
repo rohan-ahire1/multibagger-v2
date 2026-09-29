@@ -43,7 +43,7 @@ AXISNIFTY,"",split,2020-07-23,,,,,0.1,ETF unit face value changed to Rs 10 (AMC 
 AXITA,"",split,2022-10-21,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.102066),purpose_parsed
 BAJAJCORP,"",split,2011-05-05,,,,,0.2,1:5 split corroborated against the successor-symbol split archive,manual
 BAJAJELEC,"",split,2010-01-28,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.201558),purpose_parsed
-BAJAJFINSV,"",split,2022-09-13,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.208279),purpose_parsed
+BAJAJFINSV,"",bonus_split,2022-09-13,,,,,0.1,"FV 5->1 + bonus 1:1 (feed lists both; the earlier purpose_parsed row had only the split, 0.2, which replaced the bonus). Ex-date open 1755 / cum close 17138.05 = 0.1024 (M16)",manual
 BALRAMCHIN,"",split,2005-03-23,,,,,0.1,1:10 split corroborated by the independent split archive,manual
 BANCOINDIA,"",split,2007-11-23,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.219263),purpose_parsed
 BANKBARODA,"",split,2015-01-22,,,,,0.2,1:5 inferred from isin_corroborated (observed ratio 0.198466),isin_corroborated
@@ -462,3 +462,28 @@ SWELECTES,"",dividend,2012-07-17,,,,,0.564679,"Rs 120 interim + Rs 3 final divid
 GFLLIMITED,"",demerger,2019-08-06,,,,,0.114662,"Fluorochemicals business demerged to Gujarat Fluorochemicals (FLUOROCHEM); GUJFLUORO renamed GFLLIMITED 2019-07-25 (feed: demerger, no factor). Factor = ex-date price discovery: open 101 / cum close 880.85 (M15)",manual
 BORORENEW,"",demerger,2020-03-06,,,,,0.251589,"Consumer glass business demerged to Borosil Ltd; BOROSIL renamed BORORENEW 2020-02-20 (feed: demerger, no factor). Factor = ex-date price discovery: open 47.5 / cum close 188.8 (M15)",manual
 DEEPENR,"",demerger,2020-11-10,,,,,0.646298,"Oil and gas services business demerged to Deep Industries (DEEPINDS); DEEPIND renamed DEEPENR 2020-09-30 (feed: demerger, no factor). Factor = ex-date price discovery: open 44.95 / cum close 69.55 (M15)",manual
+BHARTIARTL,"",split,2009-07-24,,,,,0.5,"FV 10->5 (feed unparsed: Agm/Div-Rs.2/Fv Rs10tors5). Ex-date open 419.7 / cum close 814.1 = 0.5155 (M16)",manual
+GLODYNE,"",bonus,2009-08-20,,,,,0.5,"Bonus 1:1 (feed unparsed: Div-Rs.4.20 Pr Sh/Bon 1:1). Ex-date open 373.9 / cum close 724.7 = 0.5159 (M16)",manual
+MANAPPURAM,"",bonus,2011-06-09,,,,,0.5,"Bonus 1:1 (feed unparsed). Ex-date open 59.85 / cum close 115.6 = 0.5177 (M16)",manual
+GRUH,"",bonus,2014-06-09,,,,,0.5,"Bonus 1:1 (feed unparsed). Ex-date open 205 / cum close 394.15 = 0.5201 (M16)",manual
+ALANKIT,"",split,2016-12-15,,,,,0.5,"FV 2->1 (feed unparsed: Fv Splt Frm Rs 2 To Re 1). Ex-date open 33 / cum close 64.35 = 0.5128 (M16)",manual
+HERITGFOOD,"",bonus,2023-01-20,,,,,0.5,"Bonus 1:1 (feed: Rights 1:1 @ Premium Rs 0, i.e. free shares). Ex-date open 174.9 / cum close 351.5 = 0.4976 (M16)",manual
+STAR,"",dividend,2013-12-19,,,,,0.433299,"Rs 500 special dividend after the Agila sale (feed parsed it but it exceeds dividend_max_price_fraction) against prior close Rs 882.3 (M16)",manual
+TEXINFRA,"",demerger,2010-11-01,,,,,0.40569,"Scheme of arrangement: heavy engineering demerged to Texmaco Rail (feed: other). Factor = ex-date close 65.6 / cum close 161.7; the open (94.4) was before price discovery ended (M16)",manual
+ADANIENT,"",demerger,2015-06-03,,,,,0.172292,"Scheme of arrangement: businesses demerged, among them Adani Transmission (feed: other). Factor = ex-date close 109.75 / cum close 637; the open (573.3) was the cum price less 10%, before price discovery (M16)",manual
+MASTEK,"",demerger,2015-06-12,,,,,0.342427,"Scheme of arrangement: insurance software business demerged to Majesco (feed: other), no factor. Factor = ex-date price discovery: open 150 / cum close 438.05 (M16)",manual
+IDFC,"",demerger,2015-10-01,,,,,0.490252,"Banking business demerged to IDFC Bank (feed: demerger), no factor. Factor = ex-date price discovery: open 69.15 / cum close 141.05 (M16)",manual
+ABIRLANUVO,"",demerger,2016-01-20,,,,,0.481228,"Scheme of arrangement: Madura Fashion demerged to Pantaloons (feed: other), no factor. Factor = ex-date price discovery: open 994 / cum close 2065.55 (M16)",manual
+CGPOWER,"",demerger,2016-03-15,,,,,0.341275,"Scheme of arrangement: consumer products demerged to Crompton Greaves Consumer (feed: other), no factor. Factor = ex-date price discovery: open 53 / cum close 155.3 (M16)",manual
+OMKARCHEM,"",demerger,2017-06-12,,,,,0.485459,"Scheme of arrangement (feed: other); price halves on the ex-date, no factor. Factor = ex-date price discovery: open 95.15 / cum close 196 (M16)",manual
+ORIENTPPR,"",demerger,2018-01-11,,,,,0.320338,"Scheme of arrangement: electrical business demerged to Orient Electric (feed: other), no factor. Factor = ex-date price discovery: open 55.05 / cum close 171.85 (M16)",manual
+ARVIND,"",demerger,2018-11-28,,,,,0.351873,"Arvind Fashions and Anup Engineering demerged (feed: demerger), no factor. Factor = ex-date price discovery: open 109.45 / cum close 311.05 (M16)",manual
+IIFL,"",demerger,2019-05-30,,,,,0.502934,"Scheme of arrangement: IIFL Securities and IIFL Wealth demerged (feed: other), no factor. Factor = ex-date price discovery: open 209.95 / cum close 417.45 (M16)",manual
+TATACOMM,"",demerger,2019-09-17,,,,,0.6209,"Surplus land demerged to Hemisphere Properties (feed: demerger), no factor. Factor = ex-date price discovery: open 265 / cum close 426.8 (M16)",manual
+ABREL,"",demerger,2019-10-11,,,,,0.442077,"Cement business (then CENTURYTEX) demerged to UltraTech (feed: demerger), no factor. Factor = ex-date price discovery: open 390 / cum close 882.2 (M16)",manual
+SUVEN,"",demerger,2020-01-21,,,,,0.050423,"Pharma business demerged to Suven Pharmaceuticals (feed: demerger), no factor. Factor = ex-date price discovery: open 15.2 / cum close 301.45 (M16)",manual
+PEL,"",demerger,2022-08-30,,,,,0.547651,"Pharma business demerged to Piramal Pharma (feed: demerger), no factor. Factor = ex-date price discovery: open 1055.05 / cum close 1926.5 (M16)",manual
+KAMDHENU,"",demerger,2022-09-06,,,,,0.509375,"Paints business demerged to Kamdhenu Ventures (feed: demerger), no factor. Factor = ex-date price discovery: open 138.55 / cum close 272 (M16)",manual
+MIRZAINT,"",demerger,2023-03-29,,,,,0.130512,"Footwear retail demerged to RedTape (feed: demerger), no factor. Factor = ex-date price discovery: open 33 / cum close 252.85 (M16)",manual
+EDELWEISS,"",demerger,2023-06-02,,,,,0.526316,"Wealth business demerged to Nuvama (feed: demerger), no factor. Factor = ex-date price discovery: open 35 / cum close 66.5 (M16)",manual
+NIITLTD,"",demerger,2023-06-08,,,,,0.227306,"Corporate learning business demerged to NIIT Learning Systems (feed: demerger), no factor. Factor = ex-date price discovery: open 92.15 / cum close 405.4 (M16)",manual
