@@ -1,0 +1,21 @@
+# M11 (docs/research/m11.md), book 2 (40 names): four tranches, 25% each at decision offsets 0, 5, 10, 15 sessions.
+name: blend
+version: m11_tranche_b2
+dataset: nse_research@2026-09-29f
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m8_top40_stocks_dev_f.yaml
+      config_hash: ba6e46f4d5e27c2d1ec459a407cfdc8d9ea6b8b10349607171f449d2eb2f0f4e
+      weight: 0.25
+    - config: strategies/momentum/configs/m11_offset5_b2.yaml
+      config_hash: 1efc51af295ea69dde521647bd625d83f42ba3f0ba72292aadaf83b0f7f1aa93
+      weight: 0.25
+    - config: strategies/momentum/configs/m11_offset10_b2.yaml
+      config_hash: 8ef8b8b7912609db40ccc03f254bbfad2d6540ceae4474c9315dd89acee1985b
+      weight: 0.25
+    - config: strategies/momentum/configs/m11_offset15_b2.yaml
+      config_hash: 8d85fa47e17e0d4b6d5eb03eaf81cfcbe42a826002d31c9e9c6a9a451c5f62bb
+      weight: 0.25
+  initial_capital: 1000000

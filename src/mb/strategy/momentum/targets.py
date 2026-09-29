@@ -11,13 +11,23 @@ from datetime import date
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import Params, ParamsM8, Ranking, RankingM8, RankingM10, Sizing, Universe
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM11, Ranking, RankingM8, RankingM10, Sizing, Universe
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
     days = panel.filter(pl.col("date").is_between(start, end)).select("date").unique().sort("date")
     month = pl.col("date").dt.strftime("%Y-%m").alias("month")
     return days.group_by(month, maintain_order=True).agg(pl.col("date").max())["date"].to_list()
+
+
+def decision_dates(panel: pl.DataFrame, start: date, end: date, offset_sessions: int) -> list[date]:
+    """The session `offset_sessions` before each month's last session in [start, end]; a month with fewer is skipped."""
+    if offset_sessions == 0:
+        return month_ends(panel, start, end)
+    days = panel.filter(pl.col("date").is_between(start, end)).select("date").unique().sort("date")
+    month = pl.col("date").dt.strftime("%Y-%m").alias("month")
+    per_month = days.group_by(month, maintain_order=True).agg(pl.col("date"))["date"].to_list()
+    return [m[-1 - offset_sessions] for m in per_month if len(m) > offset_sessions]
 
 
 def _score(r: Ranking, lookback: int) -> pl.Expr:
@@ -70,10 +80,10 @@ def _discreteness(r: Ranking) -> pl.Expr:
 
 
 def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
-           top_n: int | None = None) -> dict[date, list[str]]:
+           top_n: int | None = None, offset_sessions: int = 0) -> dict[date, list[str]]:
     """For each month-end in [start, end], the eligible symbols best first (ties by symbol).
 
-    `top_n` is needed only by the M10 frog-in-the-pan option.
+    `top_n` is needed only by the M10 frog-in-the-pan option; `offset_sessions` moves the decision date (M11).
     """
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
     cols = [pl.col("turnover").rolling_mean(u.adv_window_sessions, min_samples=u.adv_window_sessions).over("symbol").alias("adv"),
@@ -120,7 +130,7 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     if u.exclude_fund_units:
         eligible = eligible & ~pl.col("security_id").str.starts_with("isin:INF")
     out: dict[date, list[str]] = {}
-    for d in month_ends(f, start, end):
+    for d in decision_dates(f, start, end, offset_sessions):
         day = f.filter((pl.col("date") == d) & eligible)
         if second is not None:  # mean of the two percentile ranks, 1 = best
             # Ranks are summed before dividing so equal means tie exactly and fall back to the symbol order.
@@ -166,6 +176,23 @@ def vol_gross(panel: pl.DataFrame, s: Sizing, days_per_year: int, dates: list[da
     return got
 
 
+def inverse_vol_weights(panel: pl.DataFrame, sessions: int, picks: dict[date, list[str]]) -> dict[date, dict[str, float]]:
+    """1 / stdev of daily log returns over `sessions` rows ending at each date, for the picked names. Missing is an error."""
+    names = sorted({s for v in picks.values() for s in v})
+    vol = (panel.filter(pl.col("symbol").is_in(names)).sort("symbol", "date")
+           .with_columns(_log_ret().rolling_std(sessions, min_samples=sessions).over("symbol").alias("vol"))
+           .filter(pl.col("date").is_in(list(picks))))
+    got = {(d, s): v for d, s, v in vol.select("date", "symbol", "vol").iter_rows()}
+    out: dict[date, dict[str, float]] = {}
+    for d, pick in picks.items():
+        vs = [got.get((d, s)) for s in pick]
+        bad = [s for s, v in zip(pick, vs) if v is None or not v > 0.0]
+        if bad:
+            raise ValueError(f"no {sessions}-session volatility for {bad[:3]} on {d}")
+        out[d] = {s: 1.0 / v for s, v in zip(pick, vs)}
+    return out
+
+
 def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sectors: dict[str, str]) -> list[str]:
     """Kept names first, then new names in rank order; with a cap, a new name whose industry is full is skipped."""
     pick = list(keep)
@@ -190,7 +217,9 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
             days_per_year: int | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target."""
-    ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n)
+    m11 = p if isinstance(p, ParamsM11) else None
+    ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
+                   m11.schedule.decision_offset_sessions if m11 else 0)
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
     m8 = p if isinstance(p, ParamsM8) else None
     cap = m8.portfolio.max_per_sector if m8 else None
@@ -216,4 +245,7 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             gross *= scale[d]
         out[d] = Target({s: 1.0 for s in pick}, gross, frozenset() if resize else frozenset(keep))
         held = pick if gross > 0.0 else []
+    if m11 and m11.portfolio.weighting == "inverse_vol":
+        w = inverse_vol_weights(panel, m11.portfolio.inverse_vol_sessions, {d: list(t.weights) for d, t in out.items()})
+        out = {d: Target(w[d], t.gross, t.keep_size) for d, t in out.items()}
     return out

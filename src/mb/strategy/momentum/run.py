@@ -11,10 +11,10 @@ from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11
 from mb.strategy.momentum.targets import targets
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -30,7 +30,8 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
     bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
     tg = targets(panel, p, period.start, period.end, sectors=load_sectors(root, cfg),
                  days_per_year=cfg.market.trading_days_per_year)
-    return simulate_targets(tg, bars, days, cfg.market, p.initial_capital)
+    stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
+    return simulate_targets(tg, bars, days, cfg.market, p.initial_capital, stop)
 
 
 def run(cfg: Resolved, root: Path) -> RunResult:

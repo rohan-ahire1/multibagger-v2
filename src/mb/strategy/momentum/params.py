@@ -105,3 +105,38 @@ class RankingM10(RankingM8):
 
 class ParamsM10(ParamsM8):
     ranking: RankingM10
+
+
+# M11 options (docs/research/m11.md), again in subclasses so M10 configs keep their model and hash.
+
+class Schedule(Strict):
+    decision_offset_sessions: int  # decide this many sessions before each month's last session; 0 = the month-end
+
+    @model_validator(mode="after")
+    def _offset(self) -> Schedule:
+        if self.decision_offset_sessions < 0:
+            raise ValueError("decision_offset_sessions must be >= 0")
+        return self
+
+
+class Exits(Strict):
+    # Set: a name closing at or below (1 - this) x its open at the last rebalance session is sold at the next open; the
+    # cash waits for the next rebalance (Han, Zhou & Zhu 2016).
+    stop_loss_frac: float | None
+
+    @model_validator(mode="after")
+    def _frac(self) -> Exits:
+        if self.stop_loss_frac is not None and not 0.0 < self.stop_loss_frac < 1.0:
+            raise ValueError("stop_loss_frac must be between 0 and 1")
+        return self
+
+
+class PortfolioM11(PortfolioM8):
+    weighting: Literal["equal", "inverse_vol"]
+    inverse_vol_sessions: int     # inverse_vol: weight = 1 / stdev of daily log returns over this many sessions to the decision date
+
+
+class ParamsM11(ParamsM10):
+    portfolio: PortfolioM11
+    schedule: Schedule
+    exits: Exits
