@@ -1,7 +1,7 @@
 # M8 question 2: Minervini's VCP, built to his rules
 
 Status: **rules accepted as drafted (2026-09-29); detector built (`src/mb/strategy/vcp/`); pattern check done in two
-rounds, two rules added (2026-09-29). No backtest yet.** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
+rounds, two rules added; three variants backtested, none adopted (2026-09-29, see Results).** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
 and *Think & Trade Like a Champion* (2017). Price and volume rules only; the earnings half of SEPA is left out (no
 earnings data yet) and added later only if the pattern shows promise.
 
@@ -202,6 +202,57 @@ Development period only, dataset `nse_research@2026-09-29d`, question tag `vcp`.
 
 Honest expectation: VCP holds cash most of the time, so on its own it likely won't beat vol-adjusted momentum's Calmar.
 Its likely value is as a second book beside momentum; that comparison is a separate, later question.
+
+### Changes made while running the backtests
+
+- **One position per name.** The first `vcp_dev` run (20260929-181011-5737198e) opened a second position in a stock
+  already held 6 times out of 252 trades. VCP entries now drop such a signal (`skipped_held`).
+- **Intraday trigger.** `breakout: {trigger: intraday}` places, at each close, a buy-stop at the pivot for the next
+  session while the setup holds (base and dry-up valid, no session has yet traded up to the pivot). It fills at the
+  higher of the open and the pivot. No volume check. The signal is dated the session before the fill.
+- **Data fix (dataset `nse_research@2026-09-29e`).** `vcp_intraday_dev` was refused by the data gate: AMARAJABAT
+  held through a 2:1 split on 2012-09-25 that was never applied. The NSE feed lists that split under the company's
+  current ISIN and symbol (ARE&M), but that ISIN only started trading on the ex-date, so the lookup "which symbol
+  traded this ISIN the day before" found nothing. Such rows now go to the symbol that traded the ISIN from the
+  ex-date on. Unmatched splits/bonuses fell from 111 to 33, unexplained jumps from 1,134 to 1,101, and no new ones
+  appeared. Earlier datasets and every pin are unchanged; the VCP configs moved to 2026-09-29e.
+
+### Results (2026-09-29, dataset `nse_research@2026-09-29e`, 2010–2023)
+
+`uv run mb research report vcp --against sepa/v1_port_dev_b` → `reports/vcp.md`. **No variant passes the bar.**
+
+Calmar by window (pin `sepa/v1_port_dev_b` run 20260928-211300-b6aae9bd; baselines from each run's record):
+
+| Window | `vcp_dev` | `vcp_market_dev` | `vcp_intraday_dev` | Pin | Nifty 500 TRI | Momentum 12-1 |
+|---|---|---|---|---|---|---|
+| 2010–2023 | 0.38 | 0.23 | **0.50** | 0.26 | 0.33 | 0.48 |
+| f1 2010–13 | **0.38** | 0.34 | 0.01 | 0.14 | 0.13 | 0.14 |
+| f2 2014–17 | 0.04 | 0.20 | 0.94 | 0.11 | 0.96 | **1.46** |
+| f3 2018–23 | 0.72 | 0.28 | 0.67 | **0.74** | 0.37 | 0.55 |
+
+| | `vcp_dev` | `vcp_market_dev` | `vcp_intraday_dev` |
+|---|---|---|---|
+| Run | 20260929-182307-4be805dd | 20260929-182317-84a6a4d3 | 20260929-182328-2e252529 |
+| CAGR / max DD | 11.7% / 30.6% | 5.0% / 21.9% | 15.0% / 30.2% |
+| Trades (signals) | 249 (428) | 156 (261) | 403 (6,561 daily buy-stops) |
+| Win rate / profit factor | 31% / 2.0 | 30% / 1.6 | 31% / 1.9 |
+| Avg open positions / invested | 2.6 / 42% | 1.4 / 23% | 5.0 / 72% |
+| P&L from 2021 + 2023 | 98% | 68% | 83% |
+
+Also counted as variants (dataset `2026-09-29d`, before the one-position-per-name fix): `vcp_dev` 5737198e (run
+20260929-181436-5737198e, Calmar 0.40) and `vcp_market_dev` 64294082 (run 20260929-181436-64294082, 0.23). The report
+therefore lists 5 variants.
+
+What this says:
+- **The pattern has an edge, but it is lumpy.** In every variant the top 5% of trades make more than all the profit
+  (128–135%); the rest lose money together. Most years are flat or down, and 2021 and 2023 carry the result.
+- **No variant is steady across folds.** `vcp_dev` is best in 2010–13 and fails in 2014–17; the intraday entry is the
+  reverse. Nothing comes near momentum in 2014–17.
+- **The intraday entry is the best overall** (Calmar 0.50, above momentum's 0.48 on the whole period) because it is
+  invested far more (72% vs 42%). Its 2010–13 fold is flat.
+- **The market filter hurts.** It cuts trades from 249 to 156 and 2018–23 from 0.72 to 0.28. Why was not examined.
+- As expected, VCP alone does not beat momentum. Whether it helps as a second book next to momentum is a separate
+  question, to be pre-registered before any run.
 
 ## Open questions
 
