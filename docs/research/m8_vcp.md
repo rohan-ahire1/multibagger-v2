@@ -1,7 +1,8 @@
 # M8 question 2: Minervini's VCP, built to his rules
 
 Status: **rules accepted as drafted (2026-09-29); detector built (`src/mb/strategy/vcp/`); pattern check done in two
-rounds, two rules added; three variants backtested, none adopted (2026-09-29, see Results).** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
+rounds, two rules added; three variants backtested, none adopted; as a 30% sleeve beside momentum, not adopted either. Shelved
+(2026-09-29).** Sources: Minervini, *Trade Like a Stock Market Wizard* (2013)
 and *Think & Trade Like a Champion* (2017). Price and volume rules only; the earnings half of SEPA is left out (no
 earnings data yet) and added later only if the pattern shows promise.
 
@@ -279,6 +280,33 @@ seeing results; read any win for it with that in mind.
 
 Honest expectation: VCP's 2014–17 fold (0.04 for `vcp_dev`) is far below momentum's (1.60 on dataset d), so a blend
 probably loses that fold. If both variants fail, VCP is shelved and the next question is the momentum ideas list.
+
+### Results (2026-09-29): no variant adopted; VCP shelved
+
+`uv run mb research report vcp-blend --against momentum/voladj_stocks_dev_e` → `reports/vcp-blend.md`. Clean code.
+
+| Calmar | Pin (momentum alone) | 70/30 + `vcp_dev` | 70/30 + `vcp_intraday_dev` | Nifty 500 TRI | Momentum 12-1 |
+|---|---|---|---|---|---|
+| 2010–2023 | 0.64 | 0.63 | **0.65** | 0.33 | 0.48 |
+| f1 2010–13 | 0.26 | **0.30** | 0.23 | 0.13 | 0.14 |
+| f2 2014–17 | 1.61 | 1.40 | **1.67** | 0.96 | 1.46 |
+| f3 2018–23 | 0.73 | **0.77** | **0.77** | 0.37 | 0.55 |
+
+| | Pin | + `vcp_dev` | + `vcp_intraday_dev` |
+|---|---|---|---|
+| Run | 20260929-182619-d1677f9e | 20260929-182701-884845ec | 20260929-182730-2617c4c2 |
+| CAGR / max DD | 25.5% / 39.8% | 23.1% / 36.8% | 23.4% / 35.7% |
+| Sleeve daily-return correlation | | 0.45 | 0.50 |
+
+- Each blend fails one fold (`vcp_dev` 2014–17, intraday 2010–13), so neither is adopted.
+- Adding VCP trades about 2 points of yearly return for 3–4 points less drawdown. Calmar barely moves (0.63–0.65 vs
+  0.64). The two books move together more than hoped (correlation 0.45–0.50, vs 0.33 for SEPA and momentum in M5):
+  both buy strong stocks in uptrends, so they tend to fall at the same time.
+- The one blend that beats the pin on the whole period (intraday, 0.65 vs 0.64) uses the VCP variant picked after
+  seeing results, and the margin is within noise.
+
+Momentum on dataset e (0.641, run 20260929-182619-d1677f9e) is almost the same as on dataset d (0.641, run
+20260929-074906-afd6d499), so the data fix did not move the traded book.
 
 ## Open questions
 
