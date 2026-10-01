@@ -34,6 +34,7 @@ from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
                  "adj_factor")
+DELIVERY_COLUMNS = ("volume", "deliv_qty")  # read by the M40 delivery filter
 APPLIED_MATCHES = ("matched", "applied_small")
 _EPS = 1e-9
 
@@ -81,7 +82,7 @@ class DataView:
     """What the book reads from one dataset version."""
     ref: str
     panel_sha256: str
-    panel: pl.DataFrame                     # PANEL_COLUMNS
+    panel: pl.DataFrame                     # panel_columns(params)
     share_mult: dict[tuple[date, str], float]  # (session, symbol) -> price multiplier of applied share-count events
     jumps: pl.DataFrame                     # symbol, date, ratio
     # old symbol -> [(first session of the later symbol, final symbol)]: the old symbol's rows before that session
@@ -122,10 +123,14 @@ def check_supported(p: Params) -> None:
         on.append("portfolio.rotation")
     if isinstance(p, ParamsM32) and p.portfolio.vol_states is not None:
         on.append("portfolio.vol_states")
-    if isinstance(p, ParamsM40) and p.universe.delivery_drop_frac is not None:
-        on.append("universe.delivery_drop_frac")
     if on:
-        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32/M40 options yet: {', '.join(on)}")
+        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32 options yet: {', '.join(on)}")
+
+
+def panel_columns(p: Params) -> tuple[str, ...]:
+    """The panel columns the book reads: PANEL_COLUMNS, plus volume and delivery when the M40 filter is on (M43)."""
+    on = isinstance(p, ParamsM40) and p.universe.delivery_drop_frac is not None
+    return PANEL_COLUMNS + (DELIVERY_COLUMNS if on else ())
 
 
 def history_rows(p: Params) -> int:
@@ -138,8 +143,13 @@ def load_view(root: Path, ref: str, start: date, p: Params) -> DataView:
     """Rows from `start` on, plus each symbol's last `history_rows` rows before it (targets are then unchanged)."""
     path = datasets.dataset_path(root, ref)
     manifest = datasets.read_manifest(path)
-    scan = pl.scan_parquet(path / datasets.PANEL_FILE).select(PANEL_COLUMNS)
-    before = scan.filter(pl.col("date") < start).sort("symbol", "date").group_by("symbol", maintain_order=True).tail(history_rows(p)).select(PANEL_COLUMNS)
+    cols = panel_columns(p)
+    have = pl.scan_parquet(path / datasets.PANEL_FILE).collect_schema().names()
+    if lacking := [c for c in cols if c not in have]:
+        raise ValueError(f"dataset {ref} has no {', '.join(lacking)}; the M40 delivery filter needs a data config with a "
+                         "delivery section")
+    scan = pl.scan_parquet(path / datasets.PANEL_FILE).select(cols)
+    before = scan.filter(pl.col("date") < start).sort("symbol", "date").group_by("symbol", maintain_order=True).tail(history_rows(p)).select(cols)
     panel = pl.concat([before, scan.filter(pl.col("date") >= start)]).sort("symbol", "date").collect()
     # Price-only actions (rights, demergers) do not change the share count; their step is paid out as cash.
     m = pl.read_parquet(path / "ca_matches.parquet").filter(pl.col("status").is_in(APPLIED_MATCHES) & pl.col("adjusts_volume"))

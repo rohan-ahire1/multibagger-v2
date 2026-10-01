@@ -39,8 +39,13 @@ def parse_file(path: Path) -> pl.DataFrame:
     return frame.with_columns(pl.lit(d).alias("date"))
 
 
+def build_files(raw_dir: Path, first: date | None) -> list[Path]:
+    """The stored files a build reads: every session from `first` on (null: all), oldest first."""
+    return [p for p in sorted(raw_dir.rglob("*.DAT")) if first is None or date.fromisoformat(p.stem) >= first]
+
+
 def parse_all(raw_dir: Path, first: date | None) -> pl.DataFrame:
-    files = [p for p in sorted(raw_dir.rglob("*.DAT")) if first is None or date.fromisoformat(p.stem) >= first]
+    files = build_files(raw_dir, first)
     if not files:
         raise ValueError(f"no delivery files in {raw_dir}")
     return (pl.concat([parse_file(p) for p in files]).unique(subset=["date", "symbol", "series"], keep="last")

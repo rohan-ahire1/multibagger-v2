@@ -1,0 +1,26 @@
+# DRAFT, not deployed (docs/research/m40.md, m43.md): the M33 gold book (40 names, inverse-vol over 126 sessions,
+# GOLDBEES at 20%, ₹2 crore floor) that also drops the eligible two-fifths with the lowest delivery share. Runs only if
+# the user approves (then set start to the next month-end and add a timer). Dev run 20261001-161755-9fc4ae73 (pin
+# momentum/m40_deliv40_gold20_b2): 28.65% CAGR / 31.4% max DD / Calmar 0.913; capacity about ₹2.1 crore (M40). Needs the
+# delivery files on the machine (mb data fetch delivery). Params and market costs come from the strategy config, pinned
+# by its resolved hash; its dataset and period are not used.
+name: momentum_top40_gold_deliv
+strategy_config: strategies/momentum/configs/m40_deliv40_gold20_b2.yaml
+strategy_config_hash: 9fc4ae731f42f4aa8b0330ef2aa982e86d7ded43da161cf299bef3375b6a20cd
+# The linked daily data plus delivery files.
+data_config: configs/data/nse_daily_delivery.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

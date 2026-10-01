@@ -31,12 +31,22 @@ def _inputs(cfg: DataConfig, root: Path, zips: list[Path]) -> dict:
         h.update(datasets.sha256_file(z).encode())
     ca, ov = root / cfg.corporate_actions.raw_file, root / cfg.corporate_actions.overrides_file
     vm = root / cfg.corporate_actions.verified_moves_file
-    return {
+    out = {
         "bhavcopy": {"files": len(zips), "first": zips[0].stem, "last": zips[-1].stem, "sha256": h.hexdigest()},
         "corporate_actions": {"file": cfg.corporate_actions.raw_file, "sha256": datasets.sha256_file(ca)},
         "overrides": {"file": cfg.corporate_actions.overrides_file, "sha256": datasets.sha256_file(ov)},
         "verified_moves": {"file": cfg.corporate_actions.verified_moves_file, "sha256": datasets.sha256_file(vm)},
     }
+    if isinstance(cfg, DataConfigM40):
+        # M43: a delivery file that arrives after the bhavcopy changes the panel, so the daily job must rebuild.
+        files = nse_delivery.build_files(root / cfg.delivery.raw_dir, cfg.bhavcopy.first_date)
+        d = hashlib.sha256()
+        for f in files:
+            d.update(f.name.encode())
+            d.update(datasets.sha256_file(f).encode())
+        out["delivery"] = {"files": len(files), "first": files[0].stem if files else None,
+                           "last": files[-1].stem if files else None, "sha256": d.hexdigest()}
+    return out
 
 
 def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:

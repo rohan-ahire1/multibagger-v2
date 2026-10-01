@@ -62,11 +62,10 @@ def test_the_share_uses_only_sessions_with_a_record():
     assert ranked(panel, p.universe, p.ranking, d, d)[d] == ["B", "C", "E"]
 
 
-def test_option_is_validated_and_refused_by_paper():
+def test_option_is_validated_and_accepted_by_paper():
     with pytest.raises(ValidationError, match="delivery_drop_frac"):
         _m40(1.0)
-    with pytest.raises(ValueError, match="universe.delivery_drop_frac"):
-        check_supported(_m40(0.2))
+    check_supported(_m40(0.2))  # M43: the paper book reads delivery (tests/test_m43_paper_delivery.py)
     with pytest.raises(ValueError, match="portfolio.vol_states"):
         p = _m32({"vol_sessions": 5, "high_quantile": 0.8, "min_history_months": 3})
         check_supported(p)

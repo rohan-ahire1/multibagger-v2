@@ -59,6 +59,15 @@ entry in the day's `corporate_actions`). Replay maps recorded picks the same way
 the linked daily data has 199 links since 2023 (HEG → HEGAM on 2026-09-22 is the newest), the same 144 unexplained
 jumps as `nse_daily`, and the same picks for all three books at that close.
 
+## Delivery data (M43)
+
+The M40 pin drops the eligible names with the lowest delivery share, so its book needs NSE's daily delivery file.
+`configs/data/nse_daily_delivery.yaml` is the linked daily data plus a `delivery` section: the daily job downloads
+the delivery file for any build session that lacks one (NSE can publish it after the bhavcopy; the share skips the last
+21 sessions, so a late file never moves a decision), and a new file triggers a rebuild. The undeployed draft
+`momentum_top40_gold_deliv.yaml` reads it. On the Mac, run over Feb–Jul 2026 from a scratch store, its six decisions
+equal the pin's targets on the research data and the replay passes (see `docs/research/m43.md`).
+
 ## Files (VPS, `~/projects/multibagger-v2/data/paper/<book name>/`)
 
 | Path | What |
