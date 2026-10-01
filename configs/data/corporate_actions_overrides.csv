@@ -123,6 +123,7 @@ GALLISPAT,"",split,2018-08-07,,,,,0.1,FV 10->1 inferred from purpose_parsed (obs
 GANGAFORGE,"",split,2021-09-13,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.102555),purpose_parsed
 GEMINI,"",split,2008-09-17,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.220058),purpose_parsed
 GENUSPOWER,"",split,2010-10-22,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.098861),purpose_parsed
+GEOINFO,"",bonus,2007-08-17,1.0,2.0,,,,"Bonus 1:2, record date 2007-08-17 (Motilal Oswal corporate-action page); close 363.70 -> 234.35 (x0.644) with no action in the feed (M40)",manual
 GEOJIT,"",split,2006-09-26,,,,,0.1,FV 10->1 corroborated by SEBI and split records,manual
 GMDCLTD,"",split,2007-11-08,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.20791),purpose_parsed
 GODHA,"",split,2022-03-24,,,,,0.10461828463713477,non-round action inferred from isin_corroborated (observed ratio 0.104618),isin_corroborated
