@@ -29,12 +29,19 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
     days = sorted(panel.filter(pl.col("date").is_between(period.start, period.end))["date"].unique().to_list())
     bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
     sectors = load_sectors(root, cfg)
-    tg = targets(panel, p, period.start, period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year)
+    # Which symbols are fund units is a fact about the listing, not a price: read it from the whole dataset, since
+    # bhavcopies before mid-2011 carry no ISIN (M35).
+    funds = frozenset(pl.scan_parquet(datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE)
+                      .filter(pl.col("security_id").str.starts_with("isin:INF")).select("symbol").unique()
+                      .collect()["symbol"].to_list())
+    tg = targets(panel, p, period.start, period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year,
+                 fund_symbols=funds)
     stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
     if isinstance(p, ParamsM27) and p.portfolio.rotation is not None:
         # M27: the shadow book is the same strategy from the panel's first session; its equity is the book's record.
         all_days = sorted(panel["date"].unique().to_list())
-        shadow_tg = targets(panel, p, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year)
+        shadow_tg = targets(panel, p, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year,
+                            fund_symbols=funds)
         shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop).equity
         share = rotation_shares(shadow.select("date", "equity"), panel, p.portfolio.rotation, sorted(tg))
         tg = {d: with_rotation(t, share[d]) for d, t in tg.items()}
@@ -42,7 +49,8 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
         # M32: the shadow book is this strategy without fixed weights or scaling, from the panel's first session.
         all_days = sorted(panel["date"].unique().to_list())
         bare = p.model_copy(update={"portfolio": p.portfolio.model_copy(update={"fixed_weights": {}, "vol_states": None})})
-        shadow_tg = targets(panel, bare, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year)
+        shadow_tg = targets(panel, bare, all_days[0], period.end, sectors=sectors,
+                            days_per_year=cfg.market.trading_days_per_year, fund_symbols=funds)
         shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop).equity
         k = vol_state_scales(shadow.select("date", "equity"), shadow_tg, p.portfolio.vol_states, sorted(tg))
         tg = {d: with_book_scale(t, k[d], set(p.portfolio.fixed_weights)) for d, t in tg.items()}

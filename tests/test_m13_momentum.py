@@ -73,3 +73,13 @@ def test_the_draft_inverse_vol_paper_book_uses_the_checked_config():
     u = strat.params.universe
     assert u.exclude_fund_units and u.fund_units_by_symbol and strat.params.portfolio.weighting == "inverse_vol"
     check_supported(strat.params)
+
+
+def test_a_panel_cut_before_the_fund_isin_needs_the_fund_symbols_passed_in():
+    # M35: a run ending before the ISIN appears cannot learn FUND is a fund from its own panel.
+    panel, days = _panel()
+    cut = panel.filter(pl.col("date") <= days[35])
+    p = _m13(ranking={"lookback_sessions": 20, "skip_sessions": 1})
+    d = days[30]
+    assert ranked(cut, p.universe, p.ranking, d, d)[d] == ["FUND", "A", "B"]
+    assert ranked(cut, p.universe, p.ranking, d, d, fund_symbols=frozenset({"FUND"}))[d] == ["A", "B"]
