@@ -18,6 +18,8 @@ its own `mNN.md`; this file only summarises.
 | 36 | M28 gold-rotation tranches on the ₹2 crore book | rot 0.883, half 0.951 (25.7% DD) vs pin 0.865 | fails f1, f2; bootstrap 45% | crash insurance for ~2.4 pts CAGR; month-end decision beats offsets in 97% of resamples |
 | 37 | Does the month-end decision day win out of sample (2007–09)? | offset 0 lowest CAGR (7.1% vs 12–15%) | no | pin's edge over other days is partly luck; expect ~0.80 |
 | 38 | ₹2 vs ₹5 crore floor on 2007–09 at four decision days | mean CAGR 11.85% vs 11.72% | 2 of 4 each | floor neutral early; M35's loss was the decision day |
+| 39 | Circuit-locked fills, BE-series and delisted exits in the simulator | locked fills < 1%; ≤ 0.15 pt CAGR a year | | no change needed |
+| 40 | Drop winners with the lowest delivery share (NSE delivery files; Lee & Swaminathan 2000 on speculative volume) | pending | | pre-registered |
 
 What the evidence says so far:
 
