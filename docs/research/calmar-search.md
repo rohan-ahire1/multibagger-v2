@@ -21,7 +21,7 @@ its own `mNN.md`; this file only summarises.
 | 39 | Circuit-locked fills, BE-series and delisted exits in the simulator | locked fills < 1%; ≤ 0.15 pt CAGR a year | | no change needed |
 | 40 | Drop winners with the lowest delivery share (NSE delivery files; Lee & Swaminathan 2000 on speculative volume) | 0.913 (drop 40%; 28.65% CAGR, 31.4% DD; folds 1.10/1.98/1.01) | yes: 4/4 offsets, 25 bps, bootstrap 87%, early window better | **adopted, new pin** |
 | 41 | Optuna pilot: walk-forward search of 7 settings (60 trials per step) | test f2 1.738 vs pin 1.736; f3 1.212 vs 1.037 | pilot only | pushes to more gold, stronger delivery filter, ₹1 cr floor; ranges too narrow |
-| 42 | Optuna full: 300 trials per step, 3 walk-forward steps, wider ranges, 25 bps check | step A: tuned 1.51 vs pin 1.74 on 2014–17 (B, C: see m42.md) | | step A fails the pre-registered bar |
+| 42 | Optuna full: 300 trials per step, 3 walk-forward steps, wider ranges, 25 bps check | test: A 1.51 vs pin 1.74; B 1.31 vs 1.04; C 2.50 vs 1.88 | B, C pass at 25 bps; A fails | bar fails (step A); all steps pick delivery drop 0.8, fewer names, more gold |
 | 43 | Paper book with the delivery filter (daily delivery files); trading-gap audit | pin unchanged | live decisions equal backtest Feb–Jul 2026 | draft book ready, not deployed |
 | 44 | No picks across a trading gap over 30 days (data correctness) | 0.912 vs 0.913; four-offset mean 0.898 both | neutral | not adopted; recommended for live as a safety rule |
 | 45 | Rank on months 12 to 7 instead of 12 to 2 (Novy-Marx 2012) | 0.70 (21.7% CAGR, 31.0% DD) | | fails every window; recent months carry the signal |
