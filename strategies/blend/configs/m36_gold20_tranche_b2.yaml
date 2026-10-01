@@ -1,0 +1,21 @@
+# M36 (docs/research/m36.md): the pin m33_adv2cr_gold20_b2 in four 25% tranches at decision offsets 0, 5, 10, 15.
+name: blend
+version: m36_gold20_tranche_b2
+dataset: nse_research@2026-10-01b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m33_adv2cr_gold20_b2.yaml
+      config_hash: a38245bfaba819f8d0152c300e1718db4b53fa3d0e01c3a81022c3811b60b3e6
+      weight: 0.25
+    - config: strategies/momentum/configs/m33_adv2cr_gold20_off5_b2.yaml
+      config_hash: 0dada287900058bdb530e78540f8df2cec12d4d61a27d7c635b89f602cc38b5d
+      weight: 0.25
+    - config: strategies/momentum/configs/m33_adv2cr_gold20_off10_b2.yaml
+      config_hash: be64323eb155fec4eeff34df8de8a006e523689c4a8c21642fd2126438c2ab77
+      weight: 0.25
+    - config: strategies/momentum/configs/m33_adv2cr_gold20_off15_b2.yaml
+      config_hash: 86695cd873434cf704feecef23cd1810f50465f1fcce1773534d3774f47f6400
+      weight: 0.25
+  initial_capital: 1000000
