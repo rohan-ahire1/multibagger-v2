@@ -48,3 +48,19 @@ def test_low_vol_ranks_the_calmest_first_whatever_the_trend():
     assert ranked(panel, low.universe, low.ranking, d, d)[d] == ["CALM", "MID", "WILD"]
     mom = _m29("score", lookback_sessions=20, skip_sessions=0)
     assert ranked(panel, mom.universe, mom.ranking, d, d)[d][-1] == "CALM"
+
+
+def test_htp_scores_the_run_up_to_the_peak_not_the_fall_since():
+    n = 30
+    days = _days(n)
+    # PEAKED: +40% then falls back to +5%; STEADY: +20% straight; both measured over 20 sessions to the decision date.
+    peaked = [100.0] * 10 + [100.0 * 1.4 ** (k / 10) for k in range(1, 11)] + [140.0 - 3.5 * k for k in range(1, 11)]
+    steady = [100.0] * 10 + [100.0 * 1.2 ** (k / 20) for k in range(1, 21)]
+    panel = _frame({"PEAKED": peaked, "STEADY": steady}, days)
+    d = days[-1]
+    htp = _m29("htp", score="return", lookback_sessions=20, skip_sessions=0)
+    assert ranked(panel, htp.universe, htp.ranking, d, d)[d] == ["PEAKED", "STEADY"]
+    mom = _m29("score", score="return", lookback_sessions=20, skip_sessions=0)
+    assert ranked(panel, mom.universe, mom.ranking, d, d)[d] == ["STEADY", "PEAKED"]
+    with pytest.raises(ValidationError, match="order htp takes no other ranking option"):
+        _m29("htp", second_lookback_sessions=10)

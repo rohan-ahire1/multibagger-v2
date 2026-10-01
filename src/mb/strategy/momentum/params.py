@@ -282,17 +282,20 @@ class ParamsM27(ParamsM22):
 class RankingM29(RankingM12):
     # low_vol: rank by the stdev of daily log returns over lookback - skip sessions ending `skip_sessions` before the
     # decision date, lowest first (Blitz & van Vliet 2007). score: the usual ranking.
-    order: Literal["score", "low_vol"]
+    # htp (M30, docs/research/m30.md): log(highest adj_close from `lookback_sessions` to `skip_sessions` before the
+    # decision date / adj_close `lookback_sessions` before), divided by that vol under return_over_vol (Büsing,
+    # Mohrschladt & Siedhoff 2024).
+    order: Literal["score", "low_vol", "htp"]
 
     @model_validator(mode="after")
     def _low_vol(self) -> RankingM29:
-        if self.order == "low_vol":
-            if self.score != "return_over_vol":
+        if self.order != "score":
+            if self.order == "low_vol" and self.score != "return_over_vol":
                 raise ValueError("order low_vol needs score return_over_vol")
             on = [k for k in ("second_lookback_sessions", "high_window_sessions", "residual_beta_sessions",
                               "frog_candidates_per_slot", "max_filter_frac") if getattr(self, k) is not None]
             if on:
-                raise ValueError(f"order low_vol takes no other ranking option: {', '.join(on)}")
+                raise ValueError(f"order {self.order} takes no other ranking option: {', '.join(on)}")
         return self
 
 

@@ -126,9 +126,15 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         if top_n is None:
             raise ValueError("frog_candidates_per_slot needs top_n")
         cols.append(_discreteness(r).alias("discreteness"))
+    if isinstance(r, RankingM29) and r.order == "htp":
+        high = pl.col("adj_close").rolling_max(r.lookback_sessions - r.skip_sessions + 1).shift(r.skip_sessions)
+        cols.append((high / pl.col("adj_close").shift(r.lookback_sessions)).log().over("symbol").alias("htp"))
     f = f.with_columns(cols).filter(pl.col("date").is_between(start, end))
-    if isinstance(r, RankingM29) and r.order == "low_vol":
+    order = r.order if isinstance(r, RankingM29) else "score"
+    if order == "low_vol":
         score = -pl.col("vol")
+    elif order == "htp":
+        score = pl.col("htp") / pl.col("vol") if r.score == "return_over_vol" else pl.col("htp")
     else:
         score = pl.col("mom") / pl.col("vol") if r.score == "return_over_vol" else pl.col("mom")
     f = f.with_columns(score.alias("score"))
