@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40, UniverseM44,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40, UniverseM44,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -272,6 +272,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
                    m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols)
+    if isinstance(p, ParamsM46):  # M46: only every n-th month decides
+        ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
     m8 = p if isinstance(p, ParamsM8) else None
     cap = m8.portfolio.max_per_sector if m8 else None

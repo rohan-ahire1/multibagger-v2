@@ -370,3 +370,23 @@ class UniverseM44(UniverseM40):
 
 class ParamsM44(ParamsM40):
     universe: UniverseM44
+
+
+# M46 option (docs/research/m46.md).
+
+class ScheduleM46(Schedule):
+    # Decide only at month-ends with month % every_months == phase_month; 1 and 0 = every month.
+    every_months: int
+    phase_month: int
+
+    @model_validator(mode="after")
+    def _every(self) -> ScheduleM46:
+        if self.every_months < 1:
+            raise ValueError("every_months must be at least 1")
+        if not 0 <= self.phase_month < self.every_months:
+            raise ValueError("phase_month must be in [0, every_months)")
+        return self
+
+
+class ParamsM46(ParamsM40):
+    schedule: ScheduleM46
