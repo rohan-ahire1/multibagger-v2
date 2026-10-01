@@ -39,7 +39,7 @@ STEPS = {"A": {"train_end": date(2013, 12, 31), "test": (date(2014, 1, 1), date(
          "B": {"train_end": date(2017, 12, 31), "test": (date(2018, 1, 1), date(2023, 12, 31))},
          "C": {"train_end": date(2020, 12, 31), "test": (date(2021, 1, 1), date(2023, 12, 31))}}
 OFFSETS = (0, 5, 10, 15)
-TRIALS, SEED, TOP_K, SLIP_CHECK_BPS = 300, 42, 5, 25
+TRIALS, SEED, TOP_K, SLIP_CHECK_BPS, PARALLEL_TRIALS = 300, 42, 5, 25, 2
 NTFY_URL = "https://ntfy.sh"
 PIN = {"lookback": 252, "skip": 21, "top_n": 40, "deliv": 0.4, "gold": 0.2, "ivol": 126, "adv_cr": 2}
 
@@ -153,7 +153,7 @@ def search(pool: ProcessPoolExecutor, step: str) -> None:
 
     log(f"step {step}: search, {max(n, 0)} trials to run")
     if n > 0:
-        st.optimize(objective, n_trials=n, callbacks=[progress])
+        st.optimize(objective, n_trials=n, callbacks=[progress], n_jobs=PARALLEL_TRIALS)
     log(f"step {step}: search done, best train Calmar {st.best_value:.3f} {st.best_params}")
 
 
