@@ -83,7 +83,7 @@ CRONIMET,"",split,2011-11-03,,,,,0.2,1:5 inferred from isin_corroborated (observ
 CUB,"",split,2008-01-23,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.10508),purpose_parsed
 CUPID,"",split,2024-04-04,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.10498),purpose_parsed
 DAAWAT,"",split,2017-02-07,,,,,0.1078379240667872,non-round action inferred from isin_corroborated (observed ratio 0.107838),isin_corroborated
-DANGEE,"",split,2022-09-06,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.103238),purpose_parsed
+DANGEE,"",bonus_split,2022-09-06,,,,,0.0666667,"FV 10->1 + bonus 1:2, record date 2022-09-07 (NSE BM outcome 2022-08-02; the inferred row had only the split). Ex-date close 27.95 / cum close 406.1 = 0.0688 (M33)",manual
 DAVANGERE,"",split,2024-05-31,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.107071),purpose_parsed
 DBEIL,"",split,2026-06-19,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.104848),purpose_parsed
 DCHL,"",split,2007-03-13,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.194081),purpose_parsed
@@ -528,3 +528,6 @@ SIEMENS,"",demerger,2025-04-07,,,,,0.497144,"Energy business demerged to Siemens
 QUESS,"",demerger,2025-04-15,,,,,0.469499,"Demerger to Digitide Solutions and Bluspring Enterprises (1:1 each); not in the feed. Factor = ex-date open 284 / cum close 604.9 (M31)",manual
 RAYMOND,"",demerger,2025-05-14,,,,,0.335613,"Realty business demerged to Raymond Realty (1:1); not in the feed. Factor = ex-date open 525 / cum close 1564.3 (M31)",manual
 ABFRL,"",demerger,2025-05-22,,,,,0.36438,"Lifestyle brands demerged to Aditya Birla Lifestyle Brands (1:1); not in the feed. Factor = ex-date open 98 / cum close 268.95 (M31)",manual
+KPRMILL,"",split,2016-11-29,,,,,0.5,"FV 10->5, ex-date 2016-11-29; not in the feed. Ex-date open 575 / cum close 1129.9 = 0.509 (M33)",manual
+RSWM,"",rights,2022-12-16,,,,,0.640865,"Rights 1:1 at Rs 100, record date 2022-12-16; not in the feed. Factor = TERP (354.95 + 100) / 2 / cum close 354.95 (M33)",manual
+DTIL,"",bonus,2021-08-05,,,,,0.666667,"Bonus 1:2, record date 2021-08-06, ex-date 2021-08-05; not in the feed. Ex-date close 346.65 / cum close 521.15 = 0.665 (M33)",manual
