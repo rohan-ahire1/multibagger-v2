@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.engine.rebalance import Target
 from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12,
-                                         Sizing, Universe, UniverseM13)
+                                         Rotation, Sizing, Universe, UniverseM13)
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
@@ -333,3 +333,52 @@ def _with_fixed(t: Target, fixed: dict[str, float]) -> Target:
         raise ValueError(f"fixed_weights symbols were also picked: {both}")
     w = {s: v / total * rest for s, v in t.weights.items()} if total > 0 else {}
     return Target(w | fixed, t.gross if w else t.gross * sum(fixed.values()), t.keep_size)
+
+
+def rotation_shares(shadow: pl.DataFrame, panel: pl.DataFrame, r: Rotation, dates: list[date]) -> dict[date, dict[str, float]]:
+    """Per decision date, the share of equity for the book (key "") and for each rotation asset; the rest is cash.
+
+    `shadow` is the shadow book's equity, one row per session (date, equity); its sessions are the calendar. A lookback
+    counts sessions on that calendar. An asset's close is carried forward over sessions it did not trade; an asset with no
+    close at the date or L sessions earlier is not a candidate for that lookback. Ties go to the book, then asset order.
+    """
+    cal = shadow.sort("date")
+    days = cal["date"].to_list()
+    at = {d: i for i, d in enumerate(days)}
+    book = cal["equity"].to_numpy()
+    wide = (cal.select("date").join(panel.filter(pl.col("symbol").is_in(r.assets)).pivot(on="symbol", index="date", values="adj_close"),
+                                    on="date", how="left").sort("date"))
+    px = {a: (wide[a].fill_null(strategy="forward").to_numpy() if a in wide.columns else np.full(len(days), np.nan))
+          for a in r.assets}
+    out: dict[date, dict[str, float]] = {}
+    for d in dates:
+        if d not in at:
+            raise ValueError(f"rotation: decision date {d} is not a session of the shadow book")
+        i = at[d]
+        share = {k: 0.0 for k in ["", *r.assets]}
+        for n in r.lookbacks_sessions:
+            if i < n:
+                raise ValueError(f"rotation: the shadow book has no equity {n} sessions before {d}")
+            cand = [("", book[i] / book[i - n] - 1.0)]
+            for a in r.assets:
+                now, then = px[a][i], px[a][i - n]
+                if np.isfinite(now) and np.isfinite(then) and then > 0.0:
+                    cand.append((a, now / then - 1.0))
+            for k, ret in sorted(cand, key=lambda c: -c[1])[: r.top_k]:  # stable: ties keep the book, then asset order
+                if not r.cash_floor or ret > 0.0:
+                    share[k] += 1.0 / r.top_k / len(r.lookbacks_sessions)
+        out[d] = share
+    return out
+
+
+def with_rotation(t: Target, share: dict[str, float]) -> Target:
+    """The picks scaled to the book's share of `t.gross`, each asset at its share; the rest is cash."""
+    both = sorted(set(t.weights) & {a for a in share if a})
+    if both:
+        raise ValueError(f"rotation assets were also picked: {both}")
+    total = sum(t.weights.values())
+    book = share[""] * t.gross
+    w = {s: v / total * book for s, v in t.weights.items()} if total > 0 and book > 0 else {}
+    w |= {a: x for a, x in share.items() if a and x > 0.0}
+    gross = sum(w.values())
+    return Target(w, gross, t.keep_size) if gross > 0 else Target({}, 0.0, frozenset())

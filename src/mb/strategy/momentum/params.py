@@ -239,3 +239,39 @@ class PortfolioM22(PortfolioM19):
 
 class ParamsM22(ParamsM21):
     portfolio: PortfolioM22
+
+
+# M27 option (docs/research/m27.md).
+
+class Rotation(Strict):
+    # At each decision date and for each lookback, the shadow book (this strategy without rotation, at full investment
+    # from the panel's first session) and each symbol in `assets` are scored by their return over that many sessions; the
+    # best `top_k` get 1 / top_k each. The shares are averaged over the lookbacks (Faber 2007; Antonacci 2014; Keller).
+    assets: list[str]
+    lookbacks_sessions: list[int]
+    top_k: int
+    cash_floor: bool              # a winner whose return is not above 0 gets its share as cash (absolute momentum)
+
+    @model_validator(mode="after")
+    def _rotation(self) -> Rotation:
+        if not self.assets or len(set(self.assets)) != len(self.assets):
+            raise ValueError("rotation.assets must be non-empty and distinct")
+        if not self.lookbacks_sessions or any(n < 1 for n in self.lookbacks_sessions):
+            raise ValueError("rotation.lookbacks_sessions must be non-empty and at least 1")
+        if not 1 <= self.top_k <= len(self.assets) + 1:
+            raise ValueError("rotation.top_k must be between 1 and the number of candidates")
+        return self
+
+
+class PortfolioM27(PortfolioM22):
+    rotation: Rotation | None
+
+    @model_validator(mode="after")
+    def _alone(self) -> PortfolioM27:
+        if self.rotation is not None and self.fixed_weights:
+            raise ValueError("fixed_weights must be empty when rotation is set")
+        return self
+
+
+class ParamsM27(ParamsM22):
+    portfolio: PortfolioM27

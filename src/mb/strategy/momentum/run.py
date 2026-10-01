@@ -11,10 +11,10 @@ from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22
-from mb.strategy.momentum.targets import targets
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27
+from mb.strategy.momentum.targets import rotation_shares, targets, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -28,9 +28,16 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
              .collect())
     days = sorted(panel.filter(pl.col("date").is_between(period.start, period.end))["date"].unique().to_list())
     bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
-    tg = targets(panel, p, period.start, period.end, sectors=load_sectors(root, cfg),
-                 days_per_year=cfg.market.trading_days_per_year)
+    sectors = load_sectors(root, cfg)
+    tg = targets(panel, p, period.start, period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year)
     stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
+    if isinstance(p, ParamsM27) and p.portfolio.rotation is not None:
+        # M27: the shadow book is the same strategy from the panel's first session; its equity is the book's record.
+        all_days = sorted(panel["date"].unique().to_list())
+        shadow_tg = targets(panel, p, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year)
+        shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop).equity
+        share = rotation_shares(shadow.select("date", "equity"), panel, p.portfolio.rotation, sorted(tg))
+        tg = {d: with_rotation(t, share[d]) for d, t in tg.items()}
     return simulate_targets(tg, bars, days, cfg.market, p.initial_capital, stop)
 
 
