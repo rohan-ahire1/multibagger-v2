@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40, UniverseM44,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -143,6 +143,11 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         keys_extra = ["deliv_share"]
     else:
         keys_extra = []
+    max_gap = u.max_gap_days if isinstance(u, UniverseM44) else None
+    if max_gap is not None:
+        w = r.lookback_sessions
+        cols.append((pl.col("date") - pl.col("date").shift(1)).dt.total_days().rolling_max(w, min_samples=w)
+                    .over("symbol").alias("max_gap"))
     f = f.with_columns(cols).filter(pl.col("date").is_between(start, end))
     order = r.order if isinstance(r, RankingM29) else "score"
     if order == "low_vol":
@@ -158,6 +163,8 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         eligible = eligible & pl.col("score2").is_not_null() & pl.col("score2").is_finite()
     if min_momentum is not None:
         eligible = eligible & (pl.col("mom") > min_momentum)
+    if max_gap is not None:
+        eligible = eligible & (pl.col("max_gap") <= max_gap)
     for k in (keys + (["discreteness"] if frog is not None else []) + (["maxret"] if max_frac is not None else [])
               + keys_extra):
         eligible = eligible & pl.col(k).is_not_null() & pl.col(k).is_finite()

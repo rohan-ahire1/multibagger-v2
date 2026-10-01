@@ -352,3 +352,21 @@ class UniverseM40(UniverseM13):
 
 class ParamsM40(ParamsM32):
     universe: UniverseM40
+
+
+# M44 option (docs/research/m44.md).
+
+class UniverseM44(UniverseM40):
+    # Set: a name is not eligible at a decision date if two consecutive bars within its last `lookback_sessions` rows
+    # are more than this many calendar days apart (windows count rows, so a trading gap stretches them over years).
+    max_gap_days: int | None
+
+    @model_validator(mode="after")
+    def _gap(self) -> UniverseM44:
+        if self.max_gap_days is not None and self.max_gap_days < 1:
+            raise ValueError("max_gap_days must be at least 1")
+        return self
+
+
+class ParamsM44(ParamsM40):
+    universe: UniverseM44
