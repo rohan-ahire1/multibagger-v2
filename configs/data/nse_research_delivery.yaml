@@ -1,0 +1,46 @@
+# nse_research_linked.yaml plus M40 delivery data (docs/research/m40.md): the panel gains `deliv_qty`.
+name: nse_research
+bhavcopy:
+  raw_dir: data/raw/nse_bhavcopy
+  first_date: null
+  series: [EQ, BE]
+  legacy_cutoff: 2024-01-01
+  archive_base_url: https://nsearchives.nseindia.com/content/cm
+  legacy_archive_base_url: https://nsearchives.nseindia.com/content/historical/EQUITIES
+  timeout_s: 30
+  max_retries: 4
+  request_sleep_s: 0.4
+corporate_actions:
+  raw_file: data/raw/nse_corporate_actions/nse_corporate_actions.parquet
+  coverage_file: data/raw/nse_corporate_actions/nse_corporate_actions_coverage.parquet
+  overrides_file: configs/data/corporate_actions_overrides.csv
+  applied_override_sources: [manual, purpose_parsed, isin_corroborated, etf_inferred]
+  resymbol_by_isin: true
+  verified_moves_file: configs/data/verified_price_moves.csv
+  url: https://www.nseindia.com/api/corporates-corporateActions
+  timeout_s: 30
+  window_sleep_s: 0.6
+adjustment:
+  match_window_sessions: 3
+  match_tolerance: 1.25
+  min_detectable: 1.2
+  unexplained_jump: 1.5
+  dividend_max_price_fraction: 0.5
+checks:
+  min_session_rows_ratio: 0.5
+  session_rows_lookback: 20
+  # 2009-05-18: 587 rows vs ~1,250 usual, the day of the market-wide circuit halt after the election result.
+  accepted_thin_sessions: [2009-05-18]
+  max_session_gap_days: 7
+  max_unexplained_jumps: 1139
+  max_unmatched_share_events: 135
+  max_row_count_drift_pct: 5
+link_renames_by_isin: true
+rename_max_gap_days: 31
+# M40 (docs/research/m40.md): NSE security-wise delivery position, joined to the panel as `deliv_qty`.
+delivery:
+  raw_dir: data/raw/nse_delivery
+  archive_base_url: https://nsearchives.nseindia.com/archives/equities/mto
+  timeout_s: 30
+  max_retries: 4
+  request_sleep_s: 0.4

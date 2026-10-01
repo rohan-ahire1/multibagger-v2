@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -132,6 +132,17 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     if isinstance(r, RankingM29) and r.order == "htp":
         high = pl.col("adj_close").rolling_max(r.lookback_sessions - r.skip_sessions + 1).shift(r.skip_sessions)
         cols.append((high / pl.col("adj_close").shift(r.lookback_sessions)).log().over("symbol").alias("htp"))
+    dfrac = u.delivery_drop_frac if isinstance(u, UniverseM40) else None
+    if dfrac is not None:
+        span = r.lookback_sessions - r.skip_sessions
+        has = pl.col("deliv_qty").is_not_null()
+        dq = pl.col("deliv_qty").fill_null(0).cast(pl.Float64).rolling_sum(span, min_samples=span).shift(r.skip_sessions)
+        vq = (pl.when(has).then(pl.col("volume")).otherwise(0).cast(pl.Float64).rolling_sum(span, min_samples=span)
+              .shift(r.skip_sessions))
+        cols.append(pl.when(vq > 0).then(dq / vq).over("symbol").alias("deliv_share"))
+        keys_extra = ["deliv_share"]
+    else:
+        keys_extra = []
     f = f.with_columns(cols).filter(pl.col("date").is_between(start, end))
     order = r.order if isinstance(r, RankingM29) else "score"
     if order == "low_vol":
@@ -147,7 +158,8 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         eligible = eligible & pl.col("score2").is_not_null() & pl.col("score2").is_finite()
     if min_momentum is not None:
         eligible = eligible & (pl.col("mom") > min_momentum)
-    for k in keys + (["discreteness"] if frog is not None else []) + (["maxret"] if max_frac is not None else []):
+    for k in (keys + (["discreteness"] if frog is not None else []) + (["maxret"] if max_frac is not None else [])
+              + keys_extra):
         eligible = eligible & pl.col(k).is_not_null() & pl.col(k).is_finite()
     if u.exclude_fund_units:
         eligible = eligible & ~pl.col("security_id").str.starts_with("isin:INF")
@@ -160,6 +172,9 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         day = f.filter((pl.col("date") == d) & eligible)
         if max_frac is not None:
             drop = day.sort("maxret", "symbol", descending=[True, False]).head(math.ceil(max_frac * day.height))["symbol"]
+            day = day.filter(~pl.col("symbol").is_in(drop.implode()))
+        if dfrac is not None:
+            drop = day.sort("deliv_share", "symbol").head(math.ceil(dfrac * day.height))["symbol"]
             day = day.filter(~pl.col("symbol").is_in(drop.implode()))
         if second is not None:  # mean of the two percentile ranks, 1 = best
             # Ranks are summed before dividing so equal means tie exactly and fall back to the symbol order.

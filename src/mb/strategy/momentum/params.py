@@ -332,3 +332,23 @@ class PortfolioM32(PortfolioM27):
 
 class ParamsM32(ParamsM29):
     portfolio: PortfolioM32
+
+
+# M40 option (docs/research/m40.md).
+
+class UniverseM40(UniverseM13):
+    # Set: at each decision date, drop this share (rounded up) of the otherwise eligible names with the lowest delivery
+    # share over the momentum formation span (sum of deliverable quantity / sum of volume over the sessions with a
+    # delivery record, from `lookback_sessions` to `skip_sessions` ago). Names with no delivery record there are not
+    # eligible. Needs a dataset with `deliv_qty`.
+    delivery_drop_frac: float | None
+
+    @model_validator(mode="after")
+    def _delivery(self) -> UniverseM40:
+        if self.delivery_drop_frac is not None and not 0.0 < self.delivery_drop_frac < 1.0:
+            raise ValueError("delivery_drop_frac must be in (0, 1)")
+        return self
+
+
+class ParamsM40(ParamsM32):
+    universe: UniverseM40

@@ -113,6 +113,15 @@ class BhavcopySource(Strict):
     request_sleep_s: float
 
 
+class DeliverySource(Strict):
+    # M40: NSE security-wise delivery position files (`sources/nse_delivery.py`).
+    raw_dir: str
+    archive_base_url: str
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
+
+
 class CorporateActionsSource(Strict):
     raw_file: str
     coverage_file: str
@@ -163,6 +172,12 @@ class DataConfigM14(DataConfig):
     link_renames_by_isin: bool
     # A link is refused when the old symbol's last bar is more than this many calendar days before the new one's first.
     rename_max_gap_days: int = Field(ge=0)
+
+
+class DataConfigM40(DataConfigM14):
+    # M40 (docs/research/m40.md): the panel gains `deliv_qty`, the session's deliverable quantity (null when NSE
+    # published none for that symbol and series). A subclass, so existing data configs keep their model and hash.
+    delivery: DeliverySource
 
 
 class CalendarSource(Strict):

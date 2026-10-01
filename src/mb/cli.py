@@ -143,6 +143,32 @@ def fetch_bhavcopy(
     typer.echo(f"downloaded {len(res['downloaded'])}, not published/holiday {len(res['missing'])}")
 
 
+@fetch_app.command("delivery")
+def fetch_delivery(
+    data_config: DataCfg,
+    start: Annotated[str, typer.Option("--from", help="First date, YYYY-MM-DD.")],
+    end: Annotated[str, typer.Option("--to", help="Last date, YYYY-MM-DD.")],
+    root: Root = _ROOT,
+) -> None:
+    """Download missing delivery-position files for the sessions in the bhavcopy store. Existing files are kept."""
+    from mb.config.loader import load_data_config
+    from mb.config.models import DataConfigM40
+    from mb.sources import nse_bhavcopy, nse_delivery
+
+    try:
+        cfg, _ = load_data_config(data_config)
+        if not isinstance(cfg, DataConfigM40):
+            raise ValueError("the data config has no delivery section")
+        lo, hi = date.fromisoformat(start), date.fromisoformat(end)
+        sessions = [d for z in nse_bhavcopy.list_zips(root / cfg.bhavcopy.raw_dir)
+                    if lo <= (d := nse_bhavcopy.zip_date(z)) <= hi]
+        res = nse_delivery.fetch(cfg.delivery, root / cfg.delivery.raw_dir, sessions)
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"downloaded {len(res['downloaded'])}, not published {len(res['missing'])}: "
+               f"{[d.isoformat() for d in res['missing']][:20]}")
+
+
 @fetch_app.command("corporate-actions")
 def fetch_corporate_actions(
     data_config: DataCfg,

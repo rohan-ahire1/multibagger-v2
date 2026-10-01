@@ -11,10 +11,10 @@ from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, UniverseM40
 from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -24,7 +24,9 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
     period = cfg.strategy.period
     panel = (pl.scan_parquet(datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE)
              .filter(pl.col("date") <= period.end)
-             .select("date", "symbol", "security_id", "series", "close", "turnover", "adj_open", "adj_high", "adj_close")
+             .select("date", "symbol", "security_id", "series", "close", "turnover", "adj_open", "adj_high", "adj_close",
+                     *(("volume", "deliv_qty") if isinstance(p.universe, UniverseM40)
+                       and p.universe.delivery_drop_frac is not None else ()))
              .collect())
     days = sorted(panel.filter(pl.col("date").is_between(period.start, period.end))["date"].unique().to_list())
     bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))

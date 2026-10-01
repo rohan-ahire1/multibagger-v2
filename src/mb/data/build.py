@@ -9,11 +9,11 @@ from pathlib import Path
 import polars as pl
 
 from mb.config.loader import ConfigError
-from mb.config.models import DataConfig, DataConfigM14
+from mb.config.models import DataConfig, DataConfigM14, DataConfigM40
 from mb.data import adjust, checks, datasets, renames
 from mb.data.corporate_actions import load_actions, load_verified_moves
 from mb.runs.record import git_state
-from mb.sources import nse_bhavcopy
+from mb.sources import nse_bhavcopy, nse_delivery
 
 
 class CheckFailure(Exception):
@@ -49,6 +49,17 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
     zips = nse_bhavcopy.build_zips(raw_dir, cfg.bhavcopy)
     bars = nse_bhavcopy.parse_all(raw_dir, cfg.bhavcopy)
     max_date = bars["date"].max()
+    delivery = None
+    if isinstance(cfg, DataConfigM40):
+        # Joined on the session's own symbol and series, before rename linking, so a renamed stock keeps its history.
+        # A quantity of shares on that session: compare it with that session's `volume`, not with `adj_volume`.
+        deliv = nse_delivery.parse_all(root / cfg.delivery.raw_dir, cfg.bhavcopy.first_date)
+        bars = bars.join(deliv.select("date", "symbol", "series", "deliv_qty"), on=["date", "symbol", "series"],
+                         how="left")
+        delivery = {"files": deliv["date"].n_unique(), "first": deliv["date"].min().isoformat(),
+                    "last": deliv["date"].max().isoformat(),
+                    "bars_with_deliv_qty": bars["deliv_qty"].is_not_null().sum(),
+                    "bars_deliv_qty_above_volume": bars.filter(pl.col("deliv_qty") > pl.col("volume")).height}
     links = refused = None
     if isinstance(cfg, DataConfigM14) and cfg.link_renames_by_isin:
         links, refused = renames.rename_links(bars, cfg.rename_max_gap_days)
@@ -105,6 +116,7 @@ def build(cfg: DataConfig, cfg_hash: str, root: Path, version: str) -> Path:
         "verified_moves": verified.height,
         **({"rename_links": links.height, "rename_links_refused": dict(sorted(refused.group_by("reason").len().iter_rows()))}
            if links is not None and refused is not None else {}),
+        **({"delivery": delivery} if delivery is not None else {}),
         "checks": [r.as_dict() for r in results],
         "outputs": {n: {"sha256": datasets.sha256_file(tmp / n), "rows": t.height} for n, t in tables.items()},
         "built_at": started.isoformat(),
