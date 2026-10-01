@@ -95,9 +95,12 @@ def four_offsets(pool: ProcessPoolExecutor, s: dict[str, Any], end: date, a: dat
 
 
 def suggest(t: optuna.Trial) -> dict[str, Any]:
-    return {"lookback": t.suggest_int("lookback", 126, 378, step=21), "skip": t.suggest_int("skip", 0, 42, step=7),
+    lookback = t.suggest_int("lookback", 126, 378, step=21)
+    # A name is eligible once it has `lookback` sessions, so a longer volatility window has no data for new listings.
+    return {"lookback": lookback, "skip": t.suggest_int("skip", 0, 42, step=7),
             "top_n": t.suggest_int("top_n", 20, 60, step=5), "deliv": t.suggest_float("deliv", 0.0, 0.6, step=0.1),
-            "gold": t.suggest_float("gold", 0.0, 0.4, step=0.05), "ivol": t.suggest_int("ivol", 63, 252, step=21),
+            "gold": t.suggest_float("gold", 0.0, 0.4, step=0.05),
+            "ivol": t.suggest_int("ivol", 63, min(252, lookback), step=21),
             "adv_cr": t.suggest_categorical("adv_cr", [1, 2, 3, 5])}
 
 
