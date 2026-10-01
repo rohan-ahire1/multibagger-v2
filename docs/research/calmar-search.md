@@ -15,6 +15,7 @@ its own `mNN.md`; this file only summarises.
 | 33 | Lower liquidity floor ₹5 → ₹2 / ₹1 crore a day (Lee & Swaminathan 2000; Indian momentum-liquidity studies) | 0.865 (₹2 cr, 26.8% CAGR, 31.0% DD) / 0.881 (₹1 cr) | yes: 4/4 offsets, 25 bps, bootstrap 95%, capacity ₹2.2 cr | **adopted (₹2 cr), new pin** |
 | 34 | The ₹2 crore floor on the other three books (robustness) | +0.17–0.20 on every book; invvol_b1 0.893 | invvol_b1 vs pin: bootstrap 61% | floor generalizes; pin unchanged |
 | 35 | Untouched 2007–09 window for the ₹2 crore pin; found ETFs leaking into pre-2011 runs (fixed) | pin 0.109 vs ₹5 cr 0.150; both ~65% DD in 2008 | floor not confirmed out of sample | M26's 48% DD was wrong (LIQUIDBEES); rotation 0.824 / 41% DD |
+| 36 | M28 gold-rotation tranches on the ₹2 crore book | rot 0.883, half 0.951 (25.7% DD) vs pin 0.865 | fails f1, f2; bootstrap 45% | crash insurance for ~2.4 pts CAGR; month-end decision beats offsets in 97% of resamples |
 
 What the evidence says so far:
 
