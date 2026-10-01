@@ -9,6 +9,8 @@ its own `mNN.md`; this file only summarises.
 | 27 | Monthly rotation book ↔ gold by 1/3/6/12-month returns (Faber, Antonacci, Keller) | 0.960 (offset 0) | no: 2 of 4 offsets win, mean 0.713 | fails f2 |
 | 28 | Same rotation in four timing tranches (Hoffstein et al. 2020) | 0.914 (22% DD, 20.3% CAGR) | bootstrap beats gold20 tranches only 48% | crash insurance, not adopted |
 | 29 | Low-volatility sleeve, 50/50 with the pin (Blitz & van Vliet 2007) | 0.713 | same as pin | fails f3 |
+| 30 | Rank by high-to-price, the crash-free part of momentum (Büsing, Mohrschladt & Siedhoff 2024) | 0.712 (HTP/vol) | HTP alone 0.448, 42% DD | fails f2 |
+| 31 | Data: 18 missing demergers/splits/rights, 3 manual fixes that never applied | pin unchanged | | new dataset `nse_research@2026-10-01` |
 
 What the evidence says so far:
 
