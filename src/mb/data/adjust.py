@@ -91,8 +91,8 @@ def expected_share_events(actions: pl.DataFrame) -> tuple[pl.DataFrame, pl.DataF
     return events.sort(["symbol", "ex_date"]), bad.sort(["symbol", "ex_date", "action_type"])
 
 
-def _gap_ratios(prices: pl.DataFrame) -> dict[str, tuple[list[date], list[float | None]]]:
-    """Per symbol: session dates and the open / previous-close ratio into each session."""
+def _gap_ratios(prices: pl.DataFrame) -> dict[str, tuple[list[date], list[float | None], list[float | None]]]:
+    """Per symbol: session dates, the open / previous-close ratio and the close / previous-close ratio into each session."""
     frame = (
         prices.select("symbol", "date", "open", "close")
         .sort(["symbol", "date"])
@@ -100,10 +100,11 @@ def _gap_ratios(prices: pl.DataFrame) -> dict[str, tuple[list[date], list[float 
         .with_columns(
             pl.when((pl.col("open") > 0) & (pl.col("prev_close") > 0)).then(pl.col("open") / pl.col("prev_close"))
             .when(pl.col("prev_close") > 0).then(pl.col("close") / pl.col("prev_close"))
-            .alias("gap")
+            .alias("gap"),
+            pl.when(pl.col("prev_close") > 0).then(pl.col("close") / pl.col("prev_close")).alias("close_gap"),
         )
     )
-    return {p["symbol"][0]: (p["date"].to_list(), p["gap"].to_list())
+    return {p["symbol"][0]: (p["date"].to_list(), p["gap"].to_list(), p["close_gap"].to_list())
             for p in frame.partition_by("symbol", maintain_order=True)}
 
 
@@ -113,6 +114,9 @@ def match_share_events(prices: pl.DataFrame, events: pl.DataFrame, cfg: Adjustme
     status: matched | applied_small (too small to verify; applied on listed date) |
     duplicate (another event already explains that jump) | unmatched | no_prices.
     Only matched and applied_small are applied.
+    When the open does not fit, a manual override may match the close / previous-close ratio instead: some ex-date
+    opens are the cum price less the band, set before price discovery (ADANIENT 2015-06-03), and the reviewed factor
+    then fits only the close (M31). Feed events still match on the open only.
     """
     series = _gap_ratios(prices)
     tolerance = math.log(cfg.match_tolerance)
@@ -123,7 +127,8 @@ def match_share_events(prices: pl.DataFrame, events: pl.DataFrame, cfg: Adjustme
         if found is None:
             rows.append({**base, "status": "no_prices"})
             continue
-        dates, gaps = found
+        dates, open_gaps, close_gaps = found
+        candidates = [open_gaps, close_gaps] if "manual" in event["sources"].split(",") else [open_gaps]
         idx = bisect_left(dates, event["ex_date"])
         if idx >= len(dates):
             rows.append({**base, "status": "no_prices"})
@@ -131,19 +136,22 @@ def match_share_events(prices: pl.DataFrame, events: pl.DataFrame, cfg: Adjustme
         if abs(math.log(event["expected"])) < math.log(cfg.min_detectable):
             rows.append({**base, "effective_date": dates[idx], "offset": 0, "status": "applied_small"})
             continue
-        best: tuple[float, int] | None = None
-        for j in range(max(1, idx - cfg.match_window_sessions), min(len(dates), idx + cfg.match_window_sessions + 1)):
-            gap = gaps[j]
-            if gap is None or gap <= 0:
-                continue
-            err = abs(math.log(gap) - math.log(event["expected"]))
-            if best is None or err < best[0]:
-                best = (err, j)
+        best: tuple[float, int, float] | None = None
+        for gaps in candidates:
+            if best is not None and best[0] <= tolerance:
+                break
+            for j in range(max(1, idx - cfg.match_window_sessions), min(len(dates), idx + cfg.match_window_sessions + 1)):
+                gap = gaps[j]
+                if gap is None or gap <= 0:
+                    continue
+                err = abs(math.log(gap) - math.log(event["expected"]))
+                if best is None or err < best[0]:
+                    best = (err, j, gap)
         if best is None or best[0] > tolerance:
-            rows.append({**base, "observed": gaps[best[1]] if best else None, "status": "unmatched"})
+            rows.append({**base, "observed": best[2] if best else None, "status": "unmatched"})
             continue
         j = best[1]
-        rows.append({**base, "effective_date": dates[j], "observed": gaps[j], "offset": j - idx,
+        rows.append({**base, "effective_date": dates[j], "observed": best[2], "offset": j - idx,
                      "status": "matched", "_err": best[0]})
     schema = {"symbol": pl.Utf8, "ex_date": pl.Date, "expected": pl.Float64, "sources": pl.Utf8,
               "adjusts_volume": pl.Boolean, "effective_date": pl.Date, "observed": pl.Float64, "offset": pl.Int64, "status": pl.Utf8,

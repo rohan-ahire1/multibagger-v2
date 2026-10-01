@@ -510,3 +510,21 @@ INDIABULLS,"",demerger,2007-01-02,,,,,0.46249,"Scheme of arrangement: real estat
 IVRCLINFRA,"",split,2006-03-29,,,,,0.2,"FV 10->2, not in the feed. Ex-date open 300 / cum close 1490.2 = 0.2013 (M26)",manual
 KALPATPOWR,"",split,2006-04-13,,,,,0.5,"Halving, not in the feed. Ex-date open 970.1 / cum close 1931.9 = 0.5021 (M26)",manual
 NAGARCONST,"",bonus,2006-09-20,,,,,0.5,"Halving (bonus 1:1 or FV split), not in the feed. Ex-date open 153 / cum close 296.2 = 0.5165 (M26)",manual
+FEL,"",demerger,2016-05-11,,,,,0.132406,"Retail business demerged to Future Retail (FRETAIL, listed 2016-08-29); not in the feed. Factor = ex-date price discovery: open 20 / cum close 151.05 (M31)",manual
+FELDVR,"",demerger,2016-05-11,,,,,0.109428,"Class B (DVR) shares of FEL, same demerger as FEL; not in the feed. Factor = ex-date open 14.45 / cum close 132.05 (M31)",manual
+ZEEMEDIA,"",demerger,2010-04-15,,,,,0.24353,"Regional channels demerged to ZEEL (4 ZEEL per 19 held); not in the feed. Factor = ex-date close 18.35 / cum close 75.35; the open (38.9) was before price discovery, the day traded 11.3-38.9 (M31)",manual
+TRIVENI,"",demerger,2011-05-03,,,,,0.400401,"Steam turbine business demerged to Triveni Turbine (1:1); not in the feed. Factor = ex-date close 39.9 / cum close 99.65; the open (69.9) was before price discovery, the day traded 30-69.9 (M31)",manual
+TCI,"",demerger,2016-08-26,,,,,0.543478,"Express business demerged to TCI Express; not in the feed. Factor = ex-date open 200 / cum close 368 (M31)",manual
+BHAGERIA,"",split,2016-10-26,,,,,0.5,"FV 10->5 (record date 2016-10-27), not in the feed. Ex-date open 354 / cum close 710.55 = 0.4982 (M31)",manual
+THOMASCOOK,"",demerger,2019-12-05,,,,,0.467559,"Quess shares distributed under the restructuring scheme (1,889 Quess per 10,000 held, record date 2019-12-06); not in the feed. Factor = ex-date open 69.9 / cum close 149.5 (M31)",manual
+IDEA,"",rights,2019-03-29,,,,,0.603989,"Rights issue 87 per 38 held at 12.50 (record date 2019-04-02, ex-rights 2019-03-29); not in the feed. Factor = theoretical ex-rights price (38 x 29 + 87 x 12.5) / 125 = 17.516 / cum close 29 (M31)",manual
+SINTEX,"",demerger,2017-05-25,,,,,0.248319,"Custom moulding and prefab businesses demerged to Sintex Plastics Technology (1:1); not in the feed. Factor = ex-date close 25.85 / cum close 104.1; the open (17.9) was before price discovery, the day traded 16.15-34 (M31)",manual
+SANOFI,"",demerger,2024-06-13,,,,,0.625456,"Consumer healthcare demerged to Sanofi Consumer Healthcare India (1:1); not in the feed. Factor = ex-date open 6300 / cum close 10072.65 (M31)",manual
+RAYMOND,"",demerger,2024-07-11,,,,,0.60391,"Lifestyle business demerged to Raymond Lifestyle; not in the feed. Factor = ex-date open 1906 / cum close 3156.1 (M31)",manual
+ROSSELLIND,"",demerger,2024-09-20,,,,,0.28923,"Aerospace and defence business demerged to Rossell Techsys; not in the feed. Factor = ex-date open 179.8 / cum close 621.65 (M31)",manual
+HERCULES,"",demerger,2024-10-11,,,,,0.279864,"Manufacturing business demerged to Indef Manufacturing (1:1); not in the feed. Factor = ex-date open 190 / cum close 678.9 (M31)",manual
+KESORAMIND,"",demerger,2025-03-10,,,,,0.049971,"Cement business demerged to UltraTech (1 UltraTech per 52 held); not in the feed. Factor = ex-date open 10.23 / cum close 204.72 (M31)",manual
+SIEMENS,"",demerger,2025-04-07,,,,,0.497144,"Energy business demerged to Siemens Energy India (1:1); not in the feed. Factor = ex-date open 2450 / cum close 4928.15 (M31)",manual
+QUESS,"",demerger,2025-04-15,,,,,0.469499,"Demerger to Digitide Solutions and Bluspring Enterprises (1:1 each); not in the feed. Factor = ex-date open 284 / cum close 604.9 (M31)",manual
+RAYMOND,"",demerger,2025-05-14,,,,,0.335613,"Realty business demerged to Raymond Realty (1:1); not in the feed. Factor = ex-date open 525 / cum close 1564.3 (M31)",manual
+ABFRL,"",demerger,2025-05-22,,,,,0.36438,"Lifestyle brands demerged to Aditya Birla Lifestyle Brands (1:1); not in the feed. Factor = ex-date open 98 / cum close 268.95 (M31)",manual
