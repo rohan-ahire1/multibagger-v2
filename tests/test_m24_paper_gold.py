@@ -70,3 +70,9 @@ def test_the_draft_gold_paper_config_pins_the_m19_reference():
     cfg, strat = load_paper_config(ROOT / "configs/paper/momentum_top40_gold.yaml", ROOT)
     assert strat.strategy.version == "m19_gold20_invvol_b2"
     check_supported(strat.params)
+
+
+def test_the_draft_adv2cr_paper_config_pins_the_m33_reference():
+    cfg, strat = load_paper_config(ROOT / "configs/paper/momentum_top40_gold_adv2cr.yaml", ROOT)
+    assert strat.strategy.version == "m33_adv2cr_gold20_b2" and strat.params.universe.min_adv_inr == 20_000_000
+    check_supported(strat.params)
