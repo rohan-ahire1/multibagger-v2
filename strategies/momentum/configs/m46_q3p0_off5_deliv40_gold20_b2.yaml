@@ -8,7 +8,7 @@
 # M14 (docs/research/m14.md): the M13 config on the rename-linked dataset. M13, book 2 (40 names, pin m8_top40_stocks_dev_f): inverse-vol weights over 126 sessions (m11_invvol_b2), funds dropped by symbol.
 name: momentum
 version: m46_q3p0_off5_deliv40_gold20_b2
-dataset: nse_research@2026-10-01c
+dataset: nse_research@2026-10-02
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
