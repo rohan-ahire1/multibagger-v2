@@ -1,0 +1,33 @@
+# M28 (docs/research/m28.md): half rotation, half gold20, each in four tranches (eight 12.5% sleeves).
+name: blend
+version: m28_half_tranche_b2
+dataset: nse_research@2026-09-30c
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m27_rot_gold_b2.yaml
+      config_hash: 219eea8b9bf6f3c4e68aa0c2cebdd1f34f9321eb23700b396596b62ad5693565
+      weight: 0.125
+    - config: strategies/momentum/configs/m27_rot_gold_off5_b2.yaml
+      config_hash: 66463440ecba69b4d1b52c52a8ff2d8e48cbc4258d6a870849502fe16aef6970
+      weight: 0.125
+    - config: strategies/momentum/configs/m27_rot_gold_off10_b2.yaml
+      config_hash: 08ffe95134396bdc24073d94a9711452f5fee4d0e8d6d3021091aa895e6ff317
+      weight: 0.125
+    - config: strategies/momentum/configs/m27_rot_gold_off15_b2.yaml
+      config_hash: 29179d830deb1ffb5271e773a3992401468d01ab10b2df61677f35748a223346
+      weight: 0.125
+    - config: strategies/momentum/configs/m19_gold20_invvol_b2.yaml
+      config_hash: 5f07ff7ac7399917801d0e1f798b3c2c1d7148ecc5d1641f73572c9d206c7295
+      weight: 0.125
+    - config: strategies/momentum/configs/m19_gold20_invvol_off5_b2.yaml
+      config_hash: 17d73b84a8595df449bd82ddf13e831ef0ca0e6fb3de0301ba62763022d9d82a
+      weight: 0.125
+    - config: strategies/momentum/configs/m19_gold20_invvol_off10_b2.yaml
+      config_hash: f77125b48709d89015a2e99ea7c6d32a7ccd429c8b21eb0187567b3e740da7bb
+      weight: 0.125
+    - config: strategies/momentum/configs/m19_gold20_invvol_off15_b2.yaml
+      config_hash: f262f676def4847bf15cf142ba2437bee274dce32e28ded7580af3d366233045
+      weight: 0.125
+  initial_capital: 1000000
