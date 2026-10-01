@@ -11,10 +11,10 @@ from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29
-from mb.strategy.momentum.targets import rotation_shares, targets, with_rotation
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32
+from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -38,6 +38,14 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
         shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop).equity
         share = rotation_shares(shadow.select("date", "equity"), panel, p.portfolio.rotation, sorted(tg))
         tg = {d: with_rotation(t, share[d]) for d, t in tg.items()}
+    if isinstance(p, ParamsM32) and p.portfolio.vol_states is not None:
+        # M32: the shadow book is this strategy without fixed weights or scaling, from the panel's first session.
+        all_days = sorted(panel["date"].unique().to_list())
+        bare = p.model_copy(update={"portfolio": p.portfolio.model_copy(update={"fixed_weights": {}, "vol_states": None})})
+        shadow_tg = targets(panel, bare, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year)
+        shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop).equity
+        k = vol_state_scales(shadow.select("date", "equity"), shadow_tg, p.portfolio.vol_states, sorted(tg))
+        tg = {d: with_book_scale(t, k[d], set(p.portfolio.fixed_weights)) for d, t in tg.items()}
     return simulate_targets(tg, bars, days, cfg.market, p.initial_capital, stop)
 
 

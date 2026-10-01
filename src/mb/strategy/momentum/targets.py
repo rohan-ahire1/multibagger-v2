@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.engine.rebalance import Target
 from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29,
-                                         Rotation, Sizing, Universe, UniverseM13)
+                                         Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
@@ -391,3 +391,53 @@ def with_rotation(t: Target, share: dict[str, float]) -> Target:
     w |= {a: x for a, x in share.items() if a and x > 0.0}
     gross = sum(w.values())
     return Target(w, gross, t.keep_size) if gross > 0 else Target({}, 0.0, frozenset())
+
+
+def vol_state_scales(shadow: pl.DataFrame, shadow_targets: dict[date, Target], vs: VolStates,
+                     dates: list[date]) -> dict[date, float]:
+    """Per decision date, the scale for the picks under conditional volatility targeting (M32).
+
+    `shadow` is the shadow book's equity (date, equity), one row per session; `shadow_targets` its decision dates. The
+    volatility at a date is the stdev (ddof 1) of daily log equity returns over the `vol_sessions` sessions to it. A
+    shadow decision date counts once its window starts after the shadow's first invested decision. The scale is
+    min(1, long-run stdev / that volatility) when the volatility is at or above the `high_quantile` quantile of the counted
+    values up to the date (included), else 1. The long-run stdev uses all returns into the sessions from the second
+    after the first invested decision up to the date.
+    """
+    cal = shadow.sort("date")
+    days = cal["date"].to_list()
+    at = {d: i for i, d in enumerate(days)}
+    r = np.diff(np.log(cal["equity"].to_numpy()))  # r[i - 1] is the return into session i
+    first = next((d for d in sorted(shadow_targets) if shadow_targets[d].weights and shadow_targets[d].gross > 0), None)
+    if first is None:
+        raise ValueError("vol_states: the shadow book never invests")
+    f = at[first]
+    n = vs.vol_sessions
+
+    def vol(i: int) -> float:
+        return float(np.std(r[i - n:i], ddof=1))
+
+    counted = [(d, vol(at[d])) for d in sorted(shadow_targets) if d in at and at[d] - n >= f + 1]
+    out: dict[date, float] = {}
+    for d in dates:
+        if d not in at:
+            raise ValueError(f"vol_states: decision date {d} is not a session of the shadow book")
+        i = at[d]
+        hist = [v for e, v in counted if e <= d]
+        if len(hist) < vs.min_history_months:
+            raise ValueError(f"vol_states: {len(hist)} months of shadow volatility before {d}, need {vs.min_history_months}")
+        now = vol(i)
+        target = float(np.std(r[f + 1:i], ddof=1))
+        out[d] = min(1.0, target / now) if now >= float(np.quantile(hist, vs.high_quantile)) else 1.0
+    return out
+
+
+def with_book_scale(t: Target, k: float, fixed: set[str]) -> Target:
+    """The picks' weights times k, the fixed symbols unchanged; the freed share is cash."""
+    if k >= 1.0:
+        return t
+    total = sum(t.weights.values())
+    w = {s: (v if s in fixed else v * k) for s, v in t.weights.items()}
+    w = {s: v for s, v in w.items() if v > 0.0}
+    new = sum(w.values())
+    return Target(w, t.gross * new / total, frozenset()) if new > 0.0 and total > 0.0 else Target({}, 0.0, frozenset())

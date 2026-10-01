@@ -301,3 +301,34 @@ class RankingM29(RankingM12):
 
 class ParamsM29(ParamsM27):
     ranking: RankingM29
+
+
+# M32 option (docs/research/m32.md).
+
+class VolStates(Strict):
+    # Conditional volatility targeting (Bongaerts, Kang & van Dijk 2020) with no leverage: at a decision date where the
+    # shadow book's volatility over the last `vol_sessions` sessions is at or above the `high_quantile` quantile of its
+    # values at all earlier decision dates (and this one), the picks are scaled by min(1, long-run vol / that vol).
+    vol_sessions: int
+    high_quantile: float
+    min_history_months: int
+
+    @model_validator(mode="after")
+    def _states(self) -> VolStates:
+        if self.vol_sessions < 2 or not 0.0 < self.high_quantile < 1.0 or self.min_history_months < 1:
+            raise ValueError("vol_states: vol_sessions >= 2, 0 < high_quantile < 1, min_history_months >= 1")
+        return self
+
+
+class PortfolioM32(PortfolioM27):
+    vol_states: VolStates | None
+
+    @model_validator(mode="after")
+    def _vol_states(self) -> PortfolioM32:
+        if self.vol_states is not None and (self.rotation is not None or not self.resize_held):
+            raise ValueError("vol_states needs rotation null and resize_held true")
+        return self
+
+
+class ParamsM32(ParamsM29):
+    portfolio: PortfolioM32
