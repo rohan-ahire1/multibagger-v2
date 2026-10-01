@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, Ranking, RankingM8, RankingM10, RankingM12, RankingM29,
                                          Rotation, Sizing, Universe, UniverseM13)
 
 
@@ -127,7 +127,10 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
             raise ValueError("frog_candidates_per_slot needs top_n")
         cols.append(_discreteness(r).alias("discreteness"))
     f = f.with_columns(cols).filter(pl.col("date").is_between(start, end))
-    score = pl.col("mom") / pl.col("vol") if r.score == "return_over_vol" else pl.col("mom")
+    if isinstance(r, RankingM29) and r.order == "low_vol":
+        score = -pl.col("vol")
+    else:
+        score = pl.col("mom") / pl.col("vol") if r.score == "return_over_vol" else pl.col("mom")
     f = f.with_columns(score.alias("score"))
     eligible = (pl.col("series").is_in(u.allowed_series) & (pl.col("close") >= u.min_price_inr) & (pl.col("adv") >= u.min_adv_inr)
                 & pl.col("score").is_not_null() & pl.col("score").is_finite())

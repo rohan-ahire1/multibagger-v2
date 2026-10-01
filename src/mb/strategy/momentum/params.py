@@ -275,3 +275,26 @@ class PortfolioM27(PortfolioM22):
 
 class ParamsM27(ParamsM22):
     portfolio: PortfolioM27
+
+
+# M29 option (docs/research/m29.md).
+
+class RankingM29(RankingM12):
+    # low_vol: rank by the stdev of daily log returns over lookback - skip sessions ending `skip_sessions` before the
+    # decision date, lowest first (Blitz & van Vliet 2007). score: the usual ranking.
+    order: Literal["score", "low_vol"]
+
+    @model_validator(mode="after")
+    def _low_vol(self) -> RankingM29:
+        if self.order == "low_vol":
+            if self.score != "return_over_vol":
+                raise ValueError("order low_vol needs score return_over_vol")
+            on = [k for k in ("second_lookback_sessions", "high_window_sessions", "residual_beta_sessions",
+                              "frog_candidates_per_slot", "max_filter_frac") if getattr(self, k) is not None]
+            if on:
+                raise ValueError(f"order low_vol takes no other ranking option: {', '.join(on)}")
+        return self
+
+
+class ParamsM29(ParamsM27):
+    ranking: RankingM29
