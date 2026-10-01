@@ -24,6 +24,7 @@ its own `mNN.md`; this file only summarises.
 | 42 | Optuna full: 300 trials per step, 3 walk-forward steps, wider ranges, 25 bps check | step A: tuned 1.51 vs pin 1.74 on 2014–17 (B, C: see m42.md) | | step A fails the pre-registered bar |
 | 43 | Paper book with the delivery filter (daily delivery files); trading-gap audit | pin unchanged | live decisions equal backtest Feb–Jul 2026 | draft book ready, not deployed |
 | 44 | No picks across a trading gap over 30 days (data correctness) | 0.912 vs 0.913; four-offset mean 0.898 both | neutral | not adopted; recommended for live as a safety rule |
+| 45 | Rank on months 12 to 7 instead of 12 to 2 (Novy-Marx 2012) | 0.70 (21.7% CAGR, 31.0% DD) | | fails every window; recent months carry the signal |
 
 What the evidence says so far:
 
