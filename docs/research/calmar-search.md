@@ -19,7 +19,7 @@ its own `mNN.md`; this file only summarises.
 | 37 | Does the month-end decision day win out of sample (2007–09)? | offset 0 lowest CAGR (7.1% vs 12–15%) | no | pin's edge over other days is partly luck; expect ~0.80 |
 | 38 | ₹2 vs ₹5 crore floor on 2007–09 at four decision days | mean CAGR 11.85% vs 11.72% | 2 of 4 each | floor neutral early; M35's loss was the decision day |
 | 39 | Circuit-locked fills, BE-series and delisted exits in the simulator | locked fills < 1%; ≤ 0.15 pt CAGR a year | | no change needed |
-| 40 | Drop winners with the lowest delivery share (NSE delivery files; Lee & Swaminathan 2000 on speculative volume) | pending | | pre-registered |
+| 40 | Drop winners with the lowest delivery share (NSE delivery files; Lee & Swaminathan 2000 on speculative volume) | 0.913 (drop 40%; 28.65% CAGR, 31.4% DD; folds 1.10/1.98/1.01) | yes: 4/4 offsets, 25 bps, bootstrap 87%, early window better | **adopted, new pin** |
 
 What the evidence says so far:
 
