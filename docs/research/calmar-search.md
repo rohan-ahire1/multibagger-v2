@@ -25,6 +25,7 @@ its own `mNN.md`; this file only summarises.
 | 43 | Paper book with the delivery filter (daily delivery files); trading-gap audit | pin unchanged | live decisions equal backtest Feb–Jul 2026 | draft book ready, not deployed |
 | 44 | No picks across a trading gap over 30 days (data correctness) | 0.912 vs 0.913; four-offset mean 0.898 both | neutral | not adopted; recommended for live as a safety rule |
 | 45 | Rank on months 12 to 7 instead of 12 to 2 (Novy-Marx 2012) | 0.70 (21.7% CAGR, 31.0% DD) | | fails every window; recent months carry the signal |
+| 46 | Rebalance every 3 months instead of monthly (Jegadeesh & Titman 1993; Novy-Marx & Velikov 2016); data fixes ORIENTPPR 2013, GEOINFO 2007 (`nse_research@2026-10-02`, pin unchanged) | 0.887 (25.6% CAGR, 28.9% DD) | 7-run mean 0.873 vs 0.898 | fails f1, f2; monthly refresh earns more than its costs |
 
 What the evidence says so far:
 
