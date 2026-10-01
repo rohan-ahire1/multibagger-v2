@@ -12,6 +12,7 @@ its own `mNN.md`; this file only summarises.
 | 30 | Rank by high-to-price, the crash-free part of momentum (Büsing, Mohrschladt & Siedhoff 2024) | 0.712 (HTP/vol) | HTP alone 0.448, 42% DD | fails f2 |
 | 31 | Data: 18 missing demergers/splits/rights, 3 manual fixes that never applied | pin unchanged | | new dataset `nse_research@2026-10-01` |
 | 32 | Conditional volatility targeting: shrink the picks only after a top-quintile-volatility month (Bongaerts, Kang & van Dijk 2020) | 0.687 | DD unchanged (Feb 2020 was calm) | fails period, f3 |
+| 33 | Lower liquidity floor ₹5 → ₹2 / ₹1 crore a day (Lee & Swaminathan 2000; Indian momentum-liquidity studies) | 0.865 (₹2 cr, 26.8% CAGR, 31.0% DD) / 0.881 (₹1 cr) | yes: 4/4 offsets, 25 bps, bootstrap 95%, capacity ₹2.2 cr | **adopted (₹2 cr), new pin** |
 
 What the evidence says so far:
 
