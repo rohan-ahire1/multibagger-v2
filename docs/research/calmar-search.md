@@ -31,6 +31,7 @@ its own `mNN.md`; this file only summarises.
 | 49 | M42's tuned settings as ordinary candidates (full bar, offsets, 25 bps, capacity) | **B 1.125 (29.3% CAGR, 26.1% DD; folds 1.60 / 2.07 / 1.36)**; C 1.264 and A 1.075 fail f2 | B: 4/4 offsets (mean 1.106 vs 0.898), 25 bps, capacity 0.78% | **adopted: new pin `momentum/m49_b_b2`** (tuned on 2010–17; disclosed) |
 | 50 | One-step neighbours of the new pin (12 configs, information only) | median 1.111, min 1.040 (ADV ₹2 cr), max 1.193 (top 20) | all 12 above the old pin's 0.913 | plateau, not a knife-edge |
 | 51 | New pin plus the M44 gap rule; paper draft end to end | 1.120 vs 1.125 | live decisions equal research Jan–Sep 2026 | draft `momentum_b_top25_gold25_deliv80_gap` ready, not deployed |
+| 52 | Stitched M42 walk-forward 2014–23 (each period uses only earlier tuning) | 0.953 (24.8% CAGR, 26.1% DD) vs old pin 1.049, new pin 1.262 (both partly in-sample) | out of sample by construction | realistic expectation ≈ 0.95–1.1 |
 
 What the evidence says so far:
 
