@@ -1,0 +1,21 @@
+# M102 (docs/research/m102.md): s15_r50g_jr in four tranches.
+name: blend
+version: m102_s15_r50g_jr_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m102_s15_r50g_jr_b2.yaml
+      config_hash: 8c4e415617bb4e0d9862874c884c62d755f227f0c3e49e25eb33d5a7c565e5dc
+      weight: 0.25
+    - config: strategies/momentum/configs/m102_s15_r50g_jr_off5_b2.yaml
+      config_hash: f0929ef865a703ceed2121279e8fda55628f93860f4376844ae855de117eeab7
+      weight: 0.25
+    - config: strategies/momentum/configs/m102_s15_r50g_jr_off10_b2.yaml
+      config_hash: d06fd5ece9832b3cbb7d48054fbe4513abe8442b117e97e0b3136be7cc0915c4
+      weight: 0.25
+    - config: strategies/momentum/configs/m102_s15_r50g_jr_off15_b2.yaml
+      config_hash: a9cf4f6e7e56c5d4fdfadcb41a62e0d029cf95763ed8b1cec588f854605f07a4
+      weight: 0.25
+  initial_capital: 1000000

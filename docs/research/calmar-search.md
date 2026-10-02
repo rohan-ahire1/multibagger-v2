@@ -81,6 +81,7 @@ its own `mNN.md`; this file only summarises.
 | 99 | Filter on breadth (half the universe above its own 200-day average; Zweig 1986) | 1.565; tranches 1.608 (32.7% CAGR, 20.3% DD) | offset 0 f1; tranches f2 vs the pin's tranches (2.189 vs 2.199) | worse than the Next 50 filter |
 | 100 | 10% trend gold on the Next 50 filtered book | 1.597; tranches 1.644 (31.8% CAGR, 19.4% DD) | offset 0 f2; tranches pass | passes, but trades CAGR for drawdown; not better than M95 |
 | 101 | Half top 25, half top 20 (Next 50 filter, tranches) | tranches 1.628 (33.9% CAGR, 20.8% DD) | passes | between its parts; no gain |
+| 102 | Stop 7.5% / 15% on the Next 50 filtered book (information) | tranches 1.837 (31.3%, 17.1%) / 1.412 (35.5%, 25.1%) | both pass | M95 not fragile in its stop; the stop trades CAGR for drawdown |
 
 What the evidence says so far:
 
