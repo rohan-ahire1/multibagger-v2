@@ -560,3 +560,22 @@ class ExitsM81(ExitsM79):
 
 class ParamsM81(ParamsM79):
     exits: ExitsM81
+
+
+# M82 option (docs/research/m82.md).
+
+class ExitsM82(ExitsM81):
+    # True: a stopped name that closes back at or above its stop reference before the next rebalance is bought back at
+    # the next open with up to its stop's proceeds.
+    stop_reentry: bool
+
+    @model_validator(mode="after")
+    def _m82(self) -> ExitsM82:
+        if self.stop_reentry and (self.stop_loss_frac is None or self.stop_proceeds_to is not None
+                                  or self.stop_respread or self.stop_trailing):
+            raise ValueError("stop_reentry needs a plain stop_loss_frac")
+        return self
+
+
+class ParamsM82(ParamsM81):
+    exits: ExitsM82

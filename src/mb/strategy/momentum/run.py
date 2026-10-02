@@ -11,10 +11,10 @@ from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, UniverseM40
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, UniverseM40
 from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -46,12 +46,13 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
     smkt = ((p.exits.stop_market_symbol, p.exits.stop_market_frac)
             if isinstance(p, ParamsM79) and p.exits.stop_market_symbol is not None else None)
     respread = isinstance(p, ParamsM81) and p.exits.stop_respread
+    reentry = isinstance(p, ParamsM82) and p.exits.stop_reentry
     if isinstance(p, ParamsM27) and p.portfolio.rotation is not None:
         # M27: the shadow book is the same strategy from the panel's first session; its equity is the book's record.
         all_days = sorted(panel["date"].unique().to_list())
         shadow_tg = targets(panel, p, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year,
                             fund_symbols=funds)
-        shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread).equity
+        shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread, reentry).equity
         share = rotation_shares(shadow.select("date", "equity"), panel, p.portfolio.rotation, sorted(tg))
         tg = {d: with_rotation(t, share[d]) for d, t in tg.items()}
     if isinstance(p, ParamsM32) and p.portfolio.vol_states is not None:
@@ -60,10 +61,10 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
         bare = p.model_copy(update={"portfolio": p.portfolio.model_copy(update={"fixed_weights": {}, "vol_states": None})})
         shadow_tg = targets(panel, bare, all_days[0], period.end, sectors=sectors,
                             days_per_year=cfg.market.trading_days_per_year, fund_symbols=funds)
-        shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread).equity
+        shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread, reentry).equity
         k = vol_state_scales(shadow.select("date", "equity"), shadow_tg, p.portfolio.vol_states, sorted(tg))
         tg = {d: with_book_scale(t, k[d], set(p.portfolio.fixed_weights)) for d, t in tg.items()}
-    return simulate_targets(tg, bars, days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread)
+    return simulate_targets(tg, bars, days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread, reentry)
 
 
 def run(cfg: Resolved, root: Path) -> RunResult:
