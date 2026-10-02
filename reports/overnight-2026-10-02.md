@@ -29,7 +29,7 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
 |---|---|---|
 | 2010–23 CAGR / max DD / Calmar | 29.3% / 26.1% / 1.125 | **32.4% / 24.7% / 1.313** |
 | Folds 2010–13 / 2014–17 / 2018–23 | 1.60 / **2.07** / 1.36 | 1.81 / 1.72 / 1.67 |
-| Other decision days (5 / 10 / 15 sessions late) | 1.10 / 1.06 / 1.14 | 0.96 / 1.18 / 1.18 |
+| Other decision days (5 / 10 / 15 sessions before month-end) | 1.10 / 1.06 / 1.14 | 0.96 / 1.18 / 1.18 |
 | Same book split over 4 decision days (M54 / M62) | 1.105 | **1.201** (30.4% CAGR, 25.3% DD) |
 | Costs at 25 bps a side | 1.078 | **1.229** |
 | 2007–09, never used to choose (mean of 4 decision days) | 0.28, ~51% DD | **0.63–0.64, ~40% DD** |
