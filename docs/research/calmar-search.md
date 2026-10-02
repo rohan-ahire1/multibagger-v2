@@ -71,6 +71,7 @@ its own `mNN.md`; this file only summarises.
 | 89 | M88 with the risk-off share in GOLDBEES | **r50g 1.991 (34.0% CAGR, 17.1% DD)**; r0g 1.534; tranches **1.788 / 1.885** (32.4% / 31.6% CAGR) | f1 only (1.479 vs 1.598) | best family found; beats the pin's CAGR in every fold |
 | 90 | M89 robustness: neighbours, bootstrap, stitched walk-forward (information) | r50g neighbours 1.66–1.81 in tranches; bootstrap 87% vs pin; stitched OOS **1.877 (34.1% CAGR, 18.2% DD)** | — | r50g robust; r0g fragile at 150 days |
 | 91 | M89 r50g plus fixed gold 0.10 / 0.25 | **2.017** (31.5% CAGR, 15.6% DD) / 1.872; tranches 1.800 / 1.748 | g10: f1 (1.578 vs 1.598), f2; g25: f2 | fixed gold trades fold 1 against fold 2 |
+| 92 | Trailing stop in r50g / g10 r50g | 1.807 / 1.829 | f1, f2; worse than the fixed stop | |
 
 What the evidence says so far:
 
