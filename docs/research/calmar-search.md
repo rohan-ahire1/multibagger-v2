@@ -42,6 +42,7 @@ its own `mNN.md`; this file only summarises.
 | 60 | Delivery drop past the search edge: 0.85 / 0.90 | 1.024 (0.85) vs 1.125 | | fails; 0.8 is the peak (0.90 blocked by a verified GTL crash, not re-run) |
 | 61 | Top 20 inside the half-rotation blend (M58 + M59) | **1.313 (32.4% CAGR, 24.7% DD)** | 3/4 offsets (mean 1.157), 25 bps 1.229, 2007–09 mean 0.635 vs 0.284 | **fails f2 only (1.72 vs 2.07); best combined near-miss** |
 | 62 | M61 book in four decision-day tranches (information) | 1.201 (30.4% CAGR, 25.3% DD) vs pin tranches 1.105 | 2007–09: 0.630 (40% DD) vs 0.284 (51% DD) | information; the honest form of the near-miss |
+| 63 | Slower rotation signal (3/6/12 m) in the M61 book | 1.267 | offsets 0.968 / 1.155 / 1.175; 2007–09 0.623 | fails f2 (1.82); no gain over M61 |
 
 What the evidence says so far:
 
