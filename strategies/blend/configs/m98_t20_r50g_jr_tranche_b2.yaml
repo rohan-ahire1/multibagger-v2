@@ -1,0 +1,21 @@
+# M98 (docs/research/m98.md): t20_r50g_jr in four tranches.
+name: blend
+version: m98_t20_r50g_jr_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_b2.yaml
+      config_hash: da7ac33f50d67e0d99e1b75cd97e93da381a7b348759ab8dcf5d641a59eb9129
+      weight: 0.25
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_off5_b2.yaml
+      config_hash: 39c7c792cf792e6e70d21318ad5f365693ed57609c96753b0d0c88604517dd13
+      weight: 0.25
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_off10_b2.yaml
+      config_hash: a0fc85f9fe98209479aaf2c3375a1838b949eebad9e3d3a337e3a25c12ecd210
+      weight: 0.25
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_off15_b2.yaml
+      config_hash: 9133062efdd5fea5d00a87becbe3d3714ee41fa5c2cf4662fd46ca3a0e8e574d
+      weight: 0.25
+  initial_capital: 1000000

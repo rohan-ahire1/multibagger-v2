@@ -1,0 +1,21 @@
+# M98 (docs/research/m98.md): t20_r50g_jr tranches at 25 bps.
+name: blend
+version: m98_t20_r50g_jr_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_slip25_b2.yaml
+      config_hash: b5bd2d3faf9f78343ad9b5dcdcae478e64cf246c14f18218673c80332c0d324b
+      weight: 0.25
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_off5_slip25_b2.yaml
+      config_hash: fa2b6456643823c8bea6c904024ff962cadce78741323baef7925d170fc6b3c8
+      weight: 0.25
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_off10_slip25_b2.yaml
+      config_hash: ffbd18b3a847ee6c45abbe28112e2077cf7d54b5dffd6655566aa363df668d62
+      weight: 0.25
+    - config: strategies/momentum/configs/m98_t20_r50g_jr_off15_slip25_b2.yaml
+      config_hash: eb882e68375fdd74da868a4680416a08ab7c227bb91e44c2c3c067df64ecc90a
+      weight: 0.25
+  initial_capital: 1000000
