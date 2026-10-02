@@ -296,8 +296,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
                    m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols,
-                   (p.schedule.every_sessions, p.schedule.phase_session)
-                   if isinstance(p.schedule, ScheduleM57) and p.schedule.every_sessions is not None else None)
+                   (m11.schedule.every_sessions, m11.schedule.phase_session)
+                   if m11 and isinstance(m11.schedule, ScheduleM57) and m11.schedule.every_sessions is not None else None)
     if isinstance(p, ParamsM46):  # M46: only every n-th month decides
         ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
