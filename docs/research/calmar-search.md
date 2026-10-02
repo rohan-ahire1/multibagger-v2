@@ -38,6 +38,7 @@ its own `mNN.md`; this file only summarises.
 | 56 | Hold buffer / no resizing on the new pin (Novy-Marx & Velikov 2016) | hold 35: 1.214 at month-end (30.9% CAGR, 25.4% DD) | loses offsets 5/10/15; four-offset mean 1.089 vs 1.106 | fails; month-end gain is timing luck, but wins at 25 bps |
 | 57 | Decide every 5 / 10 sessions with a hold buffer (Novy-Marx & Velikov 2016; Hoffstein et al. 2020) | 1.115 (e5, hold 35) / 1.104 / 1.071 vs 1.125 | | fails; drawdowns not lower |
 | 58 | Top 20 instead of 25 as a full candidate (M42 picked 20 in steps A, C) | 1.193 (31.6% CAGR, 26.5% DD) | wins 4/4 offsets, 25 bps, 2007–09 4/4 | **fails f2 only (1.94 vs 2.07); near-miss for the user** |
+| 59 | Book-or-gold rotation on the new pin, alone and 50/50 with the pin (M27/M36 rules) | half 1.279 (30.0% CAGR, 23.5% DD); rotation 1.235 | half: 3/4 offsets (mean 1.141 vs 1.106), 25 bps 1.196, 2007–09 mean 0.62 vs 0.28 | **fails f2 only; half is a near-miss with real 2008 protection** |
 
 What the evidence says so far:
 
