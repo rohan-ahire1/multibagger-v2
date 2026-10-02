@@ -1,10 +1,19 @@
-# Overnight research, 2026-10-02 (M53–M86)
+# Overnight research, 2026-10-02 (M53–M90)
 
-Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m86.md` and the log
+Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m90.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
 
+- **New best (M89/M90): no fixed gold + 10% stop + 200-day market filter that moves half the book to gold when
+  Nifty is below its 200-day average** (`momentum/m89_g0s10_r50g_b2`, run 20261002-033400-ad917eb0): **34.0% CAGR,
+  17.1% max DD, Calmar 1.991** (pin: 29.3%, 26.1%, 1.125). Higher CAGR than the pin in every fold. In four-day form
+  (`blend/m89_g0s10_r50g_tranche_b2`, run 20261002-033648-41f7067c): 32.4% CAGR, 18.1% DD, 1.788. It passes every
+  check (other decision days, 25 bps, 2007–09, neighbours 150/250 days) **except fold 1** (2010–13: 1.479 vs 1.598;
+  it earns more, 22.8% vs 20.9%, but its drawdown is 15.4% vs 13.1%). Bootstrap: Calmar above the pin's in 87% of
+  resamples. On the stitched walk-forward (settings tuned only on earlier years) it makes 34.1% CAGR at 18.2% DD
+  (1.877) vs 0.956 for the plain book. Caveat: the rule itself was chosen after seeing 2010–23, so the only clean tests
+  left are 2007–09 (0.549 vs the pin's 0.284) and the locked 2024+ period. Paper code does not support it yet.
 - **The pin is unchanged: `momentum/m49_b_b2`**, 29.3% CAGR, 26.1% max DD, Calmar 1.125 (run 20261002-000607-0103cc7f;
   re-verified exactly). Nothing passed the full bar (beat the pin on 2010–23 and on each fold).
 - **Best result found: M61** = half "top 20" stock book + half "top 20 book or gold" rotation
@@ -116,8 +125,10 @@ yet supported by the paper code (`check_supported` refuses it).
 | 83 | Whole-book stop 10 / 15% | 1.423 / 1.038 | f1, f2 |
 | 84 | Frog-in-the-pan ranking | 0.963 | f3 |
 | 86 | No gold + stop; its half blend | 1.329 / 1.289 | f1, f2; 55% loss in 2008 |
+| 88 | No-gold stop book + 200-day filter (to cash) | 1.793 / 1.928 | f1 (2011: cash, while gold rose) |
+| 89 | Same, risk-off share in gold | 1.534 / **1.991** | f1 only (r50g) |
 
-Information only: M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
+Information only: M87 (stop sells on lower-circuit days cost 0.1–0.35 pts CAGR a year), M90 (M89 robustness, above), M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
 pin 1.059).
 
@@ -130,6 +141,8 @@ demonetisation drop (Nov 2016) were short, so switching out cost more than it sa
 
 ## Still open (your call)
 
+0. **New first choice: M89 r50g** (above), in four-day form. It needs a rule decision (fails fold 1 by drawdown) and
+   paper-code support for the stop and the gold switch.
 1. Pin vs M61 vs the half blend vs the stop books, each run in four decision-day tranches (above). My pick now: the
    half blend with 10% stops (M78) if you accept ~2.5 points less CAGR for a drawdown of 17.5% instead of 26.7% and a
    much better 2008; gold 0.10 + stop (M74) if you want the pin's return with a smaller drawdown. Both need a rule
