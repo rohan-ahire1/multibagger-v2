@@ -579,3 +579,20 @@ class ExitsM82(ExitsM81):
 
 class ParamsM82(ParamsM81):
     exits: ExitsM82
+
+
+# M89 option (docs/research/m89.md).
+
+class RegimeM89(Regime):
+    # Null: on a risk-off decision date the uninvested share stays in cash. Otherwise it buys this symbol.
+    risk_off_symbol: str | None
+
+    @model_validator(mode="after")
+    def _m89(self) -> RegimeM89:
+        if self.risk_off_symbol is not None and not self.enabled:
+            raise ValueError("risk_off_symbol needs the regime enabled")
+        return self
+
+
+class ParamsM89(ParamsM82):
+    regime: RegimeM89

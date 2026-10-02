@@ -29,7 +29,7 @@ from mb.config.loader import Resolved
 from mb.config.models import PaperConfig
 from mb.data import datasets
 from mb.live import calendar
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM32, ParamsM40, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM32, ParamsM40, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89
 from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
@@ -142,8 +142,10 @@ def check_supported(p: Params) -> None:
         on.append("exits.stop_respread")
     if isinstance(p, ParamsM82) and p.exits.stop_reentry:
         on.append("exits.stop_reentry")
+    if isinstance(p, ParamsM89) and p.regime.risk_off_symbol is not None:
+        on.append("regime.risk_off_symbol")
     if on:
-        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32/M46/M53/M55/M57/M75/M76/M79/M81/M82 options yet: {', '.join(on)}")
+        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32/M46/M53/M55/M57/M75/M76/M79/M81/M82/M89 options yet: {', '.join(on)}")
 
 
 def panel_columns(p: Params) -> tuple[str, ...]:

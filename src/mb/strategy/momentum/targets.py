@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -337,7 +337,19 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         n = p.portfolio.fixed_trend_sessions if isinstance(p, ParamsM22) else None
         up = trend_up(panel, sorted(fixed), n, sorted(out)) if n is not None else {}
         out = {d: _with_fixed(t, {s: w for s, w in fixed.items() if n is None or up[(d, s)]}) for d, t in out.items()}
+    if isinstance(p, ParamsM89) and p.regime.risk_off_symbol is not None:
+        if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
+            raise ValueError("risk_off_symbol and book_stop_frac are exclusive")
+        out = {d: t if regime[d] else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
     return out
+
+
+def with_risk_off(t: Target, symbol: str) -> Target:
+    """M89: the share a risk-off date leaves uninvested (1 - gross) buys `symbol`; the rest keeps its weights."""
+    total = sum(t.weights.values())
+    w = {s: v / total * t.gross for s, v in t.weights.items()} if total > 0 else {}
+    w[symbol] = w.get(symbol, 0.0) + 1.0 - t.gross
+    return Target(w, 1.0, t.keep_size)
 
 
 def trend_up(panel: pl.DataFrame, symbols: list[str], sessions: int, dates: list[date]) -> dict[tuple[date, str], bool]:
