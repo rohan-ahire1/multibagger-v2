@@ -1,0 +1,21 @@
+# M76 (docs/research/m76.md): m76_trail10 in four 25% tranches at offsets 0/5/10/15.
+name: blend
+version: m76_trail10_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m76_trail10_b2.yaml
+      config_hash: eeea933bc3234ec7c17f5b64fdd46fb9b37f981972947b9e46d6af521aa62190
+      weight: 0.25
+    - config: strategies/momentum/configs/m76_trail10_off5_b2.yaml
+      config_hash: 5c151d1dfdaf4a4acb33e3b00a63a09c9391b37cdd9cf2c77be8e2ab326d192b
+      weight: 0.25
+    - config: strategies/momentum/configs/m76_trail10_off10_b2.yaml
+      config_hash: 49123278d94d174dd0a6ec00b99f48ff98fe90d6c98bee3dbfdd5e6121a30bdb
+      weight: 0.25
+    - config: strategies/momentum/configs/m76_trail10_off15_b2.yaml
+      config_hash: c731f18a5ddd82815c446dd3568e4898f752e4f44cc3dc3e4910640d77811a9d
+      weight: 0.25
+  initial_capital: 1000000

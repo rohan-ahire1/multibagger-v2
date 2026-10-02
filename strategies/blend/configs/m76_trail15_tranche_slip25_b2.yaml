@@ -1,0 +1,21 @@
+# M76 (docs/research/m76.md): m76_trail15 tranches at 25 bps.
+name: blend
+version: m76_trail15_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m76_trail15_slip25_b2.yaml
+      config_hash: 5bebe3c3b36e42944f30279e47e2ee783f298109708eeed9ff302657f63fc9e2
+      weight: 0.25
+    - config: strategies/momentum/configs/m76_trail15_off5_slip25_b2.yaml
+      config_hash: 76b18a2fe4ffb7a2f7baa28054995ce0f1d808f3ec15b94f9f15ee49e951b719
+      weight: 0.25
+    - config: strategies/momentum/configs/m76_trail15_off10_slip25_b2.yaml
+      config_hash: 2f9ff73bbac0825ff2cbc3e6400647b3e84fd328b6cb6d6d075bdcd8c25f4a76
+      weight: 0.25
+    - config: strategies/momentum/configs/m76_trail15_off15_slip25_b2.yaml
+      config_hash: 3f3a2f5e5add7be6d9e8d8e8d069abb864a712dad708c93ae36a5726cdb6e2f6
+      weight: 0.25
+  initial_capital: 1000000
