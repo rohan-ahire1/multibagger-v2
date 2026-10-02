@@ -1,0 +1,21 @@
+# M73 (docs/research/m73.md): the 10% stop tranches on 2007-09.
+name: blend
+version: m73_early_stop10_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m73_early_stop10.yaml
+      config_hash: 33d4e04384295e88e09f3bc86b4866e798fb0c9a96e9c35cb9e002c0b9cda8a2
+      weight: 0.25
+    - config: strategies/momentum/configs/m73_early_stop10_off5.yaml
+      config_hash: 28af06a5b0273f11d2c8b4442db2e0c7d304718eab6b94e477cce141f9576f51
+      weight: 0.25
+    - config: strategies/momentum/configs/m73_early_stop10_off10.yaml
+      config_hash: 1a8cfa555bd4c96e3f32e27e37cbd9100a3d7f33dc32880d3b3f8bc9e0ad5a7c
+      weight: 0.25
+    - config: strategies/momentum/configs/m73_early_stop10_off15.yaml
+      config_hash: 1af8b60b2ba2f44bb23363ffa9bf7b698c1f25e5fabbe35cfb052daf4bb173a1
+      weight: 0.25
+  initial_capital: 1000000
