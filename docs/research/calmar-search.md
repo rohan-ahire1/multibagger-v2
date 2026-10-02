@@ -44,6 +44,7 @@ its own `mNN.md`; this file only summarises.
 | 62 | M61 book in four decision-day tranches (information) | 1.201 (30.4% CAGR, 25.3% DD) vs pin tranches 1.105 | 2007–09: 0.630 (40% DD) vs 0.284 (51% DD) | information; the honest form of the near-miss |
 | 63 | Slower rotation signal (3/6/12 m) in the M61 book | 1.267 | offsets 0.968 / 1.155 / 1.175; 2007–09 0.623 | fails f2 (1.82); no gain over M61 |
 | 64 | Top 15, past M42's search edge | 1.161 (32.2% CAGR, 27.7% DD) | four-offset mean 1.167; 25 bps 1.111; 2007–09 0.357 | fails f2 (1.75); concentration peaks at 15–20 |
+| 65 | Square-root market impact at ₹10 lakh – ₹10 crore (information) | pin 1.098 / 1.065 / 1.006 / 0.863 | M61 1.271 / 1.220 / 1.133 / 0.940 | information; edge holds to ~₹2 crore, ordering unchanged |
 
 What the evidence says so far:
 
