@@ -27,6 +27,7 @@ its own `mNN.md`; this file only summarises.
 | 45 | Rank on months 12 to 7 instead of 12 to 2 (Novy-Marx 2012) | 0.70 (21.7% CAGR, 31.0% DD) | | fails every window; recent months carry the signal |
 | 46 | Rebalance every 3 months instead of monthly (Jegadeesh & Titman 1993; Novy-Marx & Velikov 2016); data fixes ORIENTPPR 2013, GEOINFO 2007 (`nse_research@2026-10-02`, pin unchanged) | 0.887 (25.6% CAGR, 28.9% DD) | 7-run mean 0.873 vs 0.898 | fails f1, f2; monthly refresh earns more than its costs |
 | 47 | Stronger delivery filter alone: drop 60% / 80% (M42's consistent pick) | 0.931 (60%; 28.0% CAGR, 30.1% DD) / 0.919 (80%; 25.5%, 27.7%) | not run (fails a) | both fail f2 by 0.04; better f1, f3 |
+| 48 | M42's three tuned settings on 2007–09, the window no search saw | C 0.527 mean (19.3% CAGR, 36.6% DD) vs pin 0.219 (12.7%, 58.1%) | A, C 4/4 offsets; B 3/4 | tuned settings hold up out of sample, mostly via less 2008 loss |
 
 What the evidence says so far:
 
