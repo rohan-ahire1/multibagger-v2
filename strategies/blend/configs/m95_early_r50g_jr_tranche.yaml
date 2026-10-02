@@ -1,0 +1,21 @@
+# M95 (docs/research/m95.md): r50g_jr tranches, 2007-09.
+name: blend
+version: m95_early_r50g_jr_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m95_early_r50g_jr.yaml
+      config_hash: 01b60834e697802d89bac9046a1bdb8fa52a7f45a6e1c3cf0016a3bb21dc1bf1
+      weight: 0.25
+    - config: strategies/momentum/configs/m95_early_r50g_jr_off5.yaml
+      config_hash: a9a37f7355af641e749f7b9d3854daedf0a45460d27ce45fc569521ca12e17d3
+      weight: 0.25
+    - config: strategies/momentum/configs/m95_early_r50g_jr_off10.yaml
+      config_hash: 0857483d0aa700ad563ca26beadb60651554ae60741ac979d0a1368aa15bdba5
+      weight: 0.25
+    - config: strategies/momentum/configs/m95_early_r50g_jr_off15.yaml
+      config_hash: 3c143b160d871e9f4857fd32841a912459b2699c71475d79f3a73767068dc588
+      weight: 0.25
+  initial_capital: 1000000
