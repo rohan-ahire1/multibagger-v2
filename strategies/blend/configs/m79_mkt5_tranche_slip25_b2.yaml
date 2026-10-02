@@ -1,0 +1,21 @@
+# M79 (docs/research/m79.md): m79_mkt5 tranches at 25 bps.
+name: blend
+version: m79_mkt5_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m79_mkt5_slip25_b2.yaml
+      config_hash: 520b2942d788b4349d0ae75f14baee7cb2131391a9246d1f46b135e4649a305f
+      weight: 0.25
+    - config: strategies/momentum/configs/m79_mkt5_off5_slip25_b2.yaml
+      config_hash: e52afcb100b5dd7f3d7b9085305767ad9cc2210b6b96c846ef90b2be9fc60f08
+      weight: 0.25
+    - config: strategies/momentum/configs/m79_mkt5_off10_slip25_b2.yaml
+      config_hash: b568523cc39be37d108ab836b0ffab99542b2f03a51d073ef88702f1bad04272
+      weight: 0.25
+    - config: strategies/momentum/configs/m79_mkt5_off15_slip25_b2.yaml
+      config_hash: 05defb58b4b80180d5b430967da99856248b038eda7a6d0a67ba1f38a423071f
+      weight: 0.25
+  initial_capital: 1000000
