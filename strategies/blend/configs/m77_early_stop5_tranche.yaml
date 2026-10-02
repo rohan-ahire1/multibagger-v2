@@ -1,0 +1,21 @@
+# M77 (docs/research/m77.md): m77_stop5 tranches, 2007-09.
+name: blend
+version: m77_early_stop5_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m77_early_stop5.yaml
+      config_hash: 38b3b787ff61fbc4620025f49020e6678fe4cdf388616cb34ea0ba6b110492b8
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_early_stop5_off5.yaml
+      config_hash: dcf83788349f80858ac56bfb153d3d56276a9943733116e5394d16d130f4e897
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_early_stop5_off10.yaml
+      config_hash: e117d530796dd1716c91b82cc2f9c4b851ae19dc19ae51a00a082251df27ada9
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_early_stop5_off15.yaml
+      config_hash: b26adde379556c032c00cd9590df2954b6f16ea0368916ed896139dfa9889812
+      weight: 0.25
+  initial_capital: 1000000
