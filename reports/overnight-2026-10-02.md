@@ -1,6 +1,6 @@
-# Overnight research, 2026-10-02 (M53–M79)
+# Overnight research, 2026-10-02 (M53–M86)
 
-Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m79.md` and the log
+Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m86.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
@@ -49,6 +49,15 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
   year vs the pin. Bootstrap: Calmar higher than the pin's four-day form in 83% of resamples. The gold-0.10 version
   (`m78_half_g10s10_tranche_b2`, run 20261002-021723-766fcdd6) keeps more return: 28.9% CAGR, 18.9% DD, 1.528, 2007–09
   0.617.
+- **Out of sample, the stop holds up (M85).** On M52's walk-forward (2014–23, each period using only settings chosen
+  from earlier years), the half blend + 10% stop in four-day form scores Calmar **1.543** (26.1% CAGR, 16.9% DD) vs
+  0.956 for the plain book and 1.159 for the half blend without stops. It wins each of the three periods.
+- **Highest return with Calmar ≥ 1.5 (M86): no gold + 10% stop in four-day form** (`blend/m86_g0s10_tranche_b2`, run
+  20261002-031020-c087b363): **32.8% CAGR**, 21.7% DD, 1.509. But it loses 55% in 2008 (the stop resets each month, so
+  it does not stop a slow bear). Gold handles slow bears, the stop handles fast crashes. Its half blend
+  (`m86_half_g0s10_tranche_b2`): 30.3% CAGR, 20.2% DD, 1.501, 2008 loss 39%.
+- Also tried and failed (M79–M84): stop only in falling markets, re-buying with stop money, re-entry after recovery,
+  a whole-book stop, and ranking on smooth ("frog-in-the-pan") momentum. The stop's gain comes almost all from 2020.
 - M71: the 90/10 pin/rotation blend passes the main bar by hairs (1.155) but fails in four-day form; not adopted.
   M72: other one-change overlays on the pin (sector cap 5, residual momentum, 52-week high, absolute momentum, max
   filter) all fail.
@@ -101,8 +110,14 @@ yet supported by the paper code (`check_supported` refuses it).
 | 77 | Tighter stops 7.5% / 5% | 1.523 / 1.647 | f1, f2; return falls with drawdown |
 | 78 | Stop in both sleeves of the half blend | 1.284 / 1.292 | f2 (four-day form beats the pinned run; see above) |
 | 79 | Stop only in a falling market | 1.251 / 1.365 | f1, f2 |
+| 80 | Stop + top 20, and its rotation | 1.416 | f2 |
+| 81 | Re-spread stop money into held names | 1.170 | everywhere |
+| 82 | Re-buy a stopped name once it recovers | 1.324 | f1, f2 |
+| 83 | Whole-book stop 10 / 15% | 1.423 / 1.038 | f1, f2 |
+| 84 | Frog-in-the-pan ranking | 0.963 | f3 |
+| 86 | No gold + stop; its half blend | 1.329 / 1.289 | f1, f2; 55% loss in 2008 |
 
-Information only: M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
+Information only: M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
 pin 1.059).
 
