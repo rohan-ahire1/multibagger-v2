@@ -641,3 +641,26 @@ class RegimeM99(RegimeM97):
 
 class ParamsM99(ParamsM97):
     regime: RegimeM99
+
+
+# M103 options (docs/research/m103.md).
+
+
+class RegimeM103(RegimeM99):
+    # Null: the plain filter. Otherwise a band around the average (Brock, Lakonishok & LeBaron 1992): at each decision
+    # date the state turns off only below average x (1 - band) and back on only above average x (1 + band); in between
+    # it keeps the previous decision date's state. The first decision date uses the plain rule.
+    band_frac: float | None
+
+    @model_validator(mode="after")
+    def _m103(self) -> RegimeM103:
+        if self.band_frac is not None:
+            if not self.enabled or self.extra_benchmark_symbols or self.breadth_min_frac is not None:
+                raise ValueError("band_frac needs the plain single-benchmark regime")
+            if not 0.0 < self.band_frac < 0.5:
+                raise ValueError("band_frac must be in (0, 0.5)")
+        return self
+
+
+class ParamsM103(ParamsM99):
+    regime: RegimeM103

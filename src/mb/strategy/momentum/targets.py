@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -235,6 +235,24 @@ def risk_on(panel: pl.DataFrame, symbol: str, sma_sessions: int, dates: list[dat
     return got
 
 
+def banded(panel: pl.DataFrame, symbol: str, sma_sessions: int, band: float, dates: list[date]) -> dict[date, bool]:
+    """M103: the filter with a band, walked over the decision dates in order (see RegimeM103)."""
+    b = (panel.filter(pl.col("symbol") == symbol).sort("date")
+         .with_columns(pl.col("adj_close").rolling_mean(sma_sessions, min_samples=sma_sessions).alias("sma"))
+         .filter(pl.col("date").is_in(dates)))
+    x = {d: c / s for d, c, s in b.select("date", "adj_close", "sma").iter_rows() if s is not None}
+    missing = [d for d in dates if d not in x]
+    if missing:
+        raise ValueError(f"regime benchmark {symbol} has no close or no {sma_sessions}-session average on {missing[:3]}")
+    out: dict[date, bool] = {}
+    state: bool | None = None
+    for d in sorted(dates):
+        state = (x[d] >= 1.0 if state is None else
+                 (x[d] >= 1.0 - band) if state else (x[d] > 1.0 + band))
+        out[d] = state
+    return out
+
+
 def breadth_on(panel: pl.DataFrame, u: Universe, sma_sessions: int, min_frac: float, dates: list[date],
                fund_symbols: frozenset[str] | None) -> dict[date, bool]:
     """M99: True where at least `min_frac` of the universe's stocks close at or above their own `sma_sessions` average.
@@ -330,6 +348,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         regime = breadth_on(panel, p.universe, p.regime.sma_sessions, p.regime.breadth_min_frac, list(ranks), fund_symbols)
     else:
         regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
+    if isinstance(p, ParamsM103) and p.regime.band_frac is not None:
+        regime = banded(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, p.regime.band_frac, list(ranks))
     extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
     signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
     on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on
