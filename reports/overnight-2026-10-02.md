@@ -1,4 +1,4 @@
-# Overnight research, 2026-10-02 (M53–M69)
+# Overnight research, 2026-10-02 (M53–M70)
 
 Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m67.md` and the log
 `docs/research/calmar-search.md`.
@@ -18,6 +18,11 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
   pre-registered as information only (M68); its fold 2 trails the pin's own four-day form (2.149 vs 2.199); and at
   25 bps it misses the pin in f2 and f3 by 0.01–0.02 (M69).
 
+- **Strongest out-of-sample evidence: M70.** On M52's walk-forward for 2014–23, where each period uses only settings
+  tuned on earlier years, adding the half-rotation rule lifts Calmar from 0.953 to **1.202**. CAGR rises from 24.8%
+  to 28.4%, and max DD falls from 26.1% to 23.6%. In four-day form it is 1.159 vs 0.956. The pin's own 2010–17 numbers
+  are in-sample (tuned on those years), which is why the strict bar keeps favouring it.
+
 ## Your decision: pin or M61
 
 | | Pin `m49_b_b2` | M61 `m61_half_top20_b2` |
@@ -32,7 +37,9 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
 | Bootstrap: M61 split over 4 days beats the pin split over 4 days | | 59% of resamples (weak) |
 | Trades 2010–23 | 1,276 | 2,224 |
 
-**Recommendation:** M61 or the half blend, run split over the four decision days (the M62 form), if you accept a book that loses in
+**Recommendation (updated after M70): the half blend (50% pin + 50% pin-or-gold rotation), run split over the
+four decision days.** It has the best out-of-sample record (M70 walk-forward, 2007–09) and stays close to the pin in
+bull years. M61 is the higher-return version (top 20), but top 20 is itself a search pick. Original note: M61 or the half blend, run split over the four decision days (the M62 form), if you accept a book that loses in
 strong bull years like 2014–17 in exchange for better crash protection. The 2010–23 edge alone is mostly noise
 (59%); the real case is 2007–09, a window no search ever saw, where M61 lost ~40% against the pin's ~51%. If you
 want to keep the strict rule, stay on the pin. Either way, the paper book needs your OK, and the M61 rotation is not
