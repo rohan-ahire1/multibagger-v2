@@ -37,6 +37,7 @@ its own `mNN.md`; this file only summarises.
 | 55 | Rank on daytime-only or overnight-only return (Lou, Polk & Skouras 2019; Barardehi, Bogousslavsky & Muravyev) | 0.736 (daytime) / 0.599 (overnight) vs 1.125 | | fails; the whole return is the signal |
 | 56 | Hold buffer / no resizing on the new pin (Novy-Marx & Velikov 2016) | hold 35: 1.214 at month-end (30.9% CAGR, 25.4% DD) | loses offsets 5/10/15; four-offset mean 1.089 vs 1.106 | fails; month-end gain is timing luck, but wins at 25 bps |
 | 57 | Decide every 5 / 10 sessions with a hold buffer (Novy-Marx & Velikov 2016; Hoffstein et al. 2020) | 1.115 (e5, hold 35) / 1.104 / 1.071 vs 1.125 | | fails; drawdowns not lower |
+| 58 | Top 20 instead of 25 as a full candidate (M42 picked 20 in steps A, C) | 1.193 (31.6% CAGR, 26.5% DD) | wins 4/4 offsets, 25 bps, 2007–09 4/4 | **fails f2 only (1.94 vs 2.07); near-miss for the user** |
 
 What the evidence says so far:
 
