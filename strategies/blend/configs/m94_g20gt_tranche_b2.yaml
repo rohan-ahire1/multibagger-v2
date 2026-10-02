@@ -1,0 +1,21 @@
+# M94 (docs/research/m94.md): g20gt in four tranches.
+name: blend
+version: m94_g20gt_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m94_g20gt_b2.yaml
+      config_hash: e37a69dd036baaa9f39e7c8f489b7dcea8ac57c8a1ff946e6a7837dff7895a9a
+      weight: 0.25
+    - config: strategies/momentum/configs/m94_g20gt_off5_b2.yaml
+      config_hash: 10146ad13f9ff6699a734cc8a79662188cbce0ca247786d2d4cb1cf1c8a302bb
+      weight: 0.25
+    - config: strategies/momentum/configs/m94_g20gt_off10_b2.yaml
+      config_hash: be62f42f19484e7c32bafc2c1ffb2a00fa2302d296b5ca0f4ed46052181dbab9
+      weight: 0.25
+    - config: strategies/momentum/configs/m94_g20gt_off15_b2.yaml
+      config_hash: df49b33b504d78254eb9c9ccbcdc2c25c45cc74f5a8258bcc2b39ce8c5fbdf16
+      weight: 0.25
+  initial_capital: 1000000

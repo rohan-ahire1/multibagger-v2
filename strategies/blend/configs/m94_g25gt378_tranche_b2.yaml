@@ -1,0 +1,21 @@
+# M94 (docs/research/m94.md): g25gt378 in four tranches.
+name: blend
+version: m94_g25gt378_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m94_g25gt378_b2.yaml
+      config_hash: f0da784dc6998220e5ea3e8cef745f809d390348fd54783db77e68adb30b496d
+      weight: 0.25
+    - config: strategies/momentum/configs/m94_g25gt378_off5_b2.yaml
+      config_hash: 34514817f1f5550bc877b8559de82fe6cc09fa5eda845b094c3cff1edebff5bf
+      weight: 0.25
+    - config: strategies/momentum/configs/m94_g25gt378_off10_b2.yaml
+      config_hash: f03f5b2e9a7e2e700e9b7547f14b39dd4b71f642ba2de6a0c30c29a47a9d2f36
+      weight: 0.25
+    - config: strategies/momentum/configs/m94_g25gt378_off15_b2.yaml
+      config_hash: 265c692588c2dd4fceeafe2cac4cad44e910b6dea3287edbec8857b58b62681c
+      weight: 0.25
+  initial_capital: 1000000
