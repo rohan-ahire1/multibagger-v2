@@ -82,6 +82,7 @@ its own `mNN.md`; this file only summarises.
 | 100 | 10% trend gold on the Next 50 filtered book | 1.597; tranches 1.644 (31.8% CAGR, 19.4% DD) | offset 0 f2; tranches pass | passes, but trades CAGR for drawdown; not better than M95 |
 | 101 | Half top 25, half top 20 (Next 50 filter, tranches) | tranches 1.628 (33.9% CAGR, 20.8% DD) | passes | between its parts; no gain |
 | 102 | Stop 7.5% / 15% on the Next 50 filtered book (information) | tranches 1.837 (31.3%, 17.1%) / 1.412 (35.5%, 25.1%) | both pass | M95 not fragile in its stop; the stop trades CAGR for drawdown |
+| 103 | 1% band on the Next 50 filter (Brock, Lakonishok & LeBaron 1992) | 1.544; tranches 1.631 | offset 0 f1; tranches pass | slightly worse than no band |
 
 What the evidence says so far:
 

@@ -1,0 +1,21 @@
+# M103 (docs/research/m103.md): band1_r50g_jr tranches at 25 bps.
+name: blend
+version: m103_band1_r50g_jr_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m103_band1_r50g_jr_slip25_b2.yaml
+      config_hash: 23d86cf380e04a921db447c03808c0432778032eaabbc89c87d2ad7217a37751
+      weight: 0.25
+    - config: strategies/momentum/configs/m103_band1_r50g_jr_off5_slip25_b2.yaml
+      config_hash: 13a36790045bbac91a18cf72899692b82020380482901d4eda38d6d4504c3a9d
+      weight: 0.25
+    - config: strategies/momentum/configs/m103_band1_r50g_jr_off10_slip25_b2.yaml
+      config_hash: ff122cf0226c49de19906761dd04e6b1055c085367572a90ebf017725f40f25a
+      weight: 0.25
+    - config: strategies/momentum/configs/m103_band1_r50g_jr_off15_slip25_b2.yaml
+      config_hash: cd62905507b591f737feb25d027723a854b32cbf48fcc1ca66c329ad193aaf0d
+      weight: 0.25
+  initial_capital: 1000000
