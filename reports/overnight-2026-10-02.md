@@ -1,6 +1,6 @@
-# Overnight research, 2026-10-02 (M53–M96)
+# Overnight research, 2026-10-02 (M53–M100)
 
-Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m96.md` and the log
+Branch `m97-graded-regime` (from `m43-paper-delivery`), all committed, nothing pushed. Detail in `docs/research/m53.md` … `m100.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
@@ -17,6 +17,12 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
   version fails fold 2. (3) Fold 1 is fragile: of four one-step neighbours, two pass (250 days; ¾ to gold) and two
   miss by 0.04–0.10 (150 days; ¼ to gold). (4) Paper code supports neither the stop nor the gold switch yet.
   Adopting it, and spending `--final` on 2024+, are your calls.
+
+- **Passing alternatives, none better (M97–M100).** Top 20 instead of 10 on the same rule (`blend/m98_t20_r50g_jr_tranche_b2`,
+  run 20261002-043350-fef356b4): 34.3% CAGR, 21.4% DD, 1.603; folds 1.740 / 2.378 / 1.774; 25 bps 1.451; 2007–09 0.660
+  (more CAGR, more names, slightly lower Calmar). 10% trend gold added (`blend/m100_g10gt_r50g_jr_tranche_b2`, run
+  20261002-044315-3695bf93): 31.8% CAGR, 19.4% DD, 1.644; folds 1.898 / 2.550 / 1.770 (firmer fold 1, less CAGR).
+  Failed: averaging the Nifty 50 and Next 50 filters (M97, fold 1) and a market-breadth filter (M99, weaker than Next 50).
 
 - **New best (M89/M90): no fixed gold + 10% stop + 200-day market filter that moves half the book to gold when
   Nifty is below its 200-day average** (`momentum/m89_g0s10_r50g_b2`, run 20261002-033400-ad917eb0): **34.0% CAGR,
@@ -144,6 +150,11 @@ yet supported by the paper code (`check_supported` refuses it).
 | 92 | Trailing stop in r50g | 1.807 / 1.829 | f1, f2 |
 | 93 | Fixed gold held only while gold trends up | 1.934 / 1.837 | offset 0 f1/f2 by a hair; g25 tranches beat the pin at 5 bps, miss f1 at 25 bps |
 | 95 | Filter on Nifty Next 50 | 1.614 (offset 0) | **tranches pass** (see top) |
+
+| 97 | Filter = average of Nifty 50 and Next 50 signals | 1.785; tranches 1.726 | f1 (1.570) |
+| 98 | Top 20 on the Next 50 filtered book | 1.576 (offset 0); tranches 1.603 | **tranches pass**; 25 bps tranches beat the pin's 25 bps tranches |
+| 99 | Filter on breadth (half the universe above its 200-day average) | 1.565; tranches 1.608 | offset 0 f1; tranches f2 by 0.01 |
+| 100 | 10% trend gold on the Next 50 filtered book | 1.597; tranches 1.644 | **tranches pass**, not better than M95 |
 
 Information only: M94 (g25 trend-gold robustness), M96 (r50g_jr robustness, above), M87 (stop sells on lower-circuit days cost 0.1–0.35 pts CAGR a year), M90 (M89 robustness, above), M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
