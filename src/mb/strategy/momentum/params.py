@@ -518,3 +518,26 @@ class ExitsM76(ExitsM75):
 
 class ParamsM76(ParamsM75):
     exits: ExitsM76
+
+
+# M79 option (docs/research/m79.md).
+
+class ExitsM79(ExitsM76):
+    # Set (both): a name's stop fires only while this symbol also closes at or below (1 - stop_market_frac) x its open at
+    # the last rebalance session: stop in a falling market, hold through a dip in a rising one.
+    stop_market_symbol: str | None
+    stop_market_frac: float | None
+
+    @model_validator(mode="after")
+    def _m79(self) -> ExitsM79:
+        if (self.stop_market_symbol is None) != (self.stop_market_frac is None):
+            raise ValueError("stop_market_symbol and stop_market_frac go together")
+        if self.stop_market_symbol is not None and self.stop_loss_frac is None:
+            raise ValueError("stop_market_* needs stop_loss_frac")
+        if self.stop_market_frac is not None and not 0.0 <= self.stop_market_frac < 1.0:
+            raise ValueError("stop_market_frac must be in [0, 1)")
+        return self
+
+
+class ParamsM79(ParamsM76):
+    exits: ExitsM79

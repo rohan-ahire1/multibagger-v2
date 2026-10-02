@@ -6,7 +6,8 @@ scaled down together if cash is short. Prices are the adjusted series. With a st
 or below (1 - stop) x its open at the last rebalance session is sold at the next open; the cash waits for the next
 rebalance, or with `stop_to` (M75) buys that symbol at the same open (it is never stopped itself). M76: with
 `stop_trail` the reference ratchets up to the highest close since the rebalance; with `stop_vol` = (n, k) a name's stop is
-max(stop, k x the std of its last n daily close returns up to the decision close). A name with no open that session is
+max(stop, k x the std of its last n daily close returns up to the decision close). M79: with `stop_market` = (symbol,
+g) stops fire only while that symbol closes at or below (1 - g) x its open at the last rebalance session. A name with no open that session is
 not bought and is sold at its last close; a name that stops trading is valued at its last close until it is sold.
 
 The 12-1 momentum baseline and every rebalance strategy run through this one function.
@@ -48,7 +49,8 @@ class RebalanceResult:
 
 def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list[date], market: MarketConfig,
                      initial_capital: float, stop_loss_frac: float | None = None, stop_to: str | None = None,
-                     stop_trail: bool = False, stop_vol: tuple[int, float] | None = None) -> RebalanceResult:
+                     stop_trail: bool = False, stop_vol: tuple[int, float] | None = None,
+                     stop_market: tuple[str, float] | None = None) -> RebalanceResult:
     """`bars` has date, symbol, open, close (adjusted) for every name any target mentions; `days` is the session calendar.
 
     A target dated on a session is traded at the next session's open.
@@ -64,8 +66,18 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
     if stop_to is not None and (stop_loss_frac is None or stop_to not in col):
         raise ValueError(f"stop_to {stop_to} needs a stop and must be in every target's names")
     park = col[stop_to] if stop_to is not None else -1
-    if (stop_trail or stop_vol is not None) and stop_loss_frac is None:
-        raise ValueError("stop_trail and stop_vol need a stop")
+    if (stop_trail or stop_vol is not None or stop_market is not None) and stop_loss_frac is None:
+        raise ValueError("stop_trail, stop_vol and stop_market need a stop")
+    if stop_market is not None:
+        mkt = bars.filter((pl.col("symbol") == stop_market[0]) & pl.col("date").is_in(days))
+        if mkt.is_empty():
+            raise ValueError(f"stop_market symbol {stop_market[0]} has no bars")
+        mo, mc = np.full(len(days), np.nan), np.full(len(days), np.nan)
+        for d, o, c in mkt.select("date", "open", "close").iter_rows():
+            mo[idx[d]], mc[idx[d]] = o, c
+        last = np.maximum.accumulate(np.where(~np.isnan(mc), np.arange(len(mc)), -1))
+        mc = np.where(last >= 0, mc[np.maximum(last, 0)], np.nan)
+    mref = np.nan
     for j in range(cls.shape[1]):  # a delisted or suspended name keeps its last close
         v = cls[:, j]
         ok = ~np.isnan(v)
@@ -140,6 +152,8 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
             stops = []
             if stop_loss_frac is not None:
                 ref = np.where(shares > 0.0, px, np.nan)
+                if stop_market is not None:
+                    mref = mo[i] if not np.isnan(mo[i]) else mc[i]
                 if stop_vol is not None:
                     n_vol, k_vol = stop_vol
                     win = cls[max(i - n_vol - 1, 0):i]
@@ -178,6 +192,8 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
             if stop_trail:
                 ref = np.where(shares > 0.0, np.fmax(ref, cls[i]), ref)
             stops = [j for j in np.flatnonzero(shares > 0.0) if j != park and cls[i, j] <= ref[j] * (1.0 - frac[j])]
+            if stop_market is not None and not mc[i] <= mref * (1.0 - stop_market[1]):
+                stops = []
 
     for j in range(len(names)):
         if opened[j] is not None:
