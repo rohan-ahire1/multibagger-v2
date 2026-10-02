@@ -1,0 +1,21 @@
+# M105 (docs/research/m105.md): g0_jr in four tranches.
+name: blend
+version: m105_g0_jr_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m105_g0_jr_b2.yaml
+      config_hash: d09edca84dafd38d9bd09ab2c8df5a8548e1f98b8afc34a037c5d7c1fb04118c
+      weight: 0.25
+    - config: strategies/momentum/configs/m105_g0_jr_off5_b2.yaml
+      config_hash: 2bc59c0e3ddd108c32ccd27d17208ae72c13ebe801da1d870953e6f2f9a8906a
+      weight: 0.25
+    - config: strategies/momentum/configs/m105_g0_jr_off10_b2.yaml
+      config_hash: f0b84d0a01dc8adb46c87588b76c8d3184dcd1aa3b037a4901ddef1bb8bf06dd
+      weight: 0.25
+    - config: strategies/momentum/configs/m105_g0_jr_off15_b2.yaml
+      config_hash: 438c2532969cbaef90dbe4dff75e40f352aa38f71e97cb18990c5e55282035ed
+      weight: 0.25
+  initial_capital: 1000000

@@ -84,6 +84,7 @@ its own `mNN.md`; this file only summarises.
 | 102 | Stop 7.5% / 15% on the Next 50 filtered book (information) | tranches 1.837 (31.3%, 17.1%) / 1.412 (35.5%, 25.1%) | both pass | M95 not fragile in its stop; the stop trades CAGR for drawdown |
 | 103 | 1% band on the Next 50 filter (Brock, Lakonishok & LeBaron 1992) | 1.544; tranches 1.631 | offset 0 f1; tranches pass | slightly worse than no band |
 | 104 | Deflated Sharpe ratio over ~900 tries (Bailey & López de Prado 2014; information) | M95's return gain over the pin: DSR 0.46 (effective N 4.7) | | the return edge is a coin flip after selection; the drawdown gain is untested by DSR |
+| 105 | The Next 50 filter alone on the pin (keep 25% gold, no stop); and with no gold (information) | pin + filter **1.514 (30.2% CAGR, 20.0% DD; 2.259 / 2.085 / 1.735)**; tranches 1.341 | passes at offset 0 and in tranches, 5 and 25 bps; 2007–09 0.668 | simplest passing change: one rule, no stop |
 
 What the evidence says so far:
 

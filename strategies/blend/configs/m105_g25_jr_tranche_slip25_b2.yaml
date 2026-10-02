@@ -1,0 +1,21 @@
+# M105 (docs/research/m105.md): g25_jr tranches at 25 bps.
+name: blend
+version: m105_g25_jr_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m105_g25_jr_slip25_b2.yaml
+      config_hash: 29956d484316dad70344c639d6342dbd75d98a3ea0351c7d28f097248ad09449
+      weight: 0.25
+    - config: strategies/momentum/configs/m105_g25_jr_off5_slip25_b2.yaml
+      config_hash: d69925c31d4a45044f5dffd57820bfa74a78957a3aad681b8fe78b1bf2c09971
+      weight: 0.25
+    - config: strategies/momentum/configs/m105_g25_jr_off10_slip25_b2.yaml
+      config_hash: b6cb1c4a55ba314cb29ffdb5f84b43df988b6f51a11aed88be0637dbd74f8f07
+      weight: 0.25
+    - config: strategies/momentum/configs/m105_g25_jr_off15_slip25_b2.yaml
+      config_hash: 207221f5c90fd401d26bc8c118a0fc29136067ebd71ad2076e17e7a632565a57
+      weight: 0.25
+  initial_capital: 1000000
