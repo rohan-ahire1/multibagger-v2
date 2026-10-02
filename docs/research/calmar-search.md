@@ -43,6 +43,7 @@ its own `mNN.md`; this file only summarises.
 | 61 | Top 20 inside the half-rotation blend (M58 + M59) | **1.313 (32.4% CAGR, 24.7% DD)** | 3/4 offsets (mean 1.157), 25 bps 1.229, 2007–09 mean 0.635 vs 0.284 | **fails f2 only (1.72 vs 2.07); best combined near-miss** |
 | 62 | M61 book in four decision-day tranches (information) | 1.201 (30.4% CAGR, 25.3% DD) vs pin tranches 1.105 | 2007–09: 0.630 (40% DD) vs 0.284 (51% DD) | information; the honest form of the near-miss |
 | 63 | Slower rotation signal (3/6/12 m) in the M61 book | 1.267 | offsets 0.968 / 1.155 / 1.175; 2007–09 0.623 | fails f2 (1.82); no gain over M61 |
+| 64 | Top 15, past M42's search edge | 1.161 (32.2% CAGR, 27.7% DD) | four-offset mean 1.167; 25 bps 1.111; 2007–09 0.357 | fails f2 (1.75); concentration peaks at 15–20 |
 
 What the evidence says so far:
 
