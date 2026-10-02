@@ -61,6 +61,7 @@ its own `mNN.md`; this file only summarises.
 | 79 | Stop only while the market (NIFTYBEES) is below its rebalance open (g 0 / 5%) | tranches 1.511 (27.3% CAGR) / 1.432 (28.3%) | f1, f2; little different from the plain stop |
 | 80 | M61 (top 20 half blend) with 10% stops in both sleeves | 1.416; tranches 1.514 (27.6% CAGR, 18.2% DD) | f2; no better than M78 |
 | 81 | 10% stop, proceeds re-spread over the held names | 1.170 | everywhere; worse than cash |
+| 82 | 10% stop with re-entry at the reference price (Kaminski & Lo 2014) | 1.324 | f1, f2; same as the plain stop. The name stop never lowers 2010–17 drawdowns, only CAGR |
 
 What the evidence says so far:
 
