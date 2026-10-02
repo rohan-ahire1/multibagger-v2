@@ -29,6 +29,7 @@ its own `mNN.md`; this file only summarises.
 | 47 | Stronger delivery filter alone: drop 60% / 80% (M42's consistent pick) | 0.931 (60%; 28.0% CAGR, 30.1% DD) / 0.919 (80%; 25.5%, 27.7%) | not run (fails a) | both fail f2 by 0.04; better f1, f3 |
 | 48 | M42's three tuned settings on 2007–09, the window no search saw | C 0.527 mean (19.3% CAGR, 36.6% DD) vs pin 0.219 (12.7%, 58.1%) | A, C 4/4 offsets; B 3/4 | tuned settings hold up out of sample, mostly via less 2008 loss |
 | 49 | M42's tuned settings as ordinary candidates (full bar, offsets, 25 bps, capacity) | **B 1.125 (29.3% CAGR, 26.1% DD; folds 1.60 / 2.07 / 1.36)**; C 1.264 and A 1.075 fail f2 | B: 4/4 offsets (mean 1.106 vs 0.898), 25 bps, capacity 0.78% | **adopted: new pin `momentum/m49_b_b2`** (tuned on 2010–17; disclosed) |
+| 50 | One-step neighbours of the new pin (12 configs, information only) | median 1.111, min 1.040 (ADV ₹2 cr), max 1.193 (top 20) | all 12 above the old pin's 0.913 | plateau, not a knife-edge |
 
 What the evidence says so far:
 
