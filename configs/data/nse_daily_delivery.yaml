@@ -1,0 +1,49 @@
+# M43 (docs/research/m43.md): nse_daily_linked.yaml plus the M40 delivery files, for a book with the delivery filter.
+name: nse_daily_delivery
+bhavcopy:
+  raw_dir: data/raw/nse_bhavcopy
+  # The strategy reads ~1 year per stock; 2023 on leaves ample room and keeps the build small.
+  first_date: 2023-01-01
+  series: [EQ, BE]
+  legacy_cutoff: 2024-01-01
+  archive_base_url: https://nsearchives.nseindia.com/content/cm
+  legacy_archive_base_url: https://nsearchives.nseindia.com/content/historical/EQUITIES
+  timeout_s: 30
+  max_retries: 4
+  request_sleep_s: 0.4
+corporate_actions:
+  raw_file: data/raw/nse_corporate_actions/nse_corporate_actions.parquet
+  coverage_file: data/raw/nse_corporate_actions/nse_corporate_actions_coverage.parquet
+  overrides_file: configs/data/corporate_actions_overrides.csv
+  applied_override_sources: [manual, purpose_parsed, isin_corroborated, etf_inferred]
+  resymbol_by_isin: true
+  verified_moves_file: configs/data/verified_price_moves.csv
+  url: https://www.nseindia.com/api/corporates-corporateActions
+  timeout_s: 30
+  window_sleep_s: 0.6
+adjustment:
+  match_window_sessions: 3
+  match_tolerance: 1.25
+  min_detectable: 1.2
+  unexplained_jump: 1.5
+  dividend_max_price_fraction: 0.5
+checks:
+  min_session_rows_ratio: 0.5
+  session_rows_lookback: 20
+  accepted_thin_sessions: []
+  max_session_gap_days: 7
+  # Tripwire for a broken adjustment pipeline (dozens of new jumps), not a per-stock review: the paper step refuses
+  # any unexplained jump on a held or picked name by itself. nse_daily@2026-09-28 (from 2023) had 145.
+  max_unexplained_jumps: 200
+  # nse_daily@2026-09-28 had 8.
+  max_unmatched_share_events: 20
+  max_row_count_drift_pct: 5
+link_renames_by_isin: true
+rename_max_gap_days: 31
+# M40 delivery position, joined as `deliv_qty`. The daily job downloads any build session still missing its file.
+delivery:
+  raw_dir: data/raw/nse_delivery
+  archive_base_url: https://nsearchives.nseindia.com/archives/equities/mto
+  timeout_s: 30
+  max_retries: 4
+  request_sleep_s: 0.4

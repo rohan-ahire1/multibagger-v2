@@ -1,0 +1,15 @@
+# M71 (docs/research/m71.md): m59_half_off10_b2 with weights 0.9 / 0.1.
+name: blend
+version: m71_w90_off10_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m49_b_off10_b2.yaml
+      config_hash: 2eeac13e63d0ddf43812c8e15a352b1f5e2bb8b12a12ceb1c36fde5a2dad1e65
+      weight: 0.9
+    - config: strategies/momentum/configs/m59_rot_off10_b2.yaml
+      config_hash: b0d312225ebb9d3e46a4972694e8e7928cbf4b73abd71a7f86ef5f2181d0e696
+      weight: 0.1
+  initial_capital: 1000000

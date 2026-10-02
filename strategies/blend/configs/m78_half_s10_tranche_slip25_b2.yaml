@@ -1,0 +1,33 @@
+# M78 (docs/research/m78.md): 50% m72_stop10_b2 family + 50% rotation with a 10% stop, tranches at 25 bps.
+name: blend
+version: m78_half_s10_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m73_stop10_slip25_b2.yaml
+      config_hash: 9d6d40aac6bf12758e6b7654f9da52bcdb191e2c97e4a7a4370a3453de83801e
+      weight: 0.125
+    - config: strategies/momentum/configs/m73_stop10_off5_slip25_b2.yaml
+      config_hash: 5fb04127701412c123c75930e1aa30fce9ad0e842796c559bfa9692f69c0140f
+      weight: 0.125
+    - config: strategies/momentum/configs/m73_stop10_off10_slip25_b2.yaml
+      config_hash: c23bb125126aa0489e5aa538af97445e3303875189a272a4769f58de47f81229
+      weight: 0.125
+    - config: strategies/momentum/configs/m73_stop10_off15_slip25_b2.yaml
+      config_hash: 7cf30ef38e3b5ada594c0f07e212b149fc7113535a493f2c1c5cfb43f8f59636
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_slip25_b2.yaml
+      config_hash: 604348c220a806b8fa81d2b522e2b05dc66ccc756fbba3ecdd4a78b6bfc0ff2a
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_off5_slip25_b2.yaml
+      config_hash: d31e8e98ce0db78688265ef8d48adbc4c8a2bb15c45a48d7be4136d785fa2de6
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_off10_slip25_b2.yaml
+      config_hash: 25168d0a1a8f5f375be26350d9c65d4490b61fb093c6454a1a4be89a5870c823
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_off15_slip25_b2.yaml
+      config_hash: 094c5bfbf2f6e971f62b0262538c228cef248847356435611adfbf7e95db8f46
+      weight: 0.125
+  initial_capital: 1000000

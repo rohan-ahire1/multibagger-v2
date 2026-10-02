@@ -1,0 +1,15 @@
+# M63 (docs/research/m63.md): 50% m58_top20_off10_b2 and 50% m63_rot_top20_l3_off10_b2.
+name: blend
+version: m63_half_top20_l3_off10_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m58_top20_off10_b2.yaml
+      config_hash: 69ec65e7aa0c0958370deb8b8fb63e8c34fefabc4a13f30e01190c3cfed65c4c
+      weight: 0.5
+    - config: strategies/momentum/configs/m63_rot_top20_l3_off10_b2.yaml
+      config_hash: a4628cdc818565e9f5040284ea2129af83db2cfdb1d8128b477eb8bd6a8a3f14
+      weight: 0.5
+  initial_capital: 1000000

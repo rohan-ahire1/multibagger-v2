@@ -1,0 +1,15 @@
+# M59 (docs/research/m59.md): 50% m49_b_slip25_b2 and 50% m59_rot_slip25_b2 (half-blend check).
+name: blend
+version: m59_half_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m49_b_slip25_b2.yaml
+      config_hash: 237b5d10a0d96e53667ca47a7602af9bda1188874c8653dfd9f9e06ded46a87a
+      weight: 0.5
+    - config: strategies/momentum/configs/m59_rot_slip25_b2.yaml
+      config_hash: 1fc9dd66c7b89f449bd073aa692b97e284408635186bf304d1028cafef73eaa8
+      weight: 0.5
+  initial_capital: 1000000

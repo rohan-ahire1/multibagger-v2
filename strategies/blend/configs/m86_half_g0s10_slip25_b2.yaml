@@ -1,0 +1,15 @@
+# M86 (docs/research/m86.md): half blend g0s10 + rot_s10_slip25.
+name: blend
+version: m86_half_g0s10_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m86_g0s10_slip25_b2.yaml
+      config_hash: 4353a7a5550cbace3e33af6ba5fd5014b689937b400d28dfc95b6edbffae05fa
+      weight: 0.5
+    - config: strategies/momentum/configs/m78_rot_s10_slip25_b2.yaml
+      config_hash: 604348c220a806b8fa81d2b522e2b05dc66ccc756fbba3ecdd4a78b6bfc0ff2a
+      weight: 0.5
+  initial_capital: 1000000

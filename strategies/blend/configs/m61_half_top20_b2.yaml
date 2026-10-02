@@ -1,0 +1,15 @@
+# M61 (docs/research/m61.md): 50% m58_top20_b2 and 50% m61_rot_top20_b2.
+name: blend
+version: m61_half_top20_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m58_top20_b2.yaml
+      config_hash: d82665ba4cbd98ab3e2850806fb764a3e19c7a1c41e84df6b8d95fc0314dd527
+      weight: 0.5
+    - config: strategies/momentum/configs/m61_rot_top20_b2.yaml
+      config_hash: 6408dfe4df9e3f11835aaa7eb7a53aff876445073f5e60501917ba3fc65be0a7
+      weight: 0.5
+  initial_capital: 1000000

@@ -1,0 +1,33 @@
+# M68 (docs/research/m68.md): equal decision-day tranches of the sleeves below, never rebalanced against each other.
+name: blend
+version: m68_half_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m49_b_b2.yaml
+      config_hash: 0103cc7f2fcca664bf87a047a12f0c3cf7949629e6e81ea7786123f4498613cd
+      weight: 0.125
+    - config: strategies/momentum/configs/m49_b_off5_b2.yaml
+      config_hash: cd46ce38a464d24ff8cb70ac85610a933db6bc4515426546eab8c450bfbee105
+      weight: 0.125
+    - config: strategies/momentum/configs/m49_b_off10_b2.yaml
+      config_hash: 2eeac13e63d0ddf43812c8e15a352b1f5e2bb8b12a12ceb1c36fde5a2dad1e65
+      weight: 0.125
+    - config: strategies/momentum/configs/m49_b_off15_b2.yaml
+      config_hash: 322c418e187739f2df4466d535e7422745176e8e6cd761d8e83242f2e402dc97
+      weight: 0.125
+    - config: strategies/momentum/configs/m59_rot_b2.yaml
+      config_hash: 1b7d48cf5c26d5173dad74411088750151305d085cb192dda0829fb41fde9eef
+      weight: 0.125
+    - config: strategies/momentum/configs/m59_rot_off5_b2.yaml
+      config_hash: ccb534cc40b0dc993116d1b80e84abdccbc7787d06b1be83abd7bd993b90b552
+      weight: 0.125
+    - config: strategies/momentum/configs/m59_rot_off10_b2.yaml
+      config_hash: b0d312225ebb9d3e46a4972694e8e7928cbf4b73abd71a7f86ef5f2181d0e696
+      weight: 0.125
+    - config: strategies/momentum/configs/m59_rot_off15_b2.yaml
+      config_hash: 8f842b1db9d9fda0081623efd89c194b41b0f32c1064545e71d9235cb51598b4
+      weight: 0.125
+  initial_capital: 1000000

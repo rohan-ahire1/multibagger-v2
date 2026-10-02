@@ -1,0 +1,15 @@
+# M71 (docs/research/m71.md): m59_early_half with weights 0.8 / 0.2.
+name: blend
+version: m71_early_w80
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m48_early_b.yaml
+      config_hash: b9a5eea5c23e1f245b3c966290601ae06d0685be8e1d60a9d49ca70da216f742
+      weight: 0.8
+    - config: strategies/momentum/configs/m59_early_rot.yaml
+      config_hash: a06ab2e120b2cf8b1567128368c36132e4d41216c1b9632c2c30f7d8b30e40f6
+      weight: 0.2
+  initial_capital: 1000000

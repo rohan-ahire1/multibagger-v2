@@ -1,0 +1,33 @@
+# M86 (docs/research/m86.md): half blend tranches, 2007-09.
+name: blend
+version: m86_early_half_g0s10_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m86_early_g0s10.yaml
+      config_hash: 1f01ea0e75428b74316f28affb9c55624fbbe59cda29a95a77ba5565015e5bbd
+      weight: 0.125
+    - config: strategies/momentum/configs/m86_early_g0s10_off5.yaml
+      config_hash: 12a04d49a45876b2ec23d0c9660082fe5fa69f8a7eff4f9eec89e87e77767ade
+      weight: 0.125
+    - config: strategies/momentum/configs/m86_early_g0s10_off10.yaml
+      config_hash: 5bc25dfa1b459edc63dafce4cbef2ac80410153094ccd2e65fcc9d00e8d5ef2d
+      weight: 0.125
+    - config: strategies/momentum/configs/m86_early_g0s10_off15.yaml
+      config_hash: 12ef7ceba3d09a9c08db88b91a2439a2f10641ca628f0ac80f580c870a228a63
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10.yaml
+      config_hash: 6941c98e9a7f6e0320ce191deb05c3fba5425b007f4853a43af16bce7d50dfa2
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10_off5.yaml
+      config_hash: 64c9fa618cf66051a686c22c4d66a980c93a50c1fceb8ca64881b3e6be004bed
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10_off10.yaml
+      config_hash: bdff0ce043e837b02c3e03d9ef775bb5bf2406ed77f1d08de79729d131e4468d
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10_off15.yaml
+      config_hash: d9a795a412008bfcf6b87bcf0fc24f711a074724a9eac812d866c8e8161fc05d
+      weight: 0.125
+  initial_capital: 1000000

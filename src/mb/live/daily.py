@@ -11,13 +11,13 @@ from pathlib import Path
 from typing import Any
 
 from mb.config.loader import load_data_config, load_paper_config
-from mb.config.models import DataConfig, PaperConfig
+from mb.config.models import DataConfig, DataConfigM40, PaperConfig
 from mb.data import build, datasets
 from mb.live import calendar
 from mb.live.alerts import Alerter
 from mb.live.paper import Blocked, Store, advance, load_view, write_json
 from mb.live.replay import replay, report
-from mb.sources import nse_bhavcopy, nse_corporate_actions
+from mb.sources import nse_bhavcopy, nse_corporate_actions, nse_delivery
 
 
 def versions(root: Path, name: str) -> list[str]:
@@ -55,6 +55,16 @@ def prune(root: Path, name: str, keep: int) -> list[str]:
     return old
 
 
+def fetch_delivery(dcfg: DataConfigM40, root: Path) -> dict[str, list[str]]:
+    """M43: delivery files for the build's bhavcopy sessions that have none. NSE can publish one after the bhavcopy, so
+    a session still missing is tried again on every run."""
+    raw = root / dcfg.delivery.raw_dir
+    want = [nse_bhavcopy.zip_date(z) for z in nse_bhavcopy.build_zips(root / dcfg.bhavcopy.raw_dir, dcfg.bhavcopy)]
+    missing = [d for d in want if not nse_delivery.file_path(raw, d).exists()]
+    got = nse_delivery.fetch(dcfg.delivery, raw, missing) if missing else {"downloaded": [], "missing": []}
+    return {k: [d.isoformat() for d in v] for k, v in got.items()}
+
+
 def _update_raw(cfg: PaperConfig, dcfg: DataConfig, root: Path, today: date, problems: list[str], log: dict) -> None:
     try:
         calendar.fetch(cfg.calendar, root, today)
@@ -67,6 +77,11 @@ def _update_raw(cfg: PaperConfig, dcfg: DataConfig, root: Path, today: date, pro
         log["bhavcopy"] = {k: [d.isoformat() for d in v] for k, v in got.items()}
     except Exception as e:  # noqa: BLE001
         problems.append(f"bhavcopy fetch failed: {e}")
+    if isinstance(dcfg, DataConfigM40):
+        try:
+            log["delivery"] = fetch_delivery(dcfg, root)
+        except Exception as e:  # noqa: BLE001
+            problems.append(f"delivery fetch failed: {e}")
     years = sorted({today.year, today.year - 1 if today.month == 1 else today.year})
     try:
         merged, failed = nse_corporate_actions.fetch(dcfg.corporate_actions, root, years[0], years[-1])

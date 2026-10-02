@@ -1,0 +1,21 @@
+# M68 (docs/research/m68.md): equal decision-day tranches of the sleeves below, never rebalanced against each other.
+name: blend
+version: m68_early_top20_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m58_early_top20.yaml
+      config_hash: e798e25e510bb3a622a6797698b2dce8ed01e57536703bf33c1694290e6bd792
+      weight: 0.25
+    - config: strategies/momentum/configs/m58_early_top20_off5.yaml
+      config_hash: c8032e479716221a5ec5045e35124fcff7539ba35098eb547d95c5e89ec1922e
+      weight: 0.25
+    - config: strategies/momentum/configs/m58_early_top20_off10.yaml
+      config_hash: d637ae34d1d5c667fb8d2f79ee20277092b982235eb54e61f756004efa8d4a94
+      weight: 0.25
+    - config: strategies/momentum/configs/m58_early_top20_off15.yaml
+      config_hash: a3dbef7c359d1186ee54a5822e4f852ba4bd691da3666c853c22a4262f661401
+      weight: 0.25
+  initial_capital: 1000000

@@ -1,0 +1,25 @@
+# DRAFT, not deployed (docs/research/m44.md): momentum_top40_gold_deliv.yaml with the M44 safety rule (no picks whose
+# 252-row window holds a trading gap over 30 days). Neutral in the backtest (dev run 20261001-215953-adb65d7f: 28.64%
+# CAGR / 31.39% max DD / Calmar 0.912 vs the pin's 0.913); the recommended draft of the two. Runs only if the user
+# approves (then set start to the next month-end and add a timer). Needs the delivery files on the machine. Params and
+# market costs come from the strategy config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_top40_gold_deliv_gap
+strategy_config: strategies/momentum/configs/m44_gap30_deliv40_gold20_b2.yaml
+strategy_config_hash: adb65d7f9dc11a1db7d448be2db2f6b712b9eb664bd931f50cb675ca62f32369
+# The linked daily data plus delivery files.
+data_config: configs/data/nse_daily_delivery.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

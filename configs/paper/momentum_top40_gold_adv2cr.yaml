@@ -1,0 +1,26 @@
+# DRAFT, not deployed (docs/research/m33.md): the M19 gold book (40 names, inverse-vol over 126 sessions, GOLDBEES at
+# 20%) with the liquidity floor lowered from ₹5 crore to ₹2 crore of 50-session average daily turnover. Runs only if the
+# user approves (then set start to the next month-end and add a timer). Dev run 20261001-135135-a38245bf (pin
+# momentum/m33_adv2cr_gold20_b2): 26.81% CAGR / 30.99% max DD / Calmar 0.865; passed offsets, 25 bps, bootstrap and
+# capacity (~₹2 crore). Thinner names: place limit orders near the open. Params and market costs come from the strategy
+# config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_top40_gold_adv2cr
+strategy_config: strategies/momentum/configs/m33_adv2cr_gold20_b2.yaml
+strategy_config_hash: a38245bfaba819f8d0152c300e1718db4b53fa3d0e01c3a81022c3811b60b3e6
+# The linked daily data, as in its reference runs: a held name follows a symbol rename.
+data_config: configs/data/nse_daily_linked.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

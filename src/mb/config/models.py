@@ -5,7 +5,7 @@ import re
 from datetime import date
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Strict(BaseModel):
@@ -113,6 +113,15 @@ class BhavcopySource(Strict):
     request_sleep_s: float
 
 
+class DeliverySource(Strict):
+    # M40: NSE security-wise delivery position files (`sources/nse_delivery.py`).
+    raw_dir: str
+    archive_base_url: str
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
+
+
 class CorporateActionsSource(Strict):
     raw_file: str
     coverage_file: str
@@ -155,6 +164,20 @@ class DataConfig(Strict):
     corporate_actions: CorporateActionsSource
     adjustment: AdjustmentConfig
     checks: ChecksConfig
+
+
+class DataConfigM14(DataConfig):
+    # M14 (docs/research/m14.md): before adjustment, an old symbol's bars take the later symbol its ISIN moved to, so a
+    # renamed stock keeps its history. A subclass, so existing data configs keep their model and hash.
+    link_renames_by_isin: bool
+    # A link is refused when the old symbol's last bar is more than this many calendar days before the new one's first.
+    rename_max_gap_days: int = Field(ge=0)
+
+
+class DataConfigM40(DataConfigM14):
+    # M40 (docs/research/m40.md): the panel gains `deliv_qty`, the session's deliverable quantity (null when NSE
+    # published none for that symbol and series). A subclass, so existing data configs keep their model and hash.
+    delivery: DeliverySource
 
 
 class CalendarSource(Strict):

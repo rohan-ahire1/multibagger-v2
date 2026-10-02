@@ -1,0 +1,64 @@
+# M63 (docs/research/m63.md): m61_early_rot_top20_off15 with rotation lookbacks 63, 126, 252. Was:
+# M61 (docs/research/m61.md): m59_early_rot_off15 with top_n and hold_rank_max 20. Was:
+# M59 (docs/research/m59.md): m48_early_b_off15 with the M27 book-or-gold rotation instead of fixed gold. Was:
+# M48 (docs/research/m48.md): early window, lookback 273, skip 14, top 25, delivery drop 0.80, gold 0.25, ivol 84, ADV 10000000, offset 15. Was:
+# M40 (docs/research/m40.md): the pin on 01c, dropping the eligible two-fifths with the lowest delivery share. Was:
+# M33 (docs/research/m33.md): m31_gold20_invvol_b2 with min_adv_inr 20000000. Was:
+# M31 (docs/research/m31.md): m19_gold20_invvol_b2 on nse_research@2026-10-01 (18 missing corporate actions, 3 manual fixes applied). Was:
+# M19 (docs/research/m19.md): m16_invvol_b2 with GOLDBEES held at 0.20 of equity, topped up at each rebalance.
+# M16 (docs/research/m16.md): m15b_invvol_off0_b2 on nse_research@2026-09-30c (26 corporate-action corrections). Was:
+# M15 amendment (docs/research/m15.md): m14_linked_invvol_b2 on nse_research@2026-09-30b (four demerger/dividend overrides). Was:
+# M14 (docs/research/m14.md): the M13 config on the rename-linked dataset. M13, book 2 (40 names, pin m8_top40_stocks_dev_f): inverse-vol weights over 126 sessions (m11_invvol_b2), funds dropped by symbol.
+name: momentum
+version: m63_early_rot_top20_l3_off15
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 10000000
+    adv_window_sessions: 50
+    exclude_fund_units: true
+    fund_units_by_symbol: true
+    delivery_drop_frac: 0.80
+  ranking:
+    lookback_sessions: 273
+    skip_sessions: 14
+    score: return_over_vol
+    second_lookback_sessions: null
+    high_window_sessions: null
+    residual_beta_sessions: null
+    residual_benchmark_symbol: NIFTYBEES
+    frog_candidates_per_slot: null
+    max_filter_frac: null
+    max_window_sessions: 21
+    order: score
+  portfolio:
+    top_n: 20
+    hold_rank_max: 20
+    resize_held: true
+    max_per_sector: null
+    weighting: inverse_vol
+    inverse_vol_sessions: 84
+    min_momentum: null
+    fixed_weights: {}
+    fixed_trend_sessions: null
+    rotation: {assets: [GOLDBEES], lookbacks_sessions: [63, 126, 252], top_k: 1, cash_floor: false}
+    vol_states: null
+  regime:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+    risk_off_gross: 0.0
+  sizing:
+    vol_target_annual: null
+    vol_benchmark_symbol: NIFTYBEES
+    vol_window_sessions: 63
+  schedule:
+    decision_offset_sessions: 15
+  exits:
+    stop_loss_frac: null
+    book_stop_frac: null
+  initial_capital: 1000000

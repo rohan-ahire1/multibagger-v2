@@ -1,0 +1,21 @@
+# M100 (docs/research/m100.md): g10gt_r50g_jr tranches at 25 bps.
+name: blend
+version: m100_g10gt_r50g_jr_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_slip25_b2.yaml
+      config_hash: 2e479775cd890e41d54f7372efd7534d54be93f4a51f04b477a09dd27e0ca8d9
+      weight: 0.25
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_off5_slip25_b2.yaml
+      config_hash: 1bb115012bf575be269a106c16e76d395b6fb0d2beb034d9edd788c9393e606b
+      weight: 0.25
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_off10_slip25_b2.yaml
+      config_hash: d376746080041da7634c6e50fb1e08fbd36ec8ba866dc87f2581279cb6c2fc54
+      weight: 0.25
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_off15_slip25_b2.yaml
+      config_hash: 9fef55d4a8f420b0d4e23592077a626bc0325c84fd140e3e4fb1d36d85d26ade
+      weight: 0.25
+  initial_capital: 1000000

@@ -1,0 +1,18 @@
+# M67 (docs/research/m67.md): a third each of the three lookback sleeves below.
+name: blend
+version: m67_early_ens_off5
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m67_early_lb189_off5.yaml
+      config_hash: efd12b998c29b807b02a2a0dde2b40c78cd2a2f11722d25037d59a7c07a49f34
+      weight: 0.3333333333333333
+    - config: strategies/momentum/configs/m48_early_b_off5.yaml
+      config_hash: 43b06c21e781c182842db4275b9dc5c3e0365482f4b79e639b42c3eeed11da9f
+      weight: 0.3333333333333333
+    - config: strategies/momentum/configs/m67_early_lb378_off5.yaml
+      config_hash: 75b1e44b69887deffc6ebca7176c82eaf232f6b742bb409048a02d5cadfb38cd
+      weight: 0.3333333333333333
+  initial_capital: 1000000

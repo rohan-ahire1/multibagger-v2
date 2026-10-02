@@ -1,0 +1,11 @@
+# Five minutes after mb-paper-top40.timer; the shared lock makes it wait if that run is still going.
+[Unit]
+Description=multibagger paper trading daily job (momentum_b_top25_gold25_jr_gap)
+
+[Timer]
+OnCalendar=Mon..Fri 19:55 Asia/Kolkata
+OnCalendar=Mon..Fri 23:25 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

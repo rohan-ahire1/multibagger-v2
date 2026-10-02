@@ -10,6 +10,9 @@ Each session after the book's last one is processed in order:
 
 A session with a problem (an unexplained price jump on a held or picked name) is not committed: the book stays at the
 session before it, and the next run retries once the data is fixed.
+
+On a dataset built with `link_renames_by_isin` (M14), a renamed stock's bars all carry its later symbol, so a position
+and pending orders under the old symbol move to the later one first (step 0).
 """
 from __future__ import annotations
 
@@ -26,11 +29,12 @@ from mb.config.loader import Resolved
 from mb.config.models import PaperConfig
 from mb.data import datasets
 from mb.live import calendar
-from mb.strategy.momentum.params import Params, ParamsM8
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM32, ParamsM40, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103
 from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
                  "adj_factor")
+DELIVERY_COLUMNS = ("volume", "deliv_qty")  # read by the M40 delivery filter
 APPLIED_MATCHES = ("matched", "applied_small")
 _EPS = 1e-9
 
@@ -78,9 +82,16 @@ class DataView:
     """What the book reads from one dataset version."""
     ref: str
     panel_sha256: str
-    panel: pl.DataFrame                     # PANEL_COLUMNS
+    panel: pl.DataFrame                     # panel_columns(params)
     share_mult: dict[tuple[date, str], float]  # (session, symbol) -> price multiplier of applied share-count events
     jumps: pl.DataFrame                     # symbol, date, ratio
+    # old symbol -> [(first session of the later symbol, final symbol)]: the old symbol's rows before that session
+    # carry the final symbol. Empty unless the dataset links renames.
+    renames: dict[str, list[tuple[date, str]]] = field(default_factory=dict)
+
+    def renamed(self, sym: str, as_of: date) -> str:
+        """The symbol that `sym`, as it was known on `as_of`, carries in this dataset."""
+        return next((to for before, to in self.renames.get(sym, []) if as_of < before), sym)
 
 
 def check_supported(p: Params) -> None:
@@ -92,29 +103,91 @@ def check_supported(p: Params) -> None:
                          ("sizing.vol_target_annual", p.sizing.vol_target_annual)) if v is not None]
     if not p.portfolio.resize_held:
         on.append("portfolio.resize_held: false")
+    if isinstance(p, ParamsM10):  # they read more history than `history_rows` loads
+        on += [k for k, v in (("ranking.high_window_sessions", p.ranking.high_window_sessions),
+                              ("ranking.residual_beta_sessions", p.ranking.residual_beta_sessions),
+                              ("ranking.frog_candidates_per_slot", p.ranking.frog_candidates_per_slot)) if v is not None]
+    if isinstance(p, ParamsM11):
+        if p.schedule.decision_offset_sessions:
+            on.append("schedule.decision_offset_sessions")
+        if p.exits.stop_loss_frac is not None:
+            on.append("exits.stop_loss_frac")
+    if isinstance(p, ParamsM12):
+        on += [k for k, v in (("ranking.max_filter_frac", p.ranking.max_filter_frac),
+                              ("portfolio.min_momentum", p.portfolio.min_momentum)) if v is not None]
+    if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
+        on.append("exits.book_stop_frac")
+    if isinstance(p, ParamsM22) and p.portfolio.fixed_trend_sessions is not None:
+        on.append("portfolio.fixed_trend_sessions")
+    if isinstance(p, ParamsM27) and p.portfolio.rotation is not None:
+        on.append("portfolio.rotation")
+    if isinstance(p, ParamsM32) and p.portfolio.vol_states is not None:
+        on.append("portfolio.vol_states")
+    if isinstance(p, ParamsM46) and p.schedule.every_months != 1:
+        on.append("schedule.every_months")
+    if isinstance(p, ParamsM53) and p.universe.abnormal_delivery is not None:
+        on.append("universe.abnormal_delivery")
+    if isinstance(p, ParamsM55) and p.ranking.return_part != "total":
+        on.append("ranking.return_part")
+    if isinstance(p, ParamsM57) and p.schedule.every_sessions is not None:
+        on.append("schedule.every_sessions")
+    if isinstance(p, ParamsM75) and p.exits.stop_proceeds_to is not None:
+        on.append("exits.stop_proceeds_to")
+    if isinstance(p, ParamsM76):
+        on += [k for k, v in (("exits.stop_trailing", p.exits.stop_trailing),
+                              ("exits.stop_vol_sessions", p.exits.stop_vol_sessions is not None)) if v]
+    if isinstance(p, ParamsM79) and p.exits.stop_market_symbol is not None:
+        on.append("exits.stop_market_symbol")
+    if isinstance(p, ParamsM81) and p.exits.stop_respread:
+        on.append("exits.stop_respread")
+    if isinstance(p, ParamsM82) and p.exits.stop_reentry:
+        on.append("exits.stop_reentry")
+    # M106: regime.risk_off_symbol (the M89 gold switch) is supported: targets() puts the risk-off share in it.
+    if isinstance(p, ParamsM97) and p.regime.extra_benchmark_symbols:
+        on.append("regime.extra_benchmark_symbols")
+    if isinstance(p, ParamsM99) and p.regime.breadth_min_frac is not None:
+        on.append("regime.breadth_min_frac")
+    if isinstance(p, ParamsM103) and p.regime.band_frac is not None:
+        on.append("regime.band_frac")
     if on:
-        raise ValueError(f"paper trading does not support these M8 options yet: {', '.join(on)}")
+        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32/M46/M53/M55/M57/M75/M76/M79/M81/M82/M89/M97/M99/M103 options yet: {', '.join(on)}")
+
+
+def panel_columns(p: Params) -> tuple[str, ...]:
+    """The panel columns the book reads: PANEL_COLUMNS, plus volume and delivery when the M40 filter is on (M43)."""
+    on = isinstance(p, ParamsM40) and p.universe.delivery_drop_frac is not None
+    return PANEL_COLUMNS + (DELIVERY_COLUMNS if on else ())
 
 
 def history_rows(p: Params) -> int:
     """Rows per symbol the strategy reads before a date: every window is a per-symbol shift or rolling over rows."""
-    return max(p.ranking.lookback_sessions, p.universe.adv_window_sessions, p.regime.sma_sessions if p.regime.enabled else 0)
+    inv = p.portfolio.inverse_vol_sessions if isinstance(p, ParamsM11) and p.portfolio.weighting == "inverse_vol" else 0
+    return max(p.ranking.lookback_sessions, p.universe.adv_window_sessions, p.regime.sma_sessions if p.regime.enabled else 0, inv)
 
 
 def load_view(root: Path, ref: str, start: date, p: Params) -> DataView:
     """Rows from `start` on, plus each symbol's last `history_rows` rows before it (targets are then unchanged)."""
     path = datasets.dataset_path(root, ref)
     manifest = datasets.read_manifest(path)
-    scan = pl.scan_parquet(path / datasets.PANEL_FILE).select(PANEL_COLUMNS)
-    before = scan.filter(pl.col("date") < start).sort("symbol", "date").group_by("symbol", maintain_order=True).tail(history_rows(p)).select(PANEL_COLUMNS)
+    cols = panel_columns(p)
+    have = pl.scan_parquet(path / datasets.PANEL_FILE).collect_schema().names()
+    if lacking := [c for c in cols if c not in have]:
+        raise ValueError(f"dataset {ref} has no {', '.join(lacking)}; the M40 delivery filter needs a data config with a "
+                         "delivery section")
+    scan = pl.scan_parquet(path / datasets.PANEL_FILE).select(cols)
+    before = scan.filter(pl.col("date") < start).sort("symbol", "date").group_by("symbol", maintain_order=True).tail(history_rows(p)).select(cols)
     panel = pl.concat([before, scan.filter(pl.col("date") >= start)]).sort("symbol", "date").collect()
     # Price-only actions (rights, demergers) do not change the share count; their step is paid out as cash.
     m = pl.read_parquet(path / "ca_matches.parquet").filter(pl.col("status").is_in(APPLIED_MATCHES) & pl.col("adjusts_volume"))
     mult: dict[tuple[date, str], float] = {}
     for d, s, e in m.select("effective_date", "symbol", "expected").iter_rows():
         mult[(d, s)] = mult.get((d, s), 1.0) * e
+    renames: dict[str, list[tuple[date, str]]] = {}
+    if (path / "rename_links.parquet").exists():
+        for old, before, final in pl.read_parquet(path / "rename_links.parquet").sort("before").select("old", "before", "final").iter_rows():
+            renames.setdefault(old, []).append((before, final))
     return DataView(ref, manifest["outputs"][datasets.PANEL_FILE]["sha256"], panel, mult,
-                    pl.read_parquet(path / "unexplained_jumps.parquet"))
+                    pl.read_parquet(path / "unexplained_jumps.parquet"), renames)
 
 
 # --- store ----------------------------------------------------------------------------------------------------------
@@ -188,6 +261,34 @@ def _session_bars(view: DataView, sessions: list[date]) -> dict[date, dict[str, 
         if d in out:
             out[d][s] = (o, c, fa, pc, pf)
     return out
+
+
+def _renames(book: Book, view: DataView, notes: list[str]) -> list[dict]:
+    """Moves positions bought, and orders decided, under a symbol that this dataset has relabelled."""
+    done: list[dict] = []
+    for sym in sorted(book.positions):
+        to = view.renamed(sym, book.positions[sym].entry)
+        if to == sym:
+            continue
+        pos = book.positions.pop(sym)
+        if to in book.positions:  # cannot happen for a clean link; kept whole rather than dropped
+            have = book.positions[to]
+            have.shares += pos.shares
+            have.paid += pos.paid
+            have.received += pos.received
+            have.entry = min(have.entry, pos.entry)
+            notes.append(f"{sym} -> {to}: merged into an existing position")
+        else:
+            book.positions[to] = pos
+        done.append({"symbol": to, "kind": "rename", "from": sym, "shares": pos.shares})
+    if book.pending:
+        decided = date.fromisoformat(book.pending["decided"])
+        for o in book.pending["orders"]:
+            to = view.renamed(o["symbol"], decided)
+            if to != o["symbol"]:
+                done.append({"symbol": to, "kind": "rename_order", "from": o["symbol"], "side": o["side"]})
+                o["symbol"] = to
+    return done
 
 
 def _corporate_actions(book: Book, s: date, bars: dict[str, tuple], view: DataView, notes: list[str]) -> list[dict]:
@@ -281,17 +382,19 @@ def _fill(book: Book, s: date, bars: dict[str, tuple], costs: Costs, notes: list
     return fills, closed
 
 
-def _orders(book: Book, s: date, picks: dict[str, float], gross: float, bars: dict[str, tuple], costs: Costs) -> list[dict]:
+def _orders(book: Book, s: date, picks: dict[str, float], gross: float, bars: dict[str, tuple], costs: Costs,
+            last: dict[str, float] | None = None) -> list[dict]:
     """Whole-share orders that move the book to the target, sized off this close. Integer rounding leaves a small band
     where a held name is not traded: it is sold down only above floor(goal / close) shares and bought up only below
-    floor(goal / cost-loaded close)."""
+    floor(goal / cost-loaded close). A fixed-weight symbol (M19) that did not trade this session is sized off its last
+    close (`last`); ranked picks always have a bar."""
     equity = book.equity()
     total = sum(picks.values())
     out: list[dict] = []
     for sym in sorted(set(book.positions) - set(picks)):
         out.append({"symbol": sym, "side": "sell", "shares": book.positions[sym].shares, "ref_price": book.positions[sym].last_close})
     for sym in sorted(picks):
-        ref = bars[sym][1]
+        ref = bars[sym][1] if sym in bars else (last or {})[sym]
         goal = equity * gross * picks[sym] / total if total > 0 else 0.0
         held = book.positions[sym].shares if sym in book.positions else 0
         hi, lo = math.floor(goal / ref), math.floor(goal / costs.buy(ref))
@@ -334,7 +437,7 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
         work = Book.from_json(json.loads(json.dumps(book.to_json())))  # a session commits whole or not at all
         notes: list[str] = []
         bars = bars_by_day[s]
-        ca = _corporate_actions(work, s, bars, view, notes)
+        ca = _renames(work, view, notes) + _corporate_actions(work, s, bars, view, notes)
         fills, closed = _fill(work, s, bars, costs, notes)
         for sym, pos in work.positions.items():
             if sym in bars:
@@ -357,10 +460,16 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
             lo = all_days[max(0, i - p.ranking.lookback_sessions)]
             blocks += _jump_blocks(view, set(picks), lo, s)
             if not blocks:
-                orders = _orders(work, s, picks, gross, bars, costs)
+                last = {k: v for k, v in cut.filter(pl.col("symbol").is_in(sorted(set(picks) - set(bars))))
+                        .sort("date").group_by("symbol").agg(pl.col("close").last()).iter_rows()}
+                orders = _orders(work, s, picks, gross, bars, costs, last)
                 work.pending = {"decided": s.isoformat(), "orders": [{k: o[k] for k in ("symbol", "side", "shares")}
                                                                      for o in orders]}
                 decision = {"picks": sorted(picks), "gross": gross, "equity_at_close": work.equity(), "orders": orders}
+                fixed = isinstance(p, ParamsM19) and bool(p.portfolio.fixed_weights)
+                if isinstance(p, ParamsM11) and (p.portfolio.weighting != "equal" or fixed):  # equal-weight records keep their shape
+                    total = sum(picks.values())
+                    decision["weights"] = {k: picks[k] / total for k in sorted(picks)}
         if blocks:
             raise Blocked(s, blocks)
 

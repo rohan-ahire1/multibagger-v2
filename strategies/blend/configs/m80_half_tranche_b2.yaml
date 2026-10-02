@@ -1,0 +1,33 @@
+# M80 (docs/research/m80.md): half blend in four tranches.
+name: blend
+version: m80_half_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m80_t20s10_b2.yaml
+      config_hash: 5bd05509a17dde7db5b2d99ab424c64bd7353828f7b73cda463fda337c7171fb
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_t20s10_off5_b2.yaml
+      config_hash: e965621f9a5ebbfe863aa7a631671172609069d844b44f60f080b2bbe0be9b2d
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_t20s10_off10_b2.yaml
+      config_hash: 4ae553211901b09252556c17b682f0ce207b07c0bf6e13d2d3cfc736b7458276
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_t20s10_off15_b2.yaml
+      config_hash: 57740af6295dd8894e97bf0e5f331efb9c50549780b585c923b6e0b6815765d6
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_rot_t20s10_b2.yaml
+      config_hash: 592903250d754806011d07a7cdca84fb9b71ff6edf3d537f3c7f3a228f598785
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_rot_t20s10_off5_b2.yaml
+      config_hash: 8da350051776e49ebbbd1c07e4e4301381c6c48d5e873bf7560911ddef07d6c1
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_rot_t20s10_off10_b2.yaml
+      config_hash: 9f78e43bf5269f64cf064d7108d6fa1a39c3151b20bd3e53ccdc55f68aa31122
+      weight: 0.125
+    - config: strategies/momentum/configs/m80_rot_t20s10_off15_b2.yaml
+      config_hash: cefe4d8880097f2c6ff63358a03e672d364aa08f7ea67a3b7054481d9359b35e
+      weight: 0.125
+  initial_capital: 1000000

@@ -1,0 +1,21 @@
+# M28 (docs/research/m28.md): the gold20 pin in four 25% tranches at decision offsets 0, 5, 10, 15.
+name: blend
+version: m28_gold20_tranche_b2
+dataset: nse_research@2026-09-30c
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m19_gold20_invvol_b2.yaml
+      config_hash: 5f07ff7ac7399917801d0e1f798b3c2c1d7148ecc5d1641f73572c9d206c7295
+      weight: 0.25
+    - config: strategies/momentum/configs/m19_gold20_invvol_off5_b2.yaml
+      config_hash: 17d73b84a8595df449bd82ddf13e831ef0ca0e6fb3de0301ba62763022d9d82a
+      weight: 0.25
+    - config: strategies/momentum/configs/m19_gold20_invvol_off10_b2.yaml
+      config_hash: f77125b48709d89015a2e99ea7c6d32a7ccd429c8b21eb0187567b3e740da7bb
+      weight: 0.25
+    - config: strategies/momentum/configs/m19_gold20_invvol_off15_b2.yaml
+      config_hash: f262f676def4847bf15cf142ba2437bee274dce32e28ded7580af3d366233045
+      weight: 0.25
+  initial_capital: 1000000

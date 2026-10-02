@@ -1,0 +1,33 @@
+# M78 (docs/research/m78.md): 50% m74_g10s10_b2 family + 50% rotation with a 10% stop, tranches, 2007-09.
+name: blend
+version: m78_early_half_g10s10_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m74_early_g10s10.yaml
+      config_hash: 289f3b6a22a0982f5445c69fbfa15b901a6eafea85b2b20e5a2b7d32a52fd4ff
+      weight: 0.125
+    - config: strategies/momentum/configs/m74_early_g10s10_off5.yaml
+      config_hash: 61a98be1968bd8494dfb827c3faf18bd44d666f76ae64452a5aabc387efe1574
+      weight: 0.125
+    - config: strategies/momentum/configs/m74_early_g10s10_off10.yaml
+      config_hash: aba5040d8401ad7c3f63c4180fcadcbb54cca1dbee3870c8ffc63643c70608ac
+      weight: 0.125
+    - config: strategies/momentum/configs/m74_early_g10s10_off15.yaml
+      config_hash: e0536e51693d76d70737ef2bdae29e9716a93a17386ffecbcb99d20eec00e0be
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10.yaml
+      config_hash: 6941c98e9a7f6e0320ce191deb05c3fba5425b007f4853a43af16bce7d50dfa2
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10_off5.yaml
+      config_hash: 64c9fa618cf66051a686c22c4d66a980c93a50c1fceb8ca64881b3e6be004bed
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10_off10.yaml
+      config_hash: bdff0ce043e837b02c3e03d9ef775bb5bf2406ed77f1d08de79729d131e4468d
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_early_rot_s10_off15.yaml
+      config_hash: d9a795a412008bfcf6b87bcf0fc24f711a074724a9eac812d866c8e8161fc05d
+      weight: 0.125
+  initial_capital: 1000000

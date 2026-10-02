@@ -1,0 +1,21 @@
+# M36 (docs/research/m36.md): ₹2 crore book-or-gold rotation in four 25% tranches at decision offsets 0, 5, 10, 15.
+name: blend
+version: m36_rot_tranche_b2
+dataset: nse_research@2026-10-01b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m36_rot_adv2cr_b2.yaml
+      config_hash: 2b0102aa71ea63d1bc8331ad01daaa27c601d8701fe017ab119175d5cbb8af79
+      weight: 0.25
+    - config: strategies/momentum/configs/m36_rot_adv2cr_off5_b2.yaml
+      config_hash: ac69aac2c77967c873e90f67ada2555dadcaec7f55e971748ae8e83a015ed92c
+      weight: 0.25
+    - config: strategies/momentum/configs/m36_rot_adv2cr_off10_b2.yaml
+      config_hash: ecd34df3a3a8dae6d2b218e094ce998d23c1f088d3e0d9eac75bbcdd4da95eab
+      weight: 0.25
+    - config: strategies/momentum/configs/m36_rot_adv2cr_off15_b2.yaml
+      config_hash: 9aa332b82d73c5a2c4a376724205b0aeb14045f3eb3bd45c890bc5aab88744c7
+      weight: 0.25
+  initial_capital: 1000000

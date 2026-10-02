@@ -1,0 +1,21 @@
+# M103 (docs/research/m103.md): band1_r50g_jr tranches, 2007-09.
+name: blend
+version: m103_early_band1_r50g_jr_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m103_early_band1_r50g_jr.yaml
+      config_hash: 5fe8085347a4f5333cf71eac569e2c74a3c16a1e16502c212317fbf07e1a402a
+      weight: 0.25
+    - config: strategies/momentum/configs/m103_early_band1_r50g_jr_off5.yaml
+      config_hash: 3d54bd00f234270cb522f8c88af8e52cc3afcf6c1f637ac31e33d512274dff9b
+      weight: 0.25
+    - config: strategies/momentum/configs/m103_early_band1_r50g_jr_off10.yaml
+      config_hash: 61239e4321d44d581f7be8a731d32a0134d923759076cf0709cd1a94843274bc
+      weight: 0.25
+    - config: strategies/momentum/configs/m103_early_band1_r50g_jr_off15.yaml
+      config_hash: 4ef90ee968fc41cdc5dd964ca0891d3de06ddcd8b5ec987c45aad40efbe1f475
+      weight: 0.25
+  initial_capital: 1000000

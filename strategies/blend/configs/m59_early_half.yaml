@@ -1,0 +1,15 @@
+# M59 (docs/research/m59.md): 50% m48_early_b and 50% m59_early_rot (half-blend check).
+name: blend
+version: m59_early_half
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m48_early_b.yaml
+      config_hash: b9a5eea5c23e1f245b3c966290601ae06d0685be8e1d60a9d49ca70da216f742
+      weight: 0.5
+    - config: strategies/momentum/configs/m59_early_rot.yaml
+      config_hash: a06ab2e120b2cf8b1567128368c36132e4d41216c1b9632c2c30f7d8b30e40f6
+      weight: 0.5
+  initial_capital: 1000000

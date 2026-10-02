@@ -1,0 +1,47 @@
+# M15 amendment (docs/research/m15.md): as m15_invvol_off10_b1 on nse_research@2026-09-30b (four demerger/dividend overrides). Was: m14_linked_invvol_b1 with the decision 10 sessions before month-end. M13, book 1 (30 names, pin voladj_stocks_dev_f): inverse-vol weights over 126 sessions (m11_invvol_b1), funds dropped by symbol.
+name: momentum
+version: m13_clean_invvol_b1
+dataset: nse_research@2026-09-30b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 50000000
+    adv_window_sessions: 50
+    exclude_fund_units: true
+    fund_units_by_symbol: true
+  ranking:
+    lookback_sessions: 252
+    skip_sessions: 21
+    score: return_over_vol
+    second_lookback_sessions: null
+    high_window_sessions: null
+    residual_beta_sessions: null
+    residual_benchmark_symbol: NIFTYBEES
+    frog_candidates_per_slot: null
+    max_filter_frac: null
+    max_window_sessions: 21
+  portfolio:
+    top_n: 30
+    hold_rank_max: 30
+    resize_held: true
+    max_per_sector: null
+    weighting: inverse_vol
+    inverse_vol_sessions: 126
+    min_momentum: null
+  regime:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+    risk_off_gross: 0.0
+  sizing:
+    vol_target_annual: null
+    vol_benchmark_symbol: NIFTYBEES
+    vol_window_sessions: 63
+  schedule:
+    decision_offset_sessions: 10
+  exits:
+    stop_loss_frac: null
+  initial_capital: 1000000

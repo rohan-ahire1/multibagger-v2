@@ -101,6 +101,19 @@ def test_match_reports_event_with_no_jump():
     assert adjust.match_share_events(prices, ev, ADJ)["status"][0] == "unmatched"
 
 
+def test_manual_override_falls_back_to_the_close_when_the_open_was_before_price_discovery():
+    # Ex-date opens at the cum price less 10% and closes at a sixth: only the close fits the reviewed factor (M31).
+    closes = [600.0] * 10 + [100.0] * 10
+    opens = closes[:10] + [540.0] + closes[11:]
+    prices = pl.DataFrame({"symbol": "AAA", "date": sessions()[:20], "open": opens, "close": closes})
+    ev = pl.DataFrame({"symbol": ["AAA"], "ex_date": [sessions()[10]], "expected": [1 / 6], "sources": ["manual"]})
+    m = adjust.match_share_events(prices, ev, ADJ)
+    assert m["status"][0] == "matched" and m["effective_date"][0] == sessions()[10]
+    assert m["observed"][0] == pytest.approx(1 / 6)
+    feed = ev.with_columns(pl.lit("nse").alias("sources"))
+    assert adjust.match_share_events(prices, feed, ADJ)["status"][0] == "unmatched"  # feed events still need the open
+
+
 def test_two_events_on_one_jump_apply_once():
     prices = _prices("AAA", [100.0] * 10 + [50.0] * 10)
     ev = pl.DataFrame({"symbol": ["AAA", "AAA"], "ex_date": [sessions()[10], sessions()[9]],
@@ -134,6 +147,14 @@ def test_feed_row_moves_to_the_symbol_its_isin_traded_under():
                          "ex_date": [ss[2], ss[4], ss[2]], "action_type": ["bonus", "bonus", "split"]})
     out = resymbol_by_isin(feed, bars)
     assert out.select("symbol", "feed_symbol").rows() == [("OLDSYM", "NEWSYM"), ("NEWSYM", "NEWSYM"), ("OTHER", "OTHER")]
+
+
+def test_an_action_that_brought_a_new_isin_goes_to_the_symbol_trading_it_from_the_ex_date():
+    ss = sessions()
+    bars = pl.DataFrame({"symbol": ["OLDSYM"] * 4, "date": ss[:4],
+                         "security_id": ["isin:INE1OLD"] * 2 + ["isin:INE1NEW"] * 2})
+    feed = pl.DataFrame({"symbol": ["NEWSYM"], "isin": ["INE1NEW"], "ex_date": [ss[2]], "action_type": ["split"]})
+    assert resymbol_by_isin(feed, bars).select("symbol", "feed_symbol").rows() == [("OLDSYM", "NEWSYM")]
 
 
 def test_moved_row_does_not_double_an_action_the_bar_symbol_already_lists():

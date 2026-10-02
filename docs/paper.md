@@ -11,6 +11,14 @@ Each book has its own files, units and alerts (titled by book name). `deploy/mb-
 minutes after the first. Both jobs take the same lock, so they never download or build the shared daily dataset at the
 same time. The book refuses M8 options it cannot trade yet (second lookback, sector cap, no-resize, volatility target).
 
+## Third book (M106, from the 2026-10-30 close)
+
+`configs/paper/momentum_b_top25_gold25_jr_gap.yaml`: the adopted strategy (pin `momentum/m106_g25_jr_gap`; research in
+`docs/research/m106.md`, locked-period result in `m107.md`). Top 25 momentum stocks, 25% GOLDBEES, and half the stock
+share moved to GOLDBEES at a month-end when JUNIORBEES closes below its 200-day average. It reads
+`configs/data/nse_daily_delivery.yaml`, so its first run downloads the delivery files back to 2023. Units
+`deploy/mb-paper-jr.*`, 19:55 and 23:25 IST, same lock.
+
 ## Stocks only (changed before the start)
 
 The first books, `momentum_voladj.yaml` and `momentum_top40.yaml`, were retired on 2026-09-29 before their first session.
@@ -46,6 +54,27 @@ fix to what the book can hold, chosen before any paper result, not a tuned varia
    and a high-priority alert for any problem or crash. Silence for more than a week means the job is not running.
 
 Running it twice a day, or re-running after a fix, is safe: each session is committed once.
+
+## Symbol renames (M14)
+
+When a company changes its NSE symbol (same ISIN), `nse_daily` ends the old symbol and starts the new one with no
+history. A held name then gets no bars ("held, no trade" notes) and is sold at its last close at the next month-end,
+and the new symbol cannot be ranked for about a year. The two running books keep this behaviour, which matches their
+backtest references (`docs/research/m14.md`). The undeployed inverse-vol draft (`momentum_top40_invvol.yaml`) reads
+`configs/data/nse_daily_linked.yaml` instead: the old symbol's bars carry the new symbol, and the book moves a position
+bought (and orders decided) under the old symbol to the new one before that session's corporate actions (a `rename`
+entry in the day's `corporate_actions`). Replay maps recorded picks the same way. Built locally at the 2026-09-28 close,
+the linked daily data has 199 links since 2023 (HEG → HEGAM on 2026-09-22 is the newest), the same 144 unexplained
+jumps as `nse_daily`, and the same picks for all three books at that close.
+
+## Delivery data (M43)
+
+The M40 pin drops the eligible names with the lowest delivery share, so its book needs NSE's daily delivery file.
+`configs/data/nse_daily_delivery.yaml` is the linked daily data plus a `delivery` section: the daily job downloads
+the delivery file for any build session that lacks one (NSE can publish it after the bhavcopy; the share skips the last
+21 sessions, so a late file never moves a decision), and a new file triggers a rebuild. The undeployed draft
+`momentum_top40_gold_deliv.yaml` reads it. On the Mac, run over Feb–Jul 2026 from a scratch store, its six decisions
+equal the pin's targets on the research data and the replay passes (see `docs/research/m43.md`).
 
 ## Files (VPS, `~/projects/multibagger-v2/data/paper/<book name>/`)
 

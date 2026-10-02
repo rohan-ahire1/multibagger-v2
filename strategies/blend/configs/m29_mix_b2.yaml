@@ -1,0 +1,15 @@
+# M29 (docs/research/m29.md): 50% the gold20 pin (momentum) + 50% the low-volatility book with gold, never rebalanced.
+name: blend
+version: m29_mix_b2
+dataset: nse_research@2026-09-30c
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m19_gold20_invvol_b2.yaml
+      config_hash: 5f07ff7ac7399917801d0e1f798b3c2c1d7148ecc5d1641f73572c9d206c7295
+      weight: 0.5
+    - config: strategies/momentum/configs/m29_lowvol_gold20_b2.yaml
+      config_hash: 60f91853b4878d91a06b48312192707564228eca6d61996547f25d824c175659
+      weight: 0.5
+  initial_capital: 1000000

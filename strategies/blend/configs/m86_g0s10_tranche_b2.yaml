@@ -1,0 +1,21 @@
+# M86 (docs/research/m86.md): g0s10 in four tranches.
+name: blend
+version: m86_g0s10_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m86_g0s10_b2.yaml
+      config_hash: 77e725bf8e11bda7e13e27cc1a3849a0262981a12ce28515b7702437ae5bb9f2
+      weight: 0.25
+    - config: strategies/momentum/configs/m86_g0s10_off5_b2.yaml
+      config_hash: 86fd24922bc09c4df11d10391ae015c35113fef711b8bf5c7eca0d960fd0aaaa
+      weight: 0.25
+    - config: strategies/momentum/configs/m86_g0s10_off10_b2.yaml
+      config_hash: 21bcfaa1ffe554928b3decf0aea60231acdf034b38e396b4ca3031e67deee9ed
+      weight: 0.25
+    - config: strategies/momentum/configs/m86_g0s10_off15_b2.yaml
+      config_hash: 6e60aed9acc049c66a2a815af71454ece21ed3dc96a466284d584013199bf1ce
+      weight: 0.25
+  initial_capital: 1000000

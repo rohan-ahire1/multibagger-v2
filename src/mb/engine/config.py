@@ -13,6 +13,12 @@ class EntryRules(Strict):
     pending_bars: int          # a signal stays live for this many of the symbol's sessions after the signal date
 
 
+class EntryRulesVCP(EntryRules):
+    """VCP entries (M9). A separate model so pre-M9 configs keep their fields and hash."""
+    max_open_above_ref_pct: float   # a session opening more than this above entry_ref drops the signal (no chasing)
+    max_stop_below_fill_pct: float  # the stop is raised to fill * (1 - this) when the signal's stop is further away
+
+
 class ExitRules(Strict):
     mode: Literal["ema_hybrid", "ema10", "ema21", "hard"]
     breakeven_r: float         # close at entry + breakeven_r * initial risk lifts the stop to entry
@@ -21,6 +27,12 @@ class ExitRules(Strict):
     stagnation_bars: int       # sessions held before the stagnation test applies
     stagnation_max_mfe_r: float
     stagnation_max_open_r: float
+
+
+class ExitRulesVCP(ExitRules):
+    """Adds a simple-moving-average trail (M9): after breakeven, a close below the SMA exits at the next open."""
+    mode: Literal["ema_hybrid", "ema10", "ema21", "hard", "sma"]
+    trail_sma_sessions: int
 
 
 class SizingRules(Strict):
@@ -47,3 +59,8 @@ class EngineConfig(Strict):
     breaker: BreakerRules
     initial_capital: float
     settle_calendar_days: int  # days after period.end that are simulated so late-exiting trades close for real
+
+
+class EngineConfigVCP(EngineConfig):
+    entry: EntryRulesVCP
+    exits: ExitRulesVCP

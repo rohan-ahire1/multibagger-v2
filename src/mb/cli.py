@@ -143,6 +143,32 @@ def fetch_bhavcopy(
     typer.echo(f"downloaded {len(res['downloaded'])}, not published/holiday {len(res['missing'])}")
 
 
+@fetch_app.command("delivery")
+def fetch_delivery(
+    data_config: DataCfg,
+    start: Annotated[str, typer.Option("--from", help="First date, YYYY-MM-DD.")],
+    end: Annotated[str, typer.Option("--to", help="Last date, YYYY-MM-DD.")],
+    root: Root = _ROOT,
+) -> None:
+    """Download missing delivery-position files for the sessions in the bhavcopy store. Existing files are kept."""
+    from mb.config.loader import load_data_config
+    from mb.config.models import DataConfigM40
+    from mb.sources import nse_bhavcopy, nse_delivery
+
+    try:
+        cfg, _ = load_data_config(data_config)
+        if not isinstance(cfg, DataConfigM40):
+            raise ValueError("the data config has no delivery section")
+        lo, hi = date.fromisoformat(start), date.fromisoformat(end)
+        sessions = [d for z in nse_bhavcopy.list_zips(root / cfg.bhavcopy.raw_dir)
+                    if lo <= (d := nse_bhavcopy.zip_date(z)) <= hi]
+        res = nse_delivery.fetch(cfg.delivery, root / cfg.delivery.raw_dir, sessions)
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"downloaded {len(res['downloaded'])}, not published {len(res['missing'])}: "
+               f"{[d.isoformat() for d in res['missing']][:20]}")
+
+
 @fetch_app.command("corporate-actions")
 def fetch_corporate_actions(
     data_config: DataCfg,
@@ -226,6 +252,30 @@ def paper_status(paper_config: PaperCfg, root: Root = _ROOT) -> None:
         typer.echo(daily.status(paper_config, root))
     except ConfigError as e:
         raise _fail(str(e)) from None
+
+
+vcp_app = typer.Typer(no_args_is_help=True)
+app.add_typer(vcp_app, name="vcp", help="VCP pattern tools.")
+
+
+@vcp_app.command("check")
+def vcp_check(
+    config: Annotated[Path, typer.Argument(help="VCP strategy config YAML.")],
+    sample: Annotated[int, typer.Option("--sample", help="Breakouts to chart.")] = 30,
+    seed: Annotated[int, typer.Option("--seed", help="Random seed for the sample.")] = 1,
+    root: Root = _ROOT,
+) -> None:
+    """Funnel and sampled breakout charts, drawn up to the breakout day (no returns) -> reports/vcp-check/<version>/."""
+    from mb.strategy.vcp import check
+
+    try:
+        cfg = load_strategy_config(config, root)
+        enforce_lock(cfg, False)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    page = check.write(cfg, root, root / "reports" / "vcp-check" / cfg.strategy.version, sample, seed)
+    typer.echo(page.with_name("funnel.md").read_text())
+    typer.echo(f"charts {page}")
 
 
 @data_app.command("check")

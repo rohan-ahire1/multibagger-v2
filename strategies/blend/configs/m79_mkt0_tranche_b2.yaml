@@ -1,0 +1,21 @@
+# M79 (docs/research/m79.md): m79_mkt0 in four 25% tranches at offsets 0/5/10/15.
+name: blend
+version: m79_mkt0_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m79_mkt0_b2.yaml
+      config_hash: df5b813b453b6644bfa30fbfdf32249e5574a05b26d3eb7d8485fdb8e1f3aabe
+      weight: 0.25
+    - config: strategies/momentum/configs/m79_mkt0_off5_b2.yaml
+      config_hash: 7777d3ec05e0c25d5f710ecc5e277c55d38e916d51e8405a3621c27335a0b9e3
+      weight: 0.25
+    - config: strategies/momentum/configs/m79_mkt0_off10_b2.yaml
+      config_hash: f03aea7ab60f0351fd5a70204900921e3ba23b9b3c016839c51060d0e55dfdb5
+      weight: 0.25
+    - config: strategies/momentum/configs/m79_mkt0_off15_b2.yaml
+      config_hash: 2cd6ae58a6b0a9fc8661da4e2f863649c12f4880a360bf9589d2807d2063e04c
+      weight: 0.25
+  initial_capital: 1000000

@@ -15,7 +15,7 @@ from datetime import date
 import polars as pl
 
 from mb.config.models import MarketConfig
-from mb.engine.config import EngineConfig
+from mb.engine.config import EngineConfig, EntryRulesVCP, ExitRulesVCP
 
 SIGNAL_COLUMNS = ("symbol", "signal_date", "entry_ref", "stop", "size_mult")
 BAR_COLUMNS = ("date", "symbol", "open", "high", "low", "close")
@@ -52,6 +52,7 @@ class _Series:
     index: dict[date, int]
     ema10: list[float]
     ema21: list[float]
+    sma: list[float]      # the SMA trail's average; empty unless the exit mode is "sma"
 
 
 @dataclass
@@ -94,7 +95,20 @@ def _ema(values: list[float], span: int) -> list[float]:
     return out
 
 
-def _build_series(bars: pl.DataFrame, symbols: set[str]) -> dict[str, _Series]:
+def _sma(values: list[float], span: int) -> list[float]:
+    """Simple average of the last `span` values; 0.0 before that."""
+    out = [0.0] * len(values)
+    run = 0.0
+    for i, v in enumerate(values):
+        run += v
+        if i >= span:
+            run -= values[i - span]
+        if i >= span - 1:
+            out[i] = run / span
+    return out
+
+
+def _build_series(bars: pl.DataFrame, symbols: set[str], sma_span: int | None) -> dict[str, _Series]:
     out: dict[str, _Series] = {}
     sub = bars.filter(pl.col("symbol").is_in(list(symbols))).sort("symbol", "date")
     for g in sub.partition_by("symbol", maintain_order=True):
@@ -103,6 +117,7 @@ def _build_series(bars: pl.DataFrame, symbols: set[str]) -> dict[str, _Series]:
         out[str(g["symbol"][0])] = _Series(
             dates=dates, open=g["open"].to_list(), high=g["high"].to_list(), low=g["low"].to_list(),
             close=close, index={d: i for i, d in enumerate(dates)}, ema10=_ema(close, 10), ema21=_ema(close, 21),
+            sma=_sma(close, sma_span) if sma_span else [],
         )
     return out
 
@@ -157,7 +172,9 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
         raise ValueError("breaker thresholds must satisfy half_dd <= stop_dd <= close_dd")
 
     sig_rows = signals.sort("signal_date", "symbol").to_dicts()
-    series = _build_series(bars, {r["symbol"] for r in sig_rows})
+    vcp_entry = en if isinstance(en, EntryRulesVCP) else None
+    sma_span = ex.trail_sma_sessions if isinstance(ex, ExitRulesVCP) and ex.mode == "sma" else None
+    series = _build_series(bars, {r["symbol"] for r in sig_rows}, sma_span)
     calendar = sorted(bars["date"].unique().to_list())
     by_day: dict[date, list[dict]] = defaultdict(list)
     for r in sig_rows:
@@ -203,15 +220,20 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
                  sector_counts: dict[str, int], sector_values: dict[str, float]) -> str:
         """Returns 'filled', 'wait' (try again next session), or the reason the signal is dropped."""
         o, h = s.open[k], s.high[k]
+        if vcp_entry is not None and any(p.symbol == pend.symbol for p in book.positions):
+            return "skipped_held"  # one position per name
         if not (o >= pend.entry_ref or h >= pend.entry_ref):
             return "wait"
+        if vcp_entry is not None and o > pend.entry_ref * (1.0 + vcp_entry.max_open_above_ref_pct):
+            return "skipped_chase"
         fill = max(o, pend.entry_ref)
+        stop = pend.stop if vcp_entry is None else max(pend.stop, fill * (1.0 - vcp_entry.max_stop_below_fill_pct))
         budget = equity * sz.risk_per_trade * size_mult * max(0.0, pend.size_mult)
         heat = sum(p.initial_risk * p.shares for p in book.positions)
         if budget <= 0.0 or (heat + budget) / equity > sz.max_heat_pct:
             return "skipped_portfolio"
         net_entry = costs.buy(fill)
-        net_risk = net_entry - costs.sell(pend.stop)
+        net_risk = net_entry - costs.sell(stop)
         if net_risk <= 0.0:
             return "wait"
         shares = min(budget / net_risk, book.cash / net_entry, sz.max_name_pct * equity / net_entry)
@@ -228,9 +250,9 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
             return "wait"
         book.cash -= cost
         book.positions.append(_Position(
-            symbol=pend.symbol, signal_date=pend.signal_date, entry_ref=pend.entry_ref, stop=pend.stop,
-            entry_date=today, entry_price=fill, shares=shares, active_stop=pend.stop,
-            initial_risk=fill - pend.stop, mae_price=fill, mfe_price=fill,
+            symbol=pend.symbol, signal_date=pend.signal_date, entry_ref=pend.entry_ref, stop=stop,
+            entry_date=today, entry_price=fill, shares=shares, active_stop=stop,
+            initial_risk=fill - stop, mae_price=fill, mfe_price=fill,
         ))
         sector_values[sector] += cost
         sector_counts[sector] += 1
@@ -291,9 +313,9 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
                 fast = ex.mode == "ema10"
                 if ex.mode == "ema_hybrid" and pos.initial_risk > 0.0:
                     fast = peak_r >= ex.tighten_r
-                ema = s.ema10[k] if fast else s.ema21[k]
-                if ema > 0.0:
-                    pos.active_stop = max(pos.active_stop, ema)
+                trail = s.sma[k] if ex.mode == "sma" else s.ema10[k] if fast else s.ema21[k]
+                if trail > 0.0:
+                    pos.active_stop = max(pos.active_stop, trail)
             if c <= pos.active_stop:
                 pos.pending_exit = ("initial_stop" if not pos.breakeven
                                     else "breakeven_stop" if ex.mode == "hard" else f"trail_{ex.mode}")

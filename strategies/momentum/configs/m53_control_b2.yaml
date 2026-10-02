@@ -1,0 +1,63 @@
+# M53 (docs/research/m53.md): the pin m49_b_b2 with both M53-era options off (control). Was:
+# M40 (docs/research/m40.md): the pin on 01c, dropping the eligible two-fifths with the lowest delivery share. Was:
+# M33 (docs/research/m33.md): m31_gold20_invvol_b2 with min_adv_inr 20000000. Was:
+# M31 (docs/research/m31.md): m19_gold20_invvol_b2 on nse_research@2026-10-01 (18 missing corporate actions, 3 manual fixes applied). Was:
+# M19 (docs/research/m19.md): m16_invvol_b2 with GOLDBEES held at 0.20 of equity, topped up at each rebalance.
+# M16 (docs/research/m16.md): m15b_invvol_off0_b2 on nse_research@2026-09-30c (26 corporate-action corrections). Was:
+# M15 amendment (docs/research/m15.md): m14_linked_invvol_b2 on nse_research@2026-09-30b (four demerger/dividend overrides). Was:
+# M14 (docs/research/m14.md): the M13 config on the rename-linked dataset. M13, book 2 (40 names, pin m8_top40_stocks_dev_f): inverse-vol weights over 126 sessions (m11_invvol_b2), funds dropped by symbol.
+name: momentum
+version: m53_control_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 10000000
+    adv_window_sessions: 50
+    exclude_fund_units: true
+    fund_units_by_symbol: true
+    delivery_drop_frac: 0.80
+    max_gap_days: null
+    abnormal_delivery: null
+  ranking:
+    lookback_sessions: 273
+    skip_sessions: 14
+    score: return_over_vol
+    second_lookback_sessions: null
+    high_window_sessions: null
+    residual_beta_sessions: null
+    residual_benchmark_symbol: NIFTYBEES
+    frog_candidates_per_slot: null
+    max_filter_frac: null
+    max_window_sessions: 21
+    order: score
+  portfolio:
+    top_n: 25
+    hold_rank_max: 25
+    resize_held: true
+    max_per_sector: null
+    weighting: inverse_vol
+    inverse_vol_sessions: 84
+    min_momentum: null
+    fixed_weights: {GOLDBEES: 0.25}
+    fixed_trend_sessions: null
+    rotation: null
+    vol_states: null
+  regime:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+    risk_off_gross: 0.0
+  sizing:
+    vol_target_annual: null
+    vol_benchmark_symbol: NIFTYBEES
+    vol_window_sessions: 63
+  schedule:
+    decision_offset_sessions: 0
+  exits:
+    stop_loss_frac: null
+    book_stop_frac: null
+  initial_capital: 1000000

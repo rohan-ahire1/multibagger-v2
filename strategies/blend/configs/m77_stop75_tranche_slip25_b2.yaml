@@ -1,0 +1,21 @@
+# M77 (docs/research/m77.md): m77_stop75 tranches at 25 bps.
+name: blend
+version: m77_stop75_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m77_stop75_slip25_b2.yaml
+      config_hash: 5ffb55f99ec4258f4ea20e6ea10a09701dc825fd56a5b1a9e652830e40d5029a
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_stop75_off5_slip25_b2.yaml
+      config_hash: d0776d965c252f22cbae3e7a2f9ab462a453eff6d262afdc2fc4a1e2928b62b4
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_stop75_off10_slip25_b2.yaml
+      config_hash: 148191584eecaca8c20e548948d11f09cb7c6b7ae9c8c6afc961f394efa67254
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_stop75_off15_slip25_b2.yaml
+      config_hash: a62b3bdb6e1562cddf3f81e64f08b53fe7c9a1b2f985c26798d78bd0f61c7d59
+      weight: 0.25
+  initial_capital: 1000000

@@ -7,6 +7,7 @@ from pathlib import Path
 import polars as pl
 
 from mb.config.models import CorporateActionsSource
+from mb.data.renames import relabel
 
 SHARE_ACTIONS = ("split", "bonus", "face_value", "bonus_split", "rights", "demerger")
 # Adjust price only, never volume, and need an explicit `adjustment_factor` (an override row).
@@ -53,6 +54,9 @@ def load_overrides(path: Path, applied_sources: list[str]) -> pl.DataFrame | Non
 def resymbol_by_isin(feed: pl.DataFrame, bars: pl.DataFrame) -> pl.DataFrame:
     """Move each feed row to the symbol its ISIN traded under on the last session before the ex-date.
 
+    The feed lists an action under the company's current ISIN. When a split or bonus brought a new ISIN, no bars carry
+    it before the ex-date, so the row goes to the symbol that ISIN first traded under from the ex-date on.
+
     Adds `feed_symbol` (the symbol the feed used). A moved row is dropped if the target symbol already lists the same
     action type on that date, so a company listed under both symbols is not adjusted twice.
     """
@@ -63,27 +67,34 @@ def resymbol_by_isin(feed: pl.DataFrame, bars: pl.DataFrame) -> pl.DataFrame:
     keyed = (feed.with_row_index("_i").with_columns((pl.col("ex_date") - pl.duration(days=1)).alias("_before"))
              .sort("_before")
              .join_asof(listed, on="_before", by="isin", strategy="backward", check_sortedness=False)
+             .with_columns(pl.col("ex_date").alias("_from")).sort("_from")
+             .join_asof(listed.rename({"_before": "_from", "_bar_symbol": "_new_isin_symbol"}), on="_from", by="isin",
+                        strategy="forward", check_sortedness=False)
              .sort("_i")
              .with_columns(pl.col("symbol").alias("feed_symbol"),
-                           pl.coalesce("_bar_symbol", "symbol").alias("symbol")))
+                           pl.coalesce("_bar_symbol", "_new_isin_symbol", "symbol").alias("symbol")))
     moved = keyed.filter(pl.col("symbol") != pl.col("feed_symbol"))
     native = keyed.filter(pl.col("symbol") == pl.col("feed_symbol"))
     moved = moved.join(native.select("symbol", "ex_date", "action_type").unique(),
                        on=["symbol", "ex_date", "action_type"], how="anti")
-    return pl.concat([native, moved]).sort("_i").drop("_i", "_before", "_bar_symbol")
+    return pl.concat([native, moved]).sort("_i").drop("_i", "_before", "_bar_symbol", "_from", "_new_isin_symbol")
 
 
-def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date, bars: pl.DataFrame) -> pl.DataFrame:
+def load_actions(cfg: CorporateActionsSource, root: Path, max_date: date, bars: pl.DataFrame,
+                 links: pl.DataFrame | None = None) -> pl.DataFrame:
     """Feed + overrides, share actions and dividends only, ex-dated on or before `max_date`.
 
     Feed rows are re-keyed to bar symbols first (when `resymbol_by_isin`); overrides are written against bar symbols.
     Price-only actions come from overrides alone: the feed has no factor for them.
     An override states the total multiplier for its symbol-date, so it replaces every feed row there.
     Actions after the last price date belong to a later build.
+    `links` (M14 rename links): overrides written against an old symbol move to its later symbol, as its bars did.
     """
     feed = pl.read_parquet(root / cfg.raw_file).filter(~pl.col("action_type").is_in(PRICE_ONLY_ACTIONS))
     feed = resymbol_by_isin(feed, bars) if cfg.resymbol_by_isin else feed.with_columns(pl.col("symbol").alias("feed_symbol"))
     overrides = load_overrides(root / cfg.overrides_file, cfg.applied_override_sources)
+    if overrides is not None and links is not None:
+        overrides = relabel(overrides, links, "ex_date")
     if overrides is not None:
         feed = feed.join(overrides.select("symbol", "ex_date").unique(), on=["symbol", "ex_date"], how="anti")
         overrides = overrides.with_columns(

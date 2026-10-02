@@ -1,0 +1,21 @@
+# M96 (docs/research/m96.md): r50g_jr_sma250 in four tranches.
+name: blend
+version: m96_r50g_jr_sma250_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m96_r50g_jr_sma250_b2.yaml
+      config_hash: aff50da87569f2bc5a1df592d0950547470c4557d926930fcb7e57ce709ab237
+      weight: 0.25
+    - config: strategies/momentum/configs/m96_r50g_jr_sma250_off5_b2.yaml
+      config_hash: d540f04e1c9cbfe051ca19797aba2273d94fcadaf47ea9a60beecb4eecc7d2c8
+      weight: 0.25
+    - config: strategies/momentum/configs/m96_r50g_jr_sma250_off10_b2.yaml
+      config_hash: fa0d992ebf9e323971dc715317ad61b68174c405a62c17b53993ce8a187f6950
+      weight: 0.25
+    - config: strategies/momentum/configs/m96_r50g_jr_sma250_off15_b2.yaml
+      config_hash: e0be938790323394331b8627f0690a64145efa9204a91ca5295ccecc7f53e4fc
+      weight: 0.25
+  initial_capital: 1000000

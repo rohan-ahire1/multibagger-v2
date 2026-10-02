@@ -1,0 +1,69 @@
+# M9 VCP (docs/research/m8_vcp.md, draft numbers accepted 2026-09-29): Minervini's volatility contraction pattern from
+# price and volume only. Development period only; the pattern check (`mb vcp check`) comes before any backtest.
+name: vcp
+version: vcp_dev
+dataset: nse_research@2026-09-29e
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 50000000
+    adv_window_sessions: 50
+    min_history_sessions: 252
+  trend:
+    sma_fast: 50
+    sma_mid: 150
+    sma_slow: 200
+    sma_slow_rising_sessions: 21
+    range_sessions: 252
+    min_above_low_pct: 0.30
+    max_below_high_pct: 0.25
+    min_rs_rank: 70
+  rs:
+    lookbacks: [63, 126, 189, 252]
+    weights: [0.4, 0.2, 0.2, 0.2]
+  swings:
+    sessions_each_side: 5
+  base:
+    max_sessions: 325
+    min_sessions: 15
+    min_contractions: 2
+    max_contractions: 6
+    max_first_depth: 0.35
+    max_last_depth: 0.10
+    max_last_to_first_depth: 0.67
+    min_pivot_to_base_high: 0.85
+  volume:
+    avg_sessions: 50
+    max_quiet_day_to_avg: 0.5
+  breakout:
+    min_volume_to_avg: 1.4
+  market:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+  engine:
+    # Buy-stop at the pivot for the session after the breakout; a gap open more than 5% above it is not chased.
+    entry: {pending_bars: 1, max_open_above_ref_pct: 0.05, max_stop_below_fill_pct: 0.08}
+    exits:
+      mode: sma
+      trail_sma_sessions: 50
+      breakeven_r: 2.0
+      tighten_r: 5.0              # ema_hybrid only; unused here
+      max_hold_days: 100000       # no time limit
+      stagnation_bars: 100000     # no stagnation exit
+      stagnation_max_mfe_r: 0.0
+      stagnation_max_open_r: 0.0
+    sizing:
+      risk_per_trade: 0.0125
+      max_positions: 10
+      max_name_pct: 0.2
+      max_sector_positions: 0
+      max_sector_pct: 1.0
+      max_heat_pct: 1.0
+      default_sector: UNKNOWN
+      uncapped_sectors: []
+    breaker: {half_dd: 1.0, stop_dd: 1.0, close_dd: 1.0}   # off
+    initial_capital: 1000000
+    settle_calendar_days: 0

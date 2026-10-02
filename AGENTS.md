@@ -35,6 +35,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `src/mb/engine/` | `config.py` (engine rules), `simulate.py` (signal-driven simulator), `rebalance.py` (target-weight simulator for momentum and the 12-1 baseline), `gate.py` (unexplained-jump refusal), `run.py` (bars + sectors + simulate, then `score`: gate + metrics + baselines) |
 | `src/mb/evaluation/` | `metrics.py`: equity, exposure and trade metrics. `baselines.py`: Nifty 500 TRI buy-and-hold and 12-1 momentum, added to every run's `metrics.baselines` |
 | `src/mb/strategy/sepa/` | SEPA/VCP: `signals.py` (features, RS rank, breakout rule), `contraction.py`, `params.py`, `run.py` |
+| `src/mb/strategy/vcp/` | M9 Minervini VCP (`docs/research/m8_vcp.md`): `features.py` (trend template, RS rank), `pattern.py` (swings, base, dry-up, breakout), `check.py` (funnel + chart page), `run.py` |
 | `src/mb/strategy/momentum/` | Month-end momentum: `targets.py` (ranking, stocks-only filter, vol-adjusted score, hold buffer, regime), `params.py`, `run.py` |
 | `src/mb/strategy/blend/` | Fixed-weight mix of existing strategy configs, each pinned by config hash |
 | `docs/research/` | Pre-registration and results per research milestone |
@@ -65,6 +66,7 @@ uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-ye
 uv run mb paper daily configs/paper/momentum_voladj_stocks.yaml [--no-fetch] [--today D]   # the VPS daily job
 uv run mb paper status configs/paper/momentum_voladj_stocks.yaml
 uv run mb dashboard export configs/dashboard/research.yaml [--data-root D]   # writes web/public/bundle.json; then `npm run dev` in web/
+uv run mb vcp check <vcp-config> [--sample 30 --seed 1]  # VCP funnel + breakout charts (no returns) -> reports/vcp-check/
 uv run pytest
 ```
 

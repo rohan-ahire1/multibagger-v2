@@ -1,0 +1,21 @@
+# M75 (docs/research/m75.md): m75_g10s10_park in four 25% tranches at offsets 0/5/10/15.
+name: blend
+version: m75_g10s10_park_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m75_g10s10_park_b2.yaml
+      config_hash: e475941f4d816b69d198239e6971b0b89928204542bd6c443630b741dd8cc3e2
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_g10s10_park_off5_b2.yaml
+      config_hash: f584b6cfaeeb7443df1e1d27d555068d12a2e962f5f9ba80a26c837d63e822d6
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_g10s10_park_off10_b2.yaml
+      config_hash: 00e5a97c74a8f38384a1cb2252e5959b365bd6d50dca6a5fab804bb13b6792fa
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_g10s10_park_off15_b2.yaml
+      config_hash: 6ccb2cc8bf984612905541fa331277d86bc639083971ae2abeeb4bcb24dd278e
+      weight: 0.25
+  initial_capital: 1000000

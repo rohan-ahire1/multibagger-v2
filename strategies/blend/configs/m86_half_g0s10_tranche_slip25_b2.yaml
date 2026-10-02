@@ -1,0 +1,33 @@
+# M86 (docs/research/m86.md): half blend tranches at 25 bps.
+name: blend
+version: m86_half_g0s10_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m86_g0s10_slip25_b2.yaml
+      config_hash: 4353a7a5550cbace3e33af6ba5fd5014b689937b400d28dfc95b6edbffae05fa
+      weight: 0.125
+    - config: strategies/momentum/configs/m86_g0s10_off5_slip25_b2.yaml
+      config_hash: 39367372d38c7f55bda9ea5acfd2c3b0281342a0fdeb242eae9d611da731258e
+      weight: 0.125
+    - config: strategies/momentum/configs/m86_g0s10_off10_slip25_b2.yaml
+      config_hash: d077f9fd46614dcf9808a3b707365d2fc1cf52a416806888b3ed146269572b1b
+      weight: 0.125
+    - config: strategies/momentum/configs/m86_g0s10_off15_slip25_b2.yaml
+      config_hash: 24927ed6962706ac4dbbadcc3d632a48bb2fa355b65847505a95446cb009f672
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_slip25_b2.yaml
+      config_hash: 604348c220a806b8fa81d2b522e2b05dc66ccc756fbba3ecdd4a78b6bfc0ff2a
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_off5_slip25_b2.yaml
+      config_hash: d31e8e98ce0db78688265ef8d48adbc4c8a2bb15c45a48d7be4136d785fa2de6
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_off10_slip25_b2.yaml
+      config_hash: 25168d0a1a8f5f375be26350d9c65d4490b61fb093c6454a1a4be89a5870c823
+      weight: 0.125
+    - config: strategies/momentum/configs/m78_rot_s10_off15_slip25_b2.yaml
+      config_hash: 094c5bfbf2f6e971f62b0262538c228cef248847356435611adfbf7e95db8f46
+      weight: 0.125
+  initial_capital: 1000000

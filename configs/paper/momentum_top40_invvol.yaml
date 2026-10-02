@@ -1,0 +1,25 @@
+# DRAFT, not deployed (docs/research/m11.md, m13.md, m14.md): book 2 (40 names) with inverse-vol weights over 126
+# sessions, funds dropped by symbol. Candidate third book; runs only if the user approves (then set start to the next
+# month-end and add a timer). m14_linked_invvol_b2 dev run 20260929-192758-6dbddb27 (pin momentum/m14_linked_invvol_b2);
+# its params equal m13_clean_invvol_b2's (run 20260929-191316-3bf36818), which passed the M13 cost and capacity checks.
+# Params and market costs come from the strategy config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_top40_invvol
+strategy_config: strategies/momentum/configs/m14_linked_invvol_b2.yaml
+strategy_config_hash: 6dbddb2793b012c90f567e5dd5e87076f090e03b93d2373bf7e2ae82cca199b7
+# The linked daily data, as in its reference runs: a held name follows a symbol rename.
+data_config: configs/data/nse_daily_linked.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

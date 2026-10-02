@@ -1,0 +1,25 @@
+# DRAFT, not deployed (docs/research/m51.md): the M49 pin momentum/m49_b_b2 (top 25, 25% gold, delivery drop 0.8,
+# ₹1 crore floor) with the M44 safety rule (no picks across a trading gap over 30 days). Dev run
+# 20261002-000959-500b4f9e: 29.19% CAGR / 26.07% max DD / Calmar 1.120 (pin 1.125). Runs only if the user approves
+# (then set start to the next month-end and add a timer). Needs the delivery files on the machine. Params and market
+# costs come from the strategy config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_b_top25_gold25_deliv80_gap
+strategy_config: strategies/momentum/configs/m51_gap30_b2.yaml
+strategy_config_hash: 500b4f9e722cc865779f6b5ab9e69a18d67b8b82436357e15cfe613057347294
+# The linked daily data plus delivery files.
+data_config: configs/data/nse_daily_delivery.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

@@ -1,0 +1,21 @@
+# M97 (docs/research/m97.md): r50g_nj in four tranches.
+name: blend
+version: m97_r50g_nj_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m97_r50g_nj_b2.yaml
+      config_hash: 470f430b5ebff77741345218ee04bcf4d6bad927dec126422da72b7278e601d0
+      weight: 0.25
+    - config: strategies/momentum/configs/m97_r50g_nj_off5_b2.yaml
+      config_hash: 03194aafc4befa6c3dc0b8559d9785eb922cce093a00920fc890d06c7f72690f
+      weight: 0.25
+    - config: strategies/momentum/configs/m97_r50g_nj_off10_b2.yaml
+      config_hash: a664f38ea568fe5c773e0e416e8e6617b9b500196d1c0e97b3515df995aad7a8
+      weight: 0.25
+    - config: strategies/momentum/configs/m97_r50g_nj_off15_b2.yaml
+      config_hash: 9a135ee9bad8ae4e7f3d4deab6240c83f39cfdba18835edaf6cc66e388940416
+      weight: 0.25
+  initial_capital: 1000000

@@ -1,0 +1,21 @@
+# M77 (docs/research/m77.md): m77_stop5 in four 25% tranches at offsets 0/5/10/15.
+name: blend
+version: m77_stop5_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m77_stop5_b2.yaml
+      config_hash: bac298a8fdc9f7a4b03d55c1f1cd36969761856aa04f4a1586762229a026aae1
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_stop5_off5_b2.yaml
+      config_hash: 43ae9338e97b95d7b3361a0e3c81daf4ed44b5e674b2014bc260eeccc9408973
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_stop5_off10_b2.yaml
+      config_hash: 22fd03775143a6e4d4b4bf28fa0c04ac5c19541bbd989ab2ef265c9981566b39
+      weight: 0.25
+    - config: strategies/momentum/configs/m77_stop5_off15_b2.yaml
+      config_hash: 96c805a42c04e14c714746ad41beadcede4fbb15f8dd1d50767a0136e51f7505
+      weight: 0.25
+  initial_capital: 1000000

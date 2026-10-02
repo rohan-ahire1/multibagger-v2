@@ -1,0 +1,21 @@
+# M74 (docs/research/m74.md): m74_g10s10 in four 25% tranches at offsets 0/5/10/15.
+name: blend
+version: m74_g10s10_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m74_g10s10_b2.yaml
+      config_hash: 268dc7819570d4a77f156d7f6ae103805348a4d99b87cc7fc11c60c8bb61c544
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_g10s10_off5_b2.yaml
+      config_hash: 2753bfe0f5a288b666b11b70281a52dcc43ef254e1158219c01951e559bd2d9e
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_g10s10_off10_b2.yaml
+      config_hash: 93bfc07ff6b4815af2f000ed30ecb2e99c910cf51b04434f88548c29c22c51be
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_g10s10_off15_b2.yaml
+      config_hash: 33725bdda6c9b2ed1869eb779b6b190f063ccbc1b0c79351c35e219817ea4fd6
+      weight: 0.25
+  initial_capital: 1000000

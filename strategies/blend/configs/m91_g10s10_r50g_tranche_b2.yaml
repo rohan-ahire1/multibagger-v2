@@ -1,0 +1,21 @@
+# M91 (docs/research/m91.md): g10s10_r50g in four tranches.
+name: blend
+version: m91_g10s10_r50g_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m91_g10s10_r50g_b2.yaml
+      config_hash: 3a6e5ad0997f4a22d94e18f14060a142393e62f9cc981eca7ec9bbb2034da006
+      weight: 0.25
+    - config: strategies/momentum/configs/m91_g10s10_r50g_off5_b2.yaml
+      config_hash: 6fd51d7377e74bb901a855811ec615f2a538b7cdb74e0429550a49411bac9429
+      weight: 0.25
+    - config: strategies/momentum/configs/m91_g10s10_r50g_off10_b2.yaml
+      config_hash: e48cd1480b3938515b10f534ad3bd8bacc8aba3ebf20d2bef832b8ceb976e35a
+      weight: 0.25
+    - config: strategies/momentum/configs/m91_g10s10_r50g_off15_b2.yaml
+      config_hash: 2c0de9cb762d28cd33dfb9a99578f54b97192cc10f19274341166bf53f1b4dd7
+      weight: 0.25
+  initial_capital: 1000000

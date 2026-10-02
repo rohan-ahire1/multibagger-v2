@@ -1,0 +1,21 @@
+# M75 (docs/research/m75.md): m75_s10_park tranches at 25 bps.
+name: blend
+version: m75_s10_park_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m75_s10_park_slip25_b2.yaml
+      config_hash: a64716654e0eb3c5c7ef1318c883b9422a00fb6f0cc8243ea7decfc127cdf6aa
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_s10_park_off5_slip25_b2.yaml
+      config_hash: 575d03e0db394b636c9ee7a379254e8d35bc9e550978c045b3fc004c259f0663
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_s10_park_off10_slip25_b2.yaml
+      config_hash: 99de32f89ab396450bb6d63e2c9f6998954b8dbe4cf23638564114ac4d5fc1e3
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_s10_park_off15_slip25_b2.yaml
+      config_hash: f589ca8998fea7823a616ff218ba5dc5245b0e86e491b63ffdcd6a1766a23545
+      weight: 0.25
+  initial_capital: 1000000

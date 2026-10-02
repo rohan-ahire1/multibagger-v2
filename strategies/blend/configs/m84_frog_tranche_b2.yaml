@@ -1,0 +1,21 @@
+# M84 (docs/research/m84.md): m84_frog in four 25% tranches.
+name: blend
+version: m84_frog_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m84_frog_b2.yaml
+      config_hash: a83dbdad128dcf53e75ac0b5d54ff7a7ed643927ce1d49a35191f9accb17d98d
+      weight: 0.25
+    - config: strategies/momentum/configs/m84_frog_off5_b2.yaml
+      config_hash: 54930b9d1feb114aada6cd98cd8c4ab1121b236f8708074795e6bddc4365e0f1
+      weight: 0.25
+    - config: strategies/momentum/configs/m84_frog_off10_b2.yaml
+      config_hash: 2ac08442eff80ea4f2ef86c9c47b9dbcc3b78773dc5b82fa96cf915716eb48c2
+      weight: 0.25
+    - config: strategies/momentum/configs/m84_frog_off15_b2.yaml
+      config_hash: af9358cf348fe1a839d303d8f43d61e896e4d3eff6daf0472835adaf519494e4
+      weight: 0.25
+  initial_capital: 1000000

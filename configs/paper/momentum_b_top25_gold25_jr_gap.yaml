@@ -1,0 +1,25 @@
+# Third paper book (docs/research/m106.md), approved by the user on 2026-10-02: the pin momentum/m49_b_b2 plus the M95
+# filter on the Nifty Next 50 (JUNIORBEES below its 200-day average: half the stock share to GOLDBEES; the 25% gold
+# stays; no stop), with the M44 gap rule. Pin momentum/m106_g25_jr_gap, run 20261002-051722-93574646: 30.09% CAGR /
+# 20.06% max DD / Calmar 1.500 on 2010-23 (old pin 1.125). Needs the delivery files (nse_daily_delivery).
+# Params and market costs come from the strategy config, pinned by its resolved hash; its dataset and period are not used.
+name: momentum_b_top25_gold25_jr_gap
+strategy_config: strategies/momentum/configs/m106_gap30_g25_jr_b2.yaml
+strategy_config_hash: 9357464623bfb97b693906aac8acefd5d80c198c872dab05e56444c969948541
+# The linked daily data plus delivery files.
+data_config: configs/data/nse_daily_delivery.yaml
+start: 2026-10-30
+initial_capital: 1000000
+keep_datasets: 3
+# Today's file is often not out at the first run of the evening; two missing sessions means the feed is stuck.
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

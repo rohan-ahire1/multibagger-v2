@@ -43,7 +43,7 @@ AXISNIFTY,"",split,2020-07-23,,,,,0.1,ETF unit face value changed to Rs 10 (AMC 
 AXITA,"",split,2022-10-21,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.102066),purpose_parsed
 BAJAJCORP,"",split,2011-05-05,,,,,0.2,1:5 split corroborated against the successor-symbol split archive,manual
 BAJAJELEC,"",split,2010-01-28,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.201558),purpose_parsed
-BAJAJFINSV,"",split,2022-09-13,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.208279),purpose_parsed
+BAJAJFINSV,"",bonus_split,2022-09-13,,,,,0.1,"FV 5->1 + bonus 1:1 (feed lists both; the earlier purpose_parsed row had only the split, 0.2, which replaced the bonus). Ex-date open 1755 / cum close 17138.05 = 0.1024 (M16)",manual
 BALRAMCHIN,"",split,2005-03-23,,,,,0.1,1:10 split corroborated by the independent split archive,manual
 BANCOINDIA,"",split,2007-11-23,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.219263),purpose_parsed
 BANKBARODA,"",split,2015-01-22,,,,,0.2,1:5 inferred from isin_corroborated (observed ratio 0.198466),isin_corroborated
@@ -83,7 +83,7 @@ CRONIMET,"",split,2011-11-03,,,,,0.2,1:5 inferred from isin_corroborated (observ
 CUB,"",split,2008-01-23,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.10508),purpose_parsed
 CUPID,"",split,2024-04-04,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.10498),purpose_parsed
 DAAWAT,"",split,2017-02-07,,,,,0.1078379240667872,non-round action inferred from isin_corroborated (observed ratio 0.107838),isin_corroborated
-DANGEE,"",split,2022-09-06,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.103238),purpose_parsed
+DANGEE,"",bonus_split,2022-09-06,,,,,0.0666667,"FV 10->1 + bonus 1:2, record date 2022-09-07 (NSE BM outcome 2022-08-02; the inferred row had only the split). Ex-date close 27.95 / cum close 406.1 = 0.0688 (M33)",manual
 DAVANGERE,"",split,2024-05-31,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.107071),purpose_parsed
 DBEIL,"",split,2026-06-19,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.104848),purpose_parsed
 DCHL,"",split,2007-03-13,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.194081),purpose_parsed
@@ -123,6 +123,7 @@ GALLISPAT,"",split,2018-08-07,,,,,0.1,FV 10->1 inferred from purpose_parsed (obs
 GANGAFORGE,"",split,2021-09-13,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.102555),purpose_parsed
 GEMINI,"",split,2008-09-17,,,,,0.2,FV 5->1 inferred from purpose_parsed (observed ratio 0.220058),purpose_parsed
 GENUSPOWER,"",split,2010-10-22,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.098861),purpose_parsed
+GEOINFO,"",bonus,2007-08-17,1.0,2.0,,,,"Bonus 1:2, record date 2007-08-17 (Motilal Oswal corporate-action page); close 363.70 -> 234.35 (x0.644) with no action in the feed (M40)",manual
 GEOJIT,"",split,2006-09-26,,,,,0.1,FV 10->1 corroborated by SEBI and split records,manual
 GMDCLTD,"",split,2007-11-08,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.20791),purpose_parsed
 GODHA,"",split,2022-03-24,,,,,0.10461828463713477,non-round action inferred from isin_corroborated (observed ratio 0.104618),isin_corroborated
@@ -457,3 +458,78 @@ WEL,"",split,2024-11-12,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed 
 WELSPUNIND,"",split,2016-03-21,,,,,0.10391614345003725,non-round action inferred from isin_corroborated (observed ratio 0.103916),isin_corroborated
 WINSOMYARN,"",split,2010-01-21,,,,,0.1,FV 10->1 inferred from purpose_parsed (observed ratio 0.11054),purpose_parsed
 WSTCSTPAPR,"",split,2007-10-26,,,,,0.2,FV 10->2 inferred from purpose_parsed (observed ratio 0.212648),purpose_parsed
+TATACHEM,"",demerger,2020-03-04,,,,,0.434813,"Consumer products business demerged to Tata Consumer Products (feed: demerger, no factor). Factor = ex-date price discovery: open 315 / cum close 724.45",manual
+SWELECTES,"",dividend,2012-07-17,,,,,0.564679,"Rs 120 interim + Rs 3 final dividend (feed parsed only the Rs 3) against prior close Rs 282.55, after the UPS business sale; symbol was NUMERICPW until 2012-07-09 (M15)",manual
+GFLLIMITED,"",demerger,2019-08-06,,,,,0.114662,"Fluorochemicals business demerged to Gujarat Fluorochemicals (FLUOROCHEM); GUJFLUORO renamed GFLLIMITED 2019-07-25 (feed: demerger, no factor). Factor = ex-date price discovery: open 101 / cum close 880.85 (M15)",manual
+BORORENEW,"",demerger,2020-03-06,,,,,0.251589,"Consumer glass business demerged to Borosil Ltd; BOROSIL renamed BORORENEW 2020-02-20 (feed: demerger, no factor). Factor = ex-date price discovery: open 47.5 / cum close 188.8 (M15)",manual
+DEEPENR,"",demerger,2020-11-10,,,,,0.646298,"Oil and gas services business demerged to Deep Industries (DEEPINDS); DEEPIND renamed DEEPENR 2020-09-30 (feed: demerger, no factor). Factor = ex-date price discovery: open 44.95 / cum close 69.55 (M15)",manual
+BHARTIARTL,"",split,2009-07-24,,,,,0.5,"FV 10->5 (feed unparsed: Agm/Div-Rs.2/Fv Rs10tors5). Ex-date open 419.7 / cum close 814.1 = 0.5155 (M16)",manual
+GLODYNE,"",bonus,2009-08-20,,,,,0.5,"Bonus 1:1 (feed unparsed: Div-Rs.4.20 Pr Sh/Bon 1:1). Ex-date open 373.9 / cum close 724.7 = 0.5159 (M16)",manual
+MANAPPURAM,"",bonus,2011-06-09,,,,,0.5,"Bonus 1:1 (feed unparsed). Ex-date open 59.85 / cum close 115.6 = 0.5177 (M16)",manual
+GRUH,"",bonus,2014-06-09,,,,,0.5,"Bonus 1:1 (feed unparsed). Ex-date open 205 / cum close 394.15 = 0.5201 (M16)",manual
+ALANKIT,"",split,2016-12-15,,,,,0.5,"FV 2->1 (feed unparsed: Fv Splt Frm Rs 2 To Re 1). Ex-date open 33 / cum close 64.35 = 0.5128 (M16)",manual
+HERITGFOOD,"",bonus,2023-01-20,,,,,0.5,"Bonus 1:1 (feed: Rights 1:1 @ Premium Rs 0, i.e. free shares). Ex-date open 174.9 / cum close 351.5 = 0.4976 (M16)",manual
+STAR,"",dividend,2013-12-19,,,,,0.433299,"Rs 500 special dividend after the Agila sale (feed parsed it but it exceeds dividend_max_price_fraction) against prior close Rs 882.3 (M16)",manual
+TEXINFRA,"",demerger,2010-11-01,,,,,0.40569,"Scheme of arrangement: heavy engineering demerged to Texmaco Rail (feed: other). Factor = ex-date close 65.6 / cum close 161.7; the open (94.4) was before price discovery ended (M16)",manual
+ADANIENT,"",demerger,2015-06-03,,,,,0.172292,"Scheme of arrangement: businesses demerged, among them Adani Transmission (feed: other). Factor = ex-date close 109.75 / cum close 637; the open (573.3) was the cum price less 10%, before price discovery (M16)",manual
+MASTEK,"",demerger,2015-06-12,,,,,0.342427,"Scheme of arrangement: insurance software business demerged to Majesco (feed: other), no factor. Factor = ex-date price discovery: open 150 / cum close 438.05 (M16)",manual
+IDFC,"",demerger,2015-10-01,,,,,0.490252,"Banking business demerged to IDFC Bank (feed: demerger), no factor. Factor = ex-date price discovery: open 69.15 / cum close 141.05 (M16)",manual
+ABIRLANUVO,"",demerger,2016-01-20,,,,,0.481228,"Scheme of arrangement: Madura Fashion demerged to Pantaloons (feed: other), no factor. Factor = ex-date price discovery: open 994 / cum close 2065.55 (M16)",manual
+CGPOWER,"",demerger,2016-03-15,,,,,0.341275,"Scheme of arrangement: consumer products demerged to Crompton Greaves Consumer (feed: other), no factor. Factor = ex-date price discovery: open 53 / cum close 155.3 (M16)",manual
+OMKARCHEM,"",demerger,2017-06-12,,,,,0.485459,"Scheme of arrangement (feed: other); price halves on the ex-date, no factor. Factor = ex-date price discovery: open 95.15 / cum close 196 (M16)",manual
+ORIENTPPR,"",demerger,2013-03-07,,,,,0.206612,"Cement business demerged to Orient Cement 1:1, record date 2013-03-09 (Orient Cement news page; NSE index press release 05-03-2013); no action in the feed. Factor = ex-date price discovery: open 15 / cum close 72.6 (M46)",manual
+ORIENTPPR,"",demerger,2018-01-11,,,,,0.320338,"Scheme of arrangement: electrical business demerged to Orient Electric (feed: other), no factor. Factor = ex-date price discovery: open 55.05 / cum close 171.85 (M16)",manual
+ARVIND,"",demerger,2018-11-28,,,,,0.351873,"Arvind Fashions and Anup Engineering demerged (feed: demerger), no factor. Factor = ex-date price discovery: open 109.45 / cum close 311.05 (M16)",manual
+IIFL,"",demerger,2019-05-30,,,,,0.502934,"Scheme of arrangement: IIFL Securities and IIFL Wealth demerged (feed: other), no factor. Factor = ex-date price discovery: open 209.95 / cum close 417.45 (M16)",manual
+TATACOMM,"",demerger,2019-09-17,,,,,0.6209,"Surplus land demerged to Hemisphere Properties (feed: demerger), no factor. Factor = ex-date price discovery: open 265 / cum close 426.8 (M16)",manual
+ABREL,"",demerger,2019-10-11,,,,,0.442077,"Cement business (then CENTURYTEX) demerged to UltraTech (feed: demerger), no factor. Factor = ex-date price discovery: open 390 / cum close 882.2 (M16)",manual
+SUVEN,"",demerger,2020-01-21,,,,,0.050423,"Pharma business demerged to Suven Pharmaceuticals (feed: demerger), no factor. Factor = ex-date price discovery: open 15.2 / cum close 301.45 (M16)",manual
+PEL,"",demerger,2022-08-30,,,,,0.547651,"Pharma business demerged to Piramal Pharma (feed: demerger), no factor. Factor = ex-date price discovery: open 1055.05 / cum close 1926.5 (M16)",manual
+KAMDHENU,"",demerger,2022-09-06,,,,,0.509375,"Paints business demerged to Kamdhenu Ventures (feed: demerger), no factor. Factor = ex-date price discovery: open 138.55 / cum close 272 (M16)",manual
+MIRZAINT,"",demerger,2023-03-29,,,,,0.130512,"Footwear retail demerged to RedTape (feed: demerger), no factor. Factor = ex-date price discovery: open 33 / cum close 252.85 (M16)",manual
+EDELWEISS,"",demerger,2023-06-02,,,,,0.526316,"Wealth business demerged to Nuvama (feed: demerger), no factor. Factor = ex-date price discovery: open 35 / cum close 66.5 (M16)",manual
+NIITLTD,"",demerger,2023-06-08,,,,,0.227306,"Corporate learning business demerged to NIIT Learning Systems (feed: demerger), no factor. Factor = ex-date price discovery: open 92.15 / cum close 405.4 (M16)",manual
+TATAMOTORS,"",demerger,2025-10-14,,,,,0.605373,"Commercial vehicles business demerged (feed: demerger, under TMPV), no factor. Factor = ex-date price discovery: open 400 / cum close 660.75 (M18)",manual
+SKFINDIA,"",demerger,2025-10-15,,,,,0.459228,"Industrial business demerged (feed: demerger), no factor. Factor = ex-date price discovery: open 2300 / cum close 5008.4 (M18)",manual
+VEDL,"",demerger,2026-04-30,,,,,0.374224,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 289.5 / cum close 773.6 (M18)",manual
+TRIVENI,"",demerger,2026-07-22,,,,,0.614952,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 289.95 / cum close 471.5 (M18)",manual
+INDIAGLYCO,"",demerger,2026-09-02,,,,,0.202393,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 225 / cum close 1111.7 (M18)",manual
+HEG,"",demerger,2026-09-07,,,,,0.357020,"Demerger (feed: demerger, under HEGAM), no factor. Factor = ex-date price discovery: open 260 / cum close 728.25 (M18)",manual
+SILVERADD,"",bonus_split,2026-08-28,,,,,0.1,"DSP Silver ETF unit split FV 10 -> 1, record date 2026-08-28 (not in the feed; new ISIN INF740KA1ZQ0). Ex-date open 23.97 / cum close 228.41 = 0.1049 (M18)",manual
+KHADIM,"",demerger,2025-06-06,,,,,0.821953,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 254.6 / cum close 309.75 (M18)",manual
+DBREALTY,"",demerger,2025-07-18,,,,,0.867089,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 204 / cum close 235.27 (M18)",manual
+SHANKARA,"",demerger,2025-09-24,,,,,0.257446,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 255 / cum close 990.5 (M18)",manual
+ALLCARGO,"",demerger,2025-11-12,,,,,0.312961,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 10.6 / cum close 33.87 (M18)",manual
+DCMSRIND,"",demerger,2025-12-26,,,,,0.296236,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 51 / cum close 172.16 (M18)",manual
+GUJENERGY,"",demerger,2026-07-02,,,,,0.852941,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 290 / cum close 340 (M18)",manual
+ANSALINFRA,"",split,2006-05-10,,,,,0.5,"Not in the feed. Ex-date trades at 856.25 = 0.525 x cum close 1630.85 (half, plus the 5% upper band) on 1,283 shares, then rises 5% a day; a halving, not a crash (M26)",manual
+ANSALINFRA,"",split,2007-04-23,,,,,0.5,"Not in the feed. Ex-date open 257.25 = 0.525 x cum close 490 (half, plus the 5% upper band), then rises 5% a day; a halving, not a crash (M26)",manual
+KPIT,"",bonus_split,2007-01-04,,,,,0.2,"Bonus 1:1 + FV 5->2 (feed: BSOFT, 'Bonus-1:1 Spl-Rs 5/ To 2/', parsed as the bonus only). Ex-date close 141.25 / cum close 688.1 = 0.2053 (M26)",manual
+COREPROTEC,"",split,2007-06-06,,,,,0.2,"FV 10->2 (feed: 'Agm/Div-5%/Spl-Rs10tors2', unparsed). Ex-date open 128.95 / cum close 592.35 = 0.2177 (M26)",manual
+DABUR,"",bonus,2006-01-19,,,,,0.5,"Bonus 1:1, not in the feed. Ex-date open 111.6 / cum close 220.95 = 0.5051 (M26)",manual
+HOTELEELA,"",split,2006-09-08,,,,,0.2,"FV 10->2, not in the feed. Ex-date open 58.95 / cum close 294.7 = 0.2000 (M26)",manual
+INDIABULLS,"",demerger,2007-01-02,,,,,0.46249,"Scheme of arrangement: real estate business demerged to Indiabulls Real Estate (feed: other). Factor = ex-date close 305.45 / cum close 660.45; the open (198) was before price discovery ended, the day traded 198-347 (M26)",manual
+IVRCLINFRA,"",split,2006-03-29,,,,,0.2,"FV 10->2, not in the feed. Ex-date open 300 / cum close 1490.2 = 0.2013 (M26)",manual
+KALPATPOWR,"",split,2006-04-13,,,,,0.5,"Halving, not in the feed. Ex-date open 970.1 / cum close 1931.9 = 0.5021 (M26)",manual
+NAGARCONST,"",bonus,2006-09-20,,,,,0.5,"Halving (bonus 1:1 or FV split), not in the feed. Ex-date open 153 / cum close 296.2 = 0.5165 (M26)",manual
+FEL,"",demerger,2016-05-11,,,,,0.132406,"Retail business demerged to Future Retail (FRETAIL, listed 2016-08-29); not in the feed. Factor = ex-date price discovery: open 20 / cum close 151.05 (M31)",manual
+FELDVR,"",demerger,2016-05-11,,,,,0.109428,"Class B (DVR) shares of FEL, same demerger as FEL; not in the feed. Factor = ex-date open 14.45 / cum close 132.05 (M31)",manual
+ZEEMEDIA,"",demerger,2010-04-15,,,,,0.24353,"Regional channels demerged to ZEEL (4 ZEEL per 19 held); not in the feed. Factor = ex-date close 18.35 / cum close 75.35; the open (38.9) was before price discovery, the day traded 11.3-38.9 (M31)",manual
+TRIVENI,"",demerger,2011-05-03,,,,,0.400401,"Steam turbine business demerged to Triveni Turbine (1:1); not in the feed. Factor = ex-date close 39.9 / cum close 99.65; the open (69.9) was before price discovery, the day traded 30-69.9 (M31)",manual
+TCI,"",demerger,2016-08-26,,,,,0.543478,"Express business demerged to TCI Express; not in the feed. Factor = ex-date open 200 / cum close 368 (M31)",manual
+BHAGERIA,"",split,2016-10-26,,,,,0.5,"FV 10->5 (record date 2016-10-27), not in the feed. Ex-date open 354 / cum close 710.55 = 0.4982 (M31)",manual
+THOMASCOOK,"",demerger,2019-12-05,,,,,0.467559,"Quess shares distributed under the restructuring scheme (1,889 Quess per 10,000 held, record date 2019-12-06); not in the feed. Factor = ex-date open 69.9 / cum close 149.5 (M31)",manual
+IDEA,"",rights,2019-03-29,,,,,0.603989,"Rights issue 87 per 38 held at 12.50 (record date 2019-04-02, ex-rights 2019-03-29); not in the feed. Factor = theoretical ex-rights price (38 x 29 + 87 x 12.5) / 125 = 17.516 / cum close 29 (M31)",manual
+SINTEX,"",demerger,2017-05-25,,,,,0.248319,"Custom moulding and prefab businesses demerged to Sintex Plastics Technology (1:1); not in the feed. Factor = ex-date close 25.85 / cum close 104.1; the open (17.9) was before price discovery, the day traded 16.15-34 (M31)",manual
+SANOFI,"",demerger,2024-06-13,,,,,0.625456,"Consumer healthcare demerged to Sanofi Consumer Healthcare India (1:1); not in the feed. Factor = ex-date open 6300 / cum close 10072.65 (M31)",manual
+RAYMOND,"",demerger,2024-07-11,,,,,0.60391,"Lifestyle business demerged to Raymond Lifestyle; not in the feed. Factor = ex-date open 1906 / cum close 3156.1 (M31)",manual
+ROSSELLIND,"",demerger,2024-09-20,,,,,0.28923,"Aerospace and defence business demerged to Rossell Techsys; not in the feed. Factor = ex-date open 179.8 / cum close 621.65 (M31)",manual
+HERCULES,"",demerger,2024-10-11,,,,,0.279864,"Manufacturing business demerged to Indef Manufacturing (1:1); not in the feed. Factor = ex-date open 190 / cum close 678.9 (M31)",manual
+KESORAMIND,"",demerger,2025-03-10,,,,,0.049971,"Cement business demerged to UltraTech (1 UltraTech per 52 held); not in the feed. Factor = ex-date open 10.23 / cum close 204.72 (M31)",manual
+SIEMENS,"",demerger,2025-04-07,,,,,0.497144,"Energy business demerged to Siemens Energy India (1:1); not in the feed. Factor = ex-date open 2450 / cum close 4928.15 (M31)",manual
+QUESS,"",demerger,2025-04-15,,,,,0.469499,"Demerger to Digitide Solutions and Bluspring Enterprises (1:1 each); not in the feed. Factor = ex-date open 284 / cum close 604.9 (M31)",manual
+RAYMOND,"",demerger,2025-05-14,,,,,0.335613,"Realty business demerged to Raymond Realty (1:1); not in the feed. Factor = ex-date open 525 / cum close 1564.3 (M31)",manual
+ABFRL,"",demerger,2025-05-22,,,,,0.36438,"Lifestyle brands demerged to Aditya Birla Lifestyle Brands (1:1); not in the feed. Factor = ex-date open 98 / cum close 268.95 (M31)",manual
+KPRMILL,"",split,2016-11-29,,,,,0.5,"FV 10->5, ex-date 2016-11-29; not in the feed. Ex-date open 575 / cum close 1129.9 = 0.509 (M33)",manual
+RSWM,"",rights,2022-12-16,,,,,0.640865,"Rights 1:1 at Rs 100, record date 2022-12-16; not in the feed. Factor = TERP (354.95 + 100) / 2 / cum close 354.95 (M33)",manual
+DTIL,"",bonus,2021-08-05,,,,,0.666667,"Bonus 1:2, record date 2021-08-06, ex-date 2021-08-05; not in the feed. Ex-date close 346.65 / cum close 521.15 = 0.665 (M33)",manual
