@@ -1,6 +1,6 @@
-# Overnight research, 2026-10-02 (M53–M100)
+# Overnight research, 2026-10-02 (M53–M106)
 
-Branch `m97-graded-regime` (from `m43-paper-delivery`), all committed, nothing pushed. Detail in `docs/research/m53.md` … `m100.md` and the log
+Branch `m97-graded-regime` (from `m43-paper-delivery`), all committed, nothing pushed. Detail in `docs/research/m53.md` … `m106.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
@@ -18,6 +18,18 @@ Branch `m97-graded-regime` (from `m43-paper-delivery`), all committed, nothing p
   miss by 0.04–0.10 (150 days; ¼ to gold). (4) Paper code supports neither the stop nor the gold switch yet.
   Adopting it, and spending `--final` on 2024+, are your calls.
 
+- **Simplest passing book, ready as a paper draft (M105/M106): the pin plus the Next 50 filter** (keep the 25% gold,
+  no stop; half the stock share to gold when JUNIORBEES is below its 200-day average). `momentum/m105_g25_jr_b2`
+  (run 20261002-050434-9969f9d0): **30.2% CAGR, 20.0% DD, Calmar 1.514; folds 2.259 / 2.085 / 1.735**. It passes at
+  month-end, at 25 bps (1.424) and in tranches (1.341; 25 bps 1.279); 2007–09 0.668 vs 0.284. With the live gap rule
+  (`m106_gap30_g25_jr_b2`, run 20261002-050950-93574646): 1.500. Paper now supports the gold switch, and the draft
+  `configs/paper/momentum_b_top25_gold25_jr_gap.yaml` matched the research on all 8 decisions Jan–Sep 2026 (replay gap
+  −0.28%). Not deployed: your OK needed.
+- **Checks on M95 (M102–M104).** Stop 7.5% / 15% both pass (tranches 1.837 / 1.412), so the stop is a return-vs-drawdown
+  dial, not a knife-edge. A 1% band on the filter (M103) and a breadth filter (M99) are no better. Deflated Sharpe
+  (M104): after ~900 tries, M95's extra return over the pin is about a coin flip (DSR 0.46); its lower drawdown is the
+  firmer part. Treat 33% / 1.66 as an upper estimate. Note: M95's runs were made with uncommitted code; re-run on a
+  clean commit before pinning.
 - **Passing alternatives, none better (M97–M100).** Top 20 instead of 25 on the same rule (`blend/m98_t20_r50g_jr_tranche_b2`,
   run 20261002-043350-fef356b4): 34.3% CAGR, 21.4% DD, 1.603; folds 1.740 / 2.378 / 1.774; 25 bps 1.451; 2007–09 0.660
   (more CAGR, more names, slightly lower Calmar). 10% trend gold added (`blend/m100_g10gt_r50g_jr_tranche_b2`, run
@@ -154,8 +166,12 @@ yet supported by the paper code (`check_supported` refuses it).
 | 98 | Top 20 on the Next 50 filtered book | 1.576 (offset 0); tranches 1.603 | **tranches pass**; 25 bps tranches beat the pin's 25 bps tranches |
 | 99 | Filter on breadth (half the universe above its 200-day average) | 1.565; tranches 1.608 | offset 0 f1; tranches f2 by 0.01 |
 | 100 | 10% trend gold on the Next 50 filtered book | 1.597; tranches 1.644 | **tranches pass**, not better than M95 |
+| 101 | Half top 25, half top 20 (Next 50 filter) | tranches 1.628 | passes; between its parts |
+| 102 | Stop 7.5% / 15% on M95 (information) | tranches 1.837 / 1.412 | both pass |
+| 103 | 1% band on the Next 50 filter | 1.544; tranches 1.631 | offset 0 f1; no better |
+| 105 | Next 50 filter alone on the pin (no stop) | **1.514**; tranches 1.341 | **passes at month-end and in tranches** |
 
-Information only: M94 (g25 trend-gold robustness), M96 (r50g_jr robustness, above), M87 (stop sells on lower-circuit days cost 0.1–0.35 pts CAGR a year), M90 (M89 robustness, above), M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
+Information only: M104 (deflated Sharpe, above), M106 (paper support + draft, above), M94 (g25 trend-gold robustness), M96 (r50g_jr robustness, above), M87 (stop sells on lower-circuit days cost 0.1–0.35 pts CAGR a year), M90 (M89 robustness, above), M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
 pin 1.059).
 
