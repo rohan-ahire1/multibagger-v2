@@ -33,6 +33,7 @@ its own `mNN.md`; this file only summarises.
 | 51 | New pin plus the M44 gap rule; paper draft end to end | 1.120 vs 1.125 | live decisions equal research Jan–Sep 2026 | draft `momentum_b_top25_gold25_deliv80_gap` ready, not deployed |
 | 52 | Stitched M42 walk-forward 2014–23 (each period uses only earlier tuning) | 0.953 (24.8% CAGR, 26.1% DD) vs old pin 1.049, new pin 1.262 (both partly in-sample) | out of sample by construction | realistic expectation ≈ 0.95–1.1 |
 | 53 | Drop names with the weakest recent delivered volume vs their past year (Gervais, Kaniel & Mingelgrin 2001) | 1.081 (drop 25%) / 0.983 (50%) vs pin 1.125 | | fails every window; churns the book |
+| 54 | The pin in four tranches (offsets 0/5/10/15; Hoffstein et al. 2020) | 1.105 vs 1.125 | 26.65% | fails; same drawdowns, so ~1.10 is the timing-luck-free pin |
 
 What the evidence says so far:
 
