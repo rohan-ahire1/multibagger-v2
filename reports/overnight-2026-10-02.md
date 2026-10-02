@@ -150,7 +150,6 @@ yet supported by the paper code (`check_supported` refuses it).
 | 92 | Trailing stop in r50g | 1.807 / 1.829 | f1, f2 |
 | 93 | Fixed gold held only while gold trends up | 1.934 / 1.837 | offset 0 f1/f2 by a hair; g25 tranches beat the pin at 5 bps, miss f1 at 25 bps |
 | 95 | Filter on Nifty Next 50 | 1.614 (offset 0) | **tranches pass** (see top) |
-
 | 97 | Filter = average of Nifty 50 and Next 50 signals | 1.785; tranches 1.726 | f1 (1.570) |
 | 98 | Top 20 on the Next 50 filtered book | 1.576 (offset 0); tranches 1.603 | **tranches pass**; 25 bps tranches beat the pin's 25 bps tranches |
 | 99 | Filter on breadth (half the universe above its 200-day average) | 1.565; tranches 1.608 | offset 0 f1; tranches f2 by 0.01 |
