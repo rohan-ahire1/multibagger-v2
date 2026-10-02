@@ -1,0 +1,21 @@
+# M75 (docs/research/m75.md): m75_g10s10_park tranches, 2007-09.
+name: blend
+version: m75_early_g10s10_park_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m75_early_g10s10_park.yaml
+      config_hash: ba6609bbb7b709151d636d93c801eff7e60ca74197c735843e25da5c6d515321
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_early_g10s10_park_off5.yaml
+      config_hash: c4533bfa5464d4b4ece7b814f58c3ef02f18c6b1a28bc27b656f6c90df972fb7
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_early_g10s10_park_off10.yaml
+      config_hash: d3348e6551c3d7a8de5d08eb1101780cc4f12c01eecab2ee8d5cb97355c66d1e
+      weight: 0.25
+    - config: strategies/momentum/configs/m75_early_g10s10_park_off15.yaml
+      config_hash: 9f5bc93294f47f763098ee5c3af5e47a05585e73468f60ee8095a1ae550b17e8
+      weight: 0.25
+  initial_capital: 1000000

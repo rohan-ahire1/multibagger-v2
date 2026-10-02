@@ -54,6 +54,7 @@ its own `mNN.md`; this file only summarises.
 | 72 | Six published overlays re-tested on the current pin: sector cap, residual momentum, 52-week high, absolute momentum, MAX filter, 10% stop | stop10 **1.346 (27.0% CAGR, 20.1% DD)**; max10 1.115; sector5 1.122 | stop10 folds 1.32 / 1.75 / 1.70 | none pass; stop10 fails f1, f2 (followed up in M73) |
 | 73 | Stop-loss 10 / 15 / 20% at all decision days, 25 bps, 2007–09; 10% stop in tranches (Han, Zhou & Zhu 2016) | stop tranches **1.513 (26.9% CAGR, 17.8% DD)** vs pin tranches 1.105 (29.5%, 26.7%) | stop10 beats the pin at 4/4 offsets, 25 bps, 2007–09 (0.41 vs 0.28); bootstrap 87% | fails f1, f2 at every level; lowers DD robustly, costs ~2.5 pts CAGR |
 | 74 | 10% stop with top 20 (t20s10) or with gold 0.10 (g10s10) | g10s10 tranches **1.514 (30.5% CAGR, 20.1% DD)**; t20s10 tranches 1.472 (27.5%, 18.7%) | g10s10 vs pin tranches: Calmar higher 82%, CAGR higher 79% of resamples; 2007–09 0.306 vs 0.284 | fails f1, f2; first book above the pin on both CAGR and DD in honest form |
+| 75 | Stop proceeds parked in gold (stop10, g10s10) | 1.243 / 1.224; tranches 1.340 / 1.350 | f2; worse than cash parking — gold fell in Mar 2020 and 2022 |
 
 What the evidence says so far:
 
