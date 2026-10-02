@@ -1,6 +1,6 @@
-# Overnight research, 2026-10-02 (M53–M76)
+# Overnight research, 2026-10-02 (M53–M79)
 
-Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m76.md` and the log
+Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m79.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
@@ -41,6 +41,14 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
   "same return"; it is 26.9% vs 29.5%), mostly in 2021. Things that did not help the stop: parking stopped money in
   gold (M75: gold fell too in March 2020 and 2022), stops of 15–20%, top 20 instead of 25, widening stops for volatile
   names (M76). The paper code does not support the stop yet.
+- **Strongest all-round book: M78, the half blend with a 10% stop in both sleeves, run in four-day form**
+  (`blend/m78_half_s10_tranche_b2`, run 20261002-022319-f4c291ea): 26.9% CAGR, **17.5% max DD, Calmar 1.542**,
+  folds 1.62 / 2.08 / 1.78, 2007–09 **0.716** (32% DD vs the pin's 51%). It beats the pinned run on the whole period
+  and every fold. It is not adopted only because my pre-registered rule asks the four-day form to beat the pin's own
+  four-day form (f2 2.080 vs 2.199) and to hold at 25 bps (f1, f2 lose by 0.03). Cost: about 2.5 points of CAGR a
+  year vs the pin. Bootstrap: Calmar higher than the pin's four-day form in 83% of resamples. The gold-0.10 version
+  (`m78_half_g10s10_tranche_b2`, run 20261002-021723-766fcdd6) keeps more return: 28.9% CAGR, 18.9% DD, 1.528, 2007–09
+  0.617.
 - M71: the 90/10 pin/rotation blend passes the main bar by hairs (1.155) but fails in four-day form; not adopted.
   M72: other one-change overlays on the pin (sector cap 5, residual momentum, 52-week high, absolute momentum, max
   filter) all fail.
@@ -90,6 +98,9 @@ yet supported by the paper code (`check_supported` refuses it).
 | 74 | Stop + top 20; stop + gold 0.10 | 1.387 / 1.336 | f1, f2 |
 | 75 | Stop proceeds parked in gold | 1.243 / 1.224 | worse than cash |
 | 76 | Trailing 10 / 15% stop; volatility-widened stop | 1.397 / 1.227 / 1.132 | f1, f2 |
+| 77 | Tighter stops 7.5% / 5% | 1.523 / 1.647 | f1, f2; return falls with drawdown |
+| 78 | Stop in both sleeves of the half blend | 1.284 / 1.292 | f2 (four-day form beats the pinned run; see above) |
+| 79 | Stop only in a falling market | 1.251 / 1.365 | f1, f2 |
 
 Information only: M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
@@ -104,8 +115,10 @@ demonetisation drop (Nov 2016) were short, so switching out cost more than it sa
 
 ## Still open (your call)
 
-1. Pin vs M61 vs the half blend vs gold 0.10 + 10% stop, each run in four decision-day tranches (above). If you
-   value both return and drawdown, gold 0.10 + stop is the strongest on 2010–23; the half blend is better in 2008. The half blend is the
+1. Pin vs M61 vs the half blend vs the stop books, each run in four decision-day tranches (above). My pick now: the
+   half blend with 10% stops (M78) if you accept ~2.5 points less CAGR for a drawdown of 17.5% instead of 26.7% and a
+   much better 2008; gold 0.10 + stop (M74) if you want the pin's return with a smaller drawdown. Both need a rule
+   decision (they beat the pinned run, not the pin's four-day form in 2014–17) and paper-code support for the stop. The half blend is the
    conservative choice: it gives up 1 point of CAGR against M61 but wins fold 2 and trades less.
 2. The one-time `--final` test on the locked 2024–26 period, for whichever you pick.
 3. Paper deployment of the chosen book (needs your OK; M61 needs paper-code support for the rotation first).
