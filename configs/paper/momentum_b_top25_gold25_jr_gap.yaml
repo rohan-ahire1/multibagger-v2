@@ -1,8 +1,8 @@
-# DRAFT, not deployed (docs/research/m106.md): the pin momentum/m49_b_b2 plus the M95 filter on the Nifty Next 50
-# (JUNIORBEES below its 200-day average: half the stock share to GOLDBEES; the 25% gold stays; no stop), with the M44
-# gap rule. Dev run 20261002-050950-93574646: 30.09% CAGR / 20.06% max DD / Calmar 1.500 (pin 1.125). Runs only if the
-# user approves (then set start to the next month-end and add a timer). Needs the delivery files on the machine. Params
-# and market costs come from the strategy config, pinned by its resolved hash; its dataset and period are not used.
+# Third paper book (docs/research/m106.md), approved by the user on 2026-10-02: the pin momentum/m49_b_b2 plus the M95
+# filter on the Nifty Next 50 (JUNIORBEES below its 200-day average: half the stock share to GOLDBEES; the 25% gold
+# stays; no stop), with the M44 gap rule. Pin momentum/m106_g25_jr_gap, run 20261002-051722-93574646: 30.09% CAGR /
+# 20.06% max DD / Calmar 1.500 on 2010-23 (old pin 1.125). Needs the delivery files (nse_daily_delivery).
+# Params and market costs come from the strategy config, pinned by its resolved hash; its dataset and period are not used.
 name: momentum_b_top25_gold25_jr_gap
 strategy_config: strategies/momentum/configs/m106_gap30_g25_jr_b2.yaml
 strategy_config_hash: 9357464623bfb97b693906aac8acefd5d80c198c872dab05e56444c969948541
