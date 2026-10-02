@@ -72,6 +72,7 @@ its own `mNN.md`; this file only summarises.
 | 90 | M89 robustness: neighbours, bootstrap, stitched walk-forward (information) | r50g neighbours 1.66–1.81 in tranches; bootstrap 87% vs pin; stitched OOS **1.877 (34.1% CAGR, 18.2% DD)** | — | r50g robust; r0g fragile at 150 days |
 | 91 | M89 r50g plus fixed gold 0.10 / 0.25 | **2.017** (31.5% CAGR, 15.6% DD) / 1.872; tranches 1.800 / 1.748 | g10: f1 (1.578 vs 1.598), f2; g25: f2 | fixed gold trades fold 1 against fold 2 |
 | 92 | Trailing stop in r50g / g10 r50g | 1.807 / 1.829 | f1, f2; worse than the fixed stop | |
+| 93 | M91's fixed gold held only while gold trends up (252 sessions, M22) | g10 1.934 (f1 1.594, f2 2.055); g25 1.837; **g25 tranches 1.721 (28.5% CAGR, 16.5% DD; 1.627 / 2.413 / 1.969)** | offset 0: g10 f1, f2 by a hair; g25 f2. g25 tranches beat the pin everywhere but fail 25 bps on f1 (1.481 vs 1.498); no 2007–09 | first tranche book above the pin on every fold |
 
 What the evidence says so far:
 

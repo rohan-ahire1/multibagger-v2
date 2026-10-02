@@ -1,0 +1,21 @@
+# M93 (docs/research/m93.md): g10s10_r50g_gt tranches at 25 bps.
+name: blend
+version: m93_g10s10_r50g_gt_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m93_g10s10_r50g_gt_slip25_b2.yaml
+      config_hash: e07288f2466fe8c95f1a0344b960a2b42ac935e02e3638d89e574de4332bce71
+      weight: 0.25
+    - config: strategies/momentum/configs/m93_g10s10_r50g_gt_off5_slip25_b2.yaml
+      config_hash: c3342741ddcc73b8ae350e301a803f0b2f6b3dcc3d3d0a2bdf3d6a005048146c
+      weight: 0.25
+    - config: strategies/momentum/configs/m93_g10s10_r50g_gt_off10_slip25_b2.yaml
+      config_hash: cdab5eed6e3258d3ab16e63cc07257d481d095dbab6ab0a8b2cfb9cbd02f8989
+      weight: 0.25
+    - config: strategies/momentum/configs/m93_g10s10_r50g_gt_off15_slip25_b2.yaml
+      config_hash: 09b797ac035739f298b30874563a65ddb3428ceaa565f6ef31629c2c342e96f1
+      weight: 0.25
+  initial_capital: 1000000
