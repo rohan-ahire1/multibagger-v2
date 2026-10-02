@@ -1,0 +1,33 @@
+# M71 (docs/research/m71.md): m69_half_tranche_slip25_b2 with the book tranches at 0.225 and rotation tranches at 0.025 (90/10).
+name: blend
+version: m71_w90_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m49_b_slip25_b2.yaml
+      config_hash: 237b5d10a0d96e53667ca47a7602af9bda1188874c8653dfd9f9e06ded46a87a
+      weight: 0.225
+    - config: strategies/momentum/configs/m69_b_off5_slip25_b2.yaml
+      config_hash: 37d9473a0299d1cecd378af6979e43103181caa0c85cd556ef843a4794ab1e66
+      weight: 0.225
+    - config: strategies/momentum/configs/m69_b_off10_slip25_b2.yaml
+      config_hash: dd022eae91161e5777f340be14b917c9154c1eb8e7c84a92ff0f337418e6dd04
+      weight: 0.225
+    - config: strategies/momentum/configs/m69_b_off15_slip25_b2.yaml
+      config_hash: 5c35db11f47f41c67b61478cf7b26413f44a505d4651dd03266cd4a03875e9e2
+      weight: 0.225
+    - config: strategies/momentum/configs/m59_rot_slip25_b2.yaml
+      config_hash: 1fc9dd66c7b89f449bd073aa692b97e284408635186bf304d1028cafef73eaa8
+      weight: 0.025
+    - config: strategies/momentum/configs/m69_rot_off5_slip25_b2.yaml
+      config_hash: 218d444b786c1ea19546dee640569fe5507290185d6aaf1212511c9a7dcb2888
+      weight: 0.025
+    - config: strategies/momentum/configs/m69_rot_off10_slip25_b2.yaml
+      config_hash: 19096666393f99c3db5128f51db311f3ce70a40232b271728898dd29d5b0ecce
+      weight: 0.025
+    - config: strategies/momentum/configs/m69_rot_off15_slip25_b2.yaml
+      config_hash: 67dbc8c47b68ded425d6424afcc2682b554c9299d46b18c271f19570a20e21a5
+      weight: 0.025
+  initial_capital: 1000000
