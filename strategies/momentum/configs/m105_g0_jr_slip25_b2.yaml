@@ -1,0 +1,68 @@
+# M105 (docs/research/m105.md): m95_r50g_jr_slip25_b2 with fixed gold {} and no stop.
+name: momentum
+version: m105_g0_jr_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 10000000
+    adv_window_sessions: 50
+    exclude_fund_units: true
+    fund_units_by_symbol: true
+    delivery_drop_frac: 0.80
+    max_gap_days: null
+    abnormal_delivery: null
+  ranking:
+    lookback_sessions: 273
+    skip_sessions: 14
+    score: return_over_vol
+    second_lookback_sessions: null
+    high_window_sessions: null
+    residual_beta_sessions: null
+    residual_benchmark_symbol: NIFTYBEES
+    frog_candidates_per_slot: null
+    max_filter_frac: null
+    max_window_sessions: 21
+    order: score
+    return_part: total
+  portfolio:
+    top_n: 25
+    hold_rank_max: 25
+    resize_held: true
+    max_per_sector: null
+    weighting: inverse_vol
+    inverse_vol_sessions: 84
+    min_momentum: null
+    fixed_weights: {}
+    fixed_trend_sessions: null
+    rotation: null
+    vol_states: null
+  regime:
+    enabled: true
+    benchmark_symbol: JUNIORBEES
+    sma_sessions: 200
+    risk_off_gross: 0.5
+    risk_off_symbol: GOLDBEES
+  sizing:
+    vol_target_annual: null
+    vol_benchmark_symbol: NIFTYBEES
+    vol_window_sessions: 63
+  schedule:
+    decision_offset_sessions: 0
+    every_sessions: null
+    phase_session: 0
+  exits:
+    stop_loss_frac: null
+    book_stop_frac: null
+    stop_proceeds_to: null
+    stop_trailing: false
+    stop_vol_sessions: null
+    stop_vol_mult: null
+    stop_market_symbol: null
+    stop_market_frac: null
+    stop_respread: false
+    stop_reentry: false
+  initial_capital: 1000000
