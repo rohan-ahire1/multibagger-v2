@@ -34,6 +34,7 @@ its own `mNN.md`; this file only summarises.
 | 52 | Stitched M42 walk-forward 2014–23 (each period uses only earlier tuning) | 0.953 (24.8% CAGR, 26.1% DD) vs old pin 1.049, new pin 1.262 (both partly in-sample) | out of sample by construction | realistic expectation ≈ 0.95–1.1 |
 | 53 | Drop names with the weakest recent delivered volume vs their past year (Gervais, Kaniel & Mingelgrin 2001) | 1.081 (drop 25%) / 0.983 (50%) vs pin 1.125 | | fails every window; churns the book |
 | 54 | The pin in four tranches (offsets 0/5/10/15; Hoffstein et al. 2020) | 1.105 vs 1.125 | 26.65% | fails; same drawdowns, so ~1.10 is the timing-luck-free pin |
+| 55 | Rank on daytime-only or overnight-only return (Lou, Polk & Skouras 2019; Barardehi, Bogousslavsky & Muravyev) | 0.736 (daytime) / 0.599 (overnight) vs 1.125 | | fails; the whole return is the signal |
 
 What the evidence says so far:
 
