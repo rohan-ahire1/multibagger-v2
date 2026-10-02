@@ -1,0 +1,15 @@
+# M80 (docs/research/m80.md): half blend of t20s10 and rot_t20s10.
+name: blend
+version: m80_half_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m80_t20s10_b2.yaml
+      config_hash: 5bd05509a17dde7db5b2d99ab424c64bd7353828f7b73cda463fda337c7171fb
+      weight: 0.5
+    - config: strategies/momentum/configs/m80_rot_t20s10_b2.yaml
+      config_hash: 592903250d754806011d07a7cdca84fb9b71ff6edf3d537f3c7f3a228f598785
+      weight: 0.5
+  initial_capital: 1000000

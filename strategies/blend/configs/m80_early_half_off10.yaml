@@ -1,0 +1,15 @@
+# M80 (docs/research/m80.md): half blend, 2007-09, off10.
+name: blend
+version: m80_early_half_off10
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m80_early_t20s10_off10.yaml
+      config_hash: 9e27b75ab7798c5307f50793e231f61986d3b5a9e01d9b3cb5a06ab67448174d
+      weight: 0.5
+    - config: strategies/momentum/configs/m80_early_rot_t20s10_off10.yaml
+      config_hash: dda60edb76c3666d6daffe993443db38f2801b05da08a93c4c5f39c238b1a256
+      weight: 0.5
+  initial_capital: 1000000
