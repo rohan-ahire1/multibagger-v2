@@ -6,6 +6,7 @@ runs_dir: runs                     # relative to the data root (--data-root, def
 sector_map: configs/reference/sector_map.csv
 
 groups:
+  - Adopted strategy
   - Vol-adj momentum
   - M8 variants
   - M5 variants
@@ -26,7 +27,7 @@ ui:
   heat_full_pct: 12
 
 paper:
-  preview_dataset: nse_research@2026-09-29d
+  preview_dataset: nse_research@2026-10-02b
   next_in_line: 6
   recent_fills: 12
   books:
@@ -38,8 +39,23 @@ paper:
       label: Top 40
       backtest_run: 20260929-074916-cd4d9211
       timer_file: deploy/mb-paper-top40.timer
+    - config: configs/paper/momentum_b_top25_gold25_jr_gap.yaml
+      label: Adopted (M106)
+      backtest_run: 20261002-051722-93574646
+      timer_file: deploy/mb-paper-jr.timer
 
 runs:
+  - {pin: momentum/m106_g25_jr_gap, label: "Adopted · Top 25 + gold + Next 50 filter", group: Adopted strategy,
+     tag: Paper book 3, note: "M106 pin, development period 2010-23. Paper book 3 from the 2026-10-30 close."}
+  - {run: 20261002-054052-94c22192, label: "Adopted · final 2010-26", group: Adopted strategy,
+     note: "M107 final run, crosses the locked window (2024+: 20.4% CAGR, 15.5% DD)."}
+  - {run: 20261002-041639-baa42e53, label: "Best in-sample · M95 tranches (dev)", group: Adopted strategy,
+     note: "M95: 10% stop, 4 tranches. Kept for later; weaker in the locked window."}
+  - {run: 20261002-054109-996f5a8b, label: "Best in-sample · M95 final 2010-26", group: Adopted strategy,
+     note: "M107 final run of M95 (2024+: 10.7% CAGR, 16.8% DD)."}
+  - {pin: momentum/m49_b_b2, label: "Previous pin · m49_b_b2", group: Adopted strategy,
+     note: "The pin M106 replaced (dev Calmar 1.125)."}
+
   - {run: 20260929-074906-afd6d499, label: "Vol-adj momentum · Top 30 stocks", group: Vol-adj momentum, tag: Paper book 1,
      note: "Paper book 1. Top 30 with fund units excluded, development period."}
   - {run: 20260929-074916-cd4d9211, label: "Vol-adj momentum · Top 40 stocks", group: Vol-adj momentum, tag: Paper book 2,
