@@ -541,3 +541,22 @@ class ExitsM79(ExitsM76):
 
 class ParamsM79(ParamsM76):
     exits: ExitsM79
+
+
+# M81 option (docs/research/m81.md).
+
+class ExitsM81(ExitsM79):
+    # True: a stop's proceeds buy the names still held, pro rata to their value, at the same open (instead of cash).
+    stop_respread: bool
+
+    @model_validator(mode="after")
+    def _m81(self) -> ExitsM81:
+        if self.stop_respread and self.stop_loss_frac is None:
+            raise ValueError("stop_respread needs stop_loss_frac")
+        if self.stop_respread and self.stop_proceeds_to is not None:
+            raise ValueError("stop_respread and stop_proceeds_to are exclusive")
+        return self
+
+
+class ParamsM81(ParamsM79):
+    exits: ExitsM81

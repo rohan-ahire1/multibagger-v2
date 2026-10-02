@@ -7,7 +7,8 @@ or below (1 - stop) x its open at the last rebalance session is sold at the next
 rebalance, or with `stop_to` (M75) buys that symbol at the same open (it is never stopped itself). M76: with
 `stop_trail` the reference ratchets up to the highest close since the rebalance; with `stop_vol` = (n, k) a name's stop is
 max(stop, k x the std of its last n daily close returns up to the decision close). M79: with `stop_market` = (symbol,
-g) stops fire only while that symbol closes at or below (1 - g) x its open at the last rebalance session. A name with no open that session is
+g) stops fire only while that symbol closes at or below (1 - g) x its open at the last rebalance session. M81: with
+`stop_respread` the stop's proceeds buy the names still held, in proportion to their value at that open. A name with no open that session is
 not bought and is sold at its last close; a name that stops trading is valued at its last close until it is sold.
 
 The 12-1 momentum baseline and every rebalance strategy run through this one function.
@@ -50,7 +51,7 @@ class RebalanceResult:
 def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list[date], market: MarketConfig,
                      initial_capital: float, stop_loss_frac: float | None = None, stop_to: str | None = None,
                      stop_trail: bool = False, stop_vol: tuple[int, float] | None = None,
-                     stop_market: tuple[str, float] | None = None) -> RebalanceResult:
+                     stop_market: tuple[str, float] | None = None, stop_respread: bool = False) -> RebalanceResult:
     """`bars` has date, symbol, open, close (adjusted) for every name any target mentions; `days` is the session calendar.
 
     A target dated on a session is traded at the next session's open.
@@ -66,8 +67,10 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
     if stop_to is not None and (stop_loss_frac is None or stop_to not in col):
         raise ValueError(f"stop_to {stop_to} needs a stop and must be in every target's names")
     park = col[stop_to] if stop_to is not None else -1
-    if (stop_trail or stop_vol is not None or stop_market is not None) and stop_loss_frac is None:
-        raise ValueError("stop_trail, stop_vol and stop_market need a stop")
+    if (stop_trail or stop_vol is not None or stop_market is not None or stop_respread) and stop_loss_frac is None:
+        raise ValueError("stop_trail, stop_vol, stop_market and stop_respread need a stop")
+    if stop_respread and stop_to is not None:
+        raise ValueError("stop_respread and stop_to are exclusive")
     if stop_market is not None:
         mkt = bars.filter((pl.col("symbol") == stop_market[0]) & pl.col("date").is_in(days))
         if mkt.is_empty():
@@ -183,6 +186,17 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
                 shares[park] += n
                 bought[park] += v
                 fills.append((d, names[park], "buy", n, opn[i, park], -v))
+            keep = [j for j in np.flatnonzero(shares > 0.0) if not np.isnan(opn[i, j])]
+            if stop_respread and freed > 0.0 and keep:
+                val = np.array([shares[j] * opn[i, j] for j in keep])
+                spend = min(freed, cash)
+                for j, w in zip(keep, val / val.sum()):
+                    v = spend * w
+                    n = v / (opn[i, j] * buy_f)
+                    cash -= v
+                    shares[j] += n
+                    bought[j] += v
+                    fills.append((d, names[j], "buy", n, opn[i, j], -v))
             stops = []
         invested = float(np.nansum(shares * cls[i]))
         rows.append((d, cash + invested, cash, invested, int((shares > 0).sum())))
