@@ -1,9 +1,22 @@
-# Overnight research, 2026-10-02 (M53–M90)
+# Overnight research, 2026-10-02 (M53–M96)
 
-Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m90.md` and the log
+Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m96.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
+
+- **First book to pass the bar (M95/M96): `blend/m95_r50g_jr_tranche_b2`** (run 20261002-041639-baa42e53). It is
+  M89's rule with the 200-day filter watching the Nifty Next 50 (JUNIORBEES) instead of Nifty 50, run in four
+  decision-day tranches: no fixed gold, 10% stop, half the book to gold when JUNIORBEES is below its 200-day average.
+  **33.4% CAGR, 20.2% max DD, Calmar 1.656; folds 1.784 / 2.731 / 1.763** vs the pinned run's 1.598 / 2.070 / 1.362
+  (and the pin's tranches 1.590 / 2.199 / 1.312). At 25 bps it still passes (1.497; 1.624 / 2.495 / 1.584). 2007–09:
+  0.591 vs 0.284. Bootstrap: Calmar above the pin's tranches in 92% of resamples, CAGR above in 98%. Stitched
+  walk-forward 2014–23: 33.9% CAGR, 20.4% DD, 1.661 (plain book 0.956).
+  Caveats: (1) the rule was built over M86–M95 by looking at 2010–23 results; the Next 50 choice came after seeing
+  that the 2013 mid-cap fall did not trip the Nifty 50 filter. (2) It passes only in tranche form; the month-end-only
+  version fails fold 2. (3) Fold 1 is fragile: of four one-step neighbours, two pass (250 days; ¾ to gold) and two
+  miss by 0.04–0.10 (150 days; ¼ to gold). (4) Paper code supports neither the stop nor the gold switch yet.
+  Adopting it, and spending `--final` on 2024+, are your calls.
 
 - **New best (M89/M90): no fixed gold + 10% stop + 200-day market filter that moves half the book to gold when
   Nifty is below its 200-day average** (`momentum/m89_g0s10_r50g_b2`, run 20261002-033400-ad917eb0): **34.0% CAGR,
@@ -127,8 +140,12 @@ yet supported by the paper code (`check_supported` refuses it).
 | 86 | No gold + stop; its half blend | 1.329 / 1.289 | f1, f2; 55% loss in 2008 |
 | 88 | No-gold stop book + 200-day filter (to cash) | 1.793 / 1.928 | f1 (2011: cash, while gold rose) |
 | 89 | Same, risk-off share in gold | 1.534 / **1.991** | f1 only (r50g) |
+| 91 | r50g + fixed gold 0.10 / 0.25 | 2.017 / 1.872 | gold trades f1 against f2 |
+| 92 | Trailing stop in r50g | 1.807 / 1.829 | f1, f2 |
+| 93 | Fixed gold held only while gold trends up | 1.934 / 1.837 | offset 0 f1/f2 by a hair; g25 tranches beat the pin at 5 bps, miss f1 at 25 bps |
+| 95 | Filter on Nifty Next 50 | 1.614 (offset 0) | **tranches pass** (see top) |
 
-Information only: M87 (stop sells on lower-circuit days cost 0.1–0.35 pts CAGR a year), M90 (M89 robustness, above), M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
+Information only: M94 (g25 trend-gold robustness), M96 (r50g_jr robustness, above), M87 (stop sells on lower-circuit days cost 0.1–0.35 pts CAGR a year), M90 (M89 robustness, above), M85 (stop on the out-of-sample walk-forward, above), M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
 pin 1.059).
 
@@ -141,6 +158,8 @@ demonetisation drop (Nov 2016) were short, so switching out cost more than it sa
 
 ## Still open (your call)
 
+00. **New first choice: `blend/m95_r50g_jr_tranche_b2`** (top). It passes the bar; adopting it means pinning a
+   tranche blend, and paper code needs the stop and the gold switch first.
 0. **New first choice: M89 r50g** (above), in four-day form. It needs a rule decision (fails fold 1 by drawdown) and
    paper-code support for the stop and the gold switch.
 1. Pin vs M61 vs the half blend vs the stop books, each run in four decision-day tranches (above). My pick now: the
