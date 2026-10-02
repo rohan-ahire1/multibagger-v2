@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -301,6 +301,9 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if isinstance(p, ParamsM46):  # M46: only every n-th month decides
         ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
+    extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
+    signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
+    on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on
     m8 = p if isinstance(p, ParamsM8) else None
     cap = m8.portfolio.max_per_sector if m8 else None
     if cap is not None and sectors is None:
@@ -320,7 +323,7 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             pick = keep + [s for s in order if s not in set(keep)][: p.portfolio.top_n - len(keep)]
         else:
             pick = _pick(order, keep, p.portfolio.top_n, cap, sectors or {})
-        gross = 1.0 if not p.regime.enabled or regime[d] else p.regime.risk_off_gross
+        gross = 1.0 if not p.regime.enabled else on[d] + (1.0 - on[d]) * p.regime.risk_off_gross
         if scale:
             gross *= scale[d]
         if min_mom is not None:  # each slot stays 1 / top_n; empty slots are cash
@@ -340,7 +343,7 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if isinstance(p, ParamsM89) and p.regime.risk_off_symbol is not None:
         if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
             raise ValueError("risk_off_symbol and book_stop_frac are exclusive")
-        out = {d: t if regime[d] else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
+        out = {d: t if on[d] == 1.0 else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
     return out
 
 

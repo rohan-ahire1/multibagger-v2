@@ -596,3 +596,24 @@ class RegimeM89(Regime):
 
 class ParamsM89(ParamsM82):
     regime: RegimeM89
+
+
+# M97 options (docs/research/m97.md).
+
+class RegimeM97(RegimeM89):
+    # Empty: one benchmark. Otherwise each listed symbol is a further benchmark with the same moving average, and the
+    # invested share is graded: with a fraction f of all benchmarks at or above their averages, gross is
+    # f + (1 - f) * risk_off_gross.
+    extra_benchmark_symbols: list[str]
+
+    @model_validator(mode="after")
+    def _m97(self) -> RegimeM97:
+        if self.extra_benchmark_symbols and not self.enabled:
+            raise ValueError("extra_benchmark_symbols needs the regime enabled")
+        if len(set([self.benchmark_symbol, *self.extra_benchmark_symbols])) != 1 + len(self.extra_benchmark_symbols):
+            raise ValueError("regime benchmarks must be distinct")
+        return self
+
+
+class ParamsM97(ParamsM89):
+    regime: RegimeM97
