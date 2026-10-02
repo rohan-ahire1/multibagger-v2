@@ -11,6 +11,14 @@ Each book has its own files, units and alerts (titled by book name). `deploy/mb-
 minutes after the first. Both jobs take the same lock, so they never download or build the shared daily dataset at the
 same time. The book refuses M8 options it cannot trade yet (second lookback, sector cap, no-resize, volatility target).
 
+## Third book (M106, from the 2026-10-30 close)
+
+`configs/paper/momentum_b_top25_gold25_jr_gap.yaml`: the adopted strategy (pin `momentum/m106_g25_jr_gap`; research in
+`docs/research/m106.md`, locked-period result in `m107.md`). Top 25 momentum stocks, 25% GOLDBEES, and half the stock
+share moved to GOLDBEES at a month-end when JUNIORBEES closes below its 200-day average. It reads
+`configs/data/nse_daily_delivery.yaml`, so its first run downloads the delivery files back to 2023. Units
+`deploy/mb-paper-jr.*`, 19:55 and 23:25 IST, same lock.
+
 ## Stocks only (changed before the start)
 
 The first books, `momentum_voladj.yaml` and `momentum_top40.yaml`, were retired on 2026-09-29 before their first session.
