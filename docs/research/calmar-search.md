@@ -36,6 +36,7 @@ its own `mNN.md`; this file only summarises.
 | 54 | The pin in four tranches (offsets 0/5/10/15; Hoffstein et al. 2020) | 1.105 vs 1.125 | 26.65% | fails; same drawdowns, so ~1.10 is the timing-luck-free pin |
 | 55 | Rank on daytime-only or overnight-only return (Lou, Polk & Skouras 2019; Barardehi, Bogousslavsky & Muravyev) | 0.736 (daytime) / 0.599 (overnight) vs 1.125 | | fails; the whole return is the signal |
 | 56 | Hold buffer / no resizing on the new pin (Novy-Marx & Velikov 2016) | hold 35: 1.214 at month-end (30.9% CAGR, 25.4% DD) | loses offsets 5/10/15; four-offset mean 1.089 vs 1.106 | fails; month-end gain is timing luck, but wins at 25 bps |
+| 57 | Decide every 5 / 10 sessions with a hold buffer (Novy-Marx & Velikov 2016; Hoffstein et al. 2020) | 1.115 (e5, hold 35) / 1.104 / 1.071 vs 1.125 | | fails; drawdowns not lower |
 
 What the evidence says so far:
 
