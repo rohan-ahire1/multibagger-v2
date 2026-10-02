@@ -1,6 +1,6 @@
-# Overnight research, 2026-10-02 (M53–M70)
+# Overnight research, 2026-10-02 (M53–M76)
 
-Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m67.md` and the log
+Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m76.md` and the log
 `docs/research/calmar-search.md`.
 
 ## Bottom line
@@ -22,6 +22,28 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
   tuned on earlier years, adding the half-rotation rule lifts Calmar from 0.953 to **1.202**. CAGR rises from 24.8%
   to 28.4%, and max DD falls from 26.1% to 23.6%. In four-day form it is 1.159 vs 0.956. The pin's own 2010–17 numbers
   are in-sample (tuned on those years), which is why the strict bar keeps favouring it.
+
+- **New since M70: a 10% stop-loss is the biggest single lever found (M72–M76).** A held stock that closes 10%
+  below its price at the last rebalance is sold next morning; the cash waits for the next month-end (Han, Zhou & Zhu
+  2016). It fails the strict bar (it loses 2010–13 and 2014–17 to the pin at the pinned decision day), but in
+  four-day form:
+
+  | Four-day (tranche) form, 2010–23 | CAGR | Max DD | Calmar | Folds | 25 bps | 2007–09 |
+  |---|---|---|---|---|---|---|
+  | Pin tranches (`m54_b_tranche_b2`, run 20261002-001643-d6a3c453) | 29.46% | 26.65% | 1.105 | 1.59 / 2.20 / 1.31 | 1.059 | 0.284 |
+  | Pin + 10% stop (`m73_stop10_tranche_b2`, run 20261002-013320-14cd39db) | 26.92% | 17.79% | 1.513 | 1.49 / 2.14 / 1.77 | 1.414 | 0.415 |
+  | **Gold 0.10 + 10% stop** (`m74_g10s10_tranche_b2`, run 20261002-014019-8df01261) | **30.45%** | **20.12%** | **1.514** | 1.34 / 1.96 / 1.75 | 1.401 | 0.306 |
+  | Trailing 10% stop (`m76_trail10_tranche_b2`, run 20261002-020004-78ab2b2d) | 25.21% | 16.80% | 1.501 | 1.45 / 2.07 / 1.74 | 1.387 | 0.506 |
+
+  **Gold 0.10 + stop is the first book with both more return and a smaller drawdown than the pin** (pin has gold 0.25,
+  no stop). Bootstrap against the pin tranches: Calmar higher in 82% of resamples, CAGR higher in 79%. Its weak spot is
+  2008 (about the pin's ~50% loss). The plain stop costs about 2.5 points of CAGR (correction: an earlier status said
+  "same return"; it is 26.9% vs 29.5%), mostly in 2021. Things that did not help the stop: parking stopped money in
+  gold (M75: gold fell too in March 2020 and 2022), stops of 15–20%, top 20 instead of 25, widening stops for volatile
+  names (M76). The paper code does not support the stop yet.
+- M71: the 90/10 pin/rotation blend passes the main bar by hairs (1.155) but fails in four-day form; not adopted.
+  M72: other one-change overlays on the pin (sector cap 5, residual momentum, 52-week high, absolute momentum, max
+  filter) all fail.
 
 ## Your decision: pin or M61
 
@@ -62,6 +84,12 @@ yet supported by the paper code (`check_supported` refuses it).
 | 64 | Top 15 | 1.161 | fold 2; concentration peaks at 15–20 |
 | 66 | Liquidity floor ₹50 lakh | 1.164 | fold 1 |
 | 67 | Lookback ensemble 189 / 273 / 378 | 1.076 | everywhere |
+| 71 | Pin/rotation blend 90/10 and 80/20 | 1.155 / 1.185 | 90/10 fails in four-day form; 80/20 at 25 bps |
+| 72 | One overlay on the pin: sector cap 5, residual momentum, 52-week high, absolute momentum, max filter, 10% stop | 1.122 / 0.991 / 0.769 / 1.026 / 1.115 / **1.346** | stop: f1, f2 |
+| 73 | Stop 10 / 15 / 20% | 1.346 / 1.239 / 1.176 | f1, f2 |
+| 74 | Stop + top 20; stop + gold 0.10 | 1.387 / 1.336 | f1, f2 |
+| 75 | Stop proceeds parked in gold | 1.243 / 1.224 | worse than cash |
+| 76 | Trailing 10 / 15% stop; volatility-widened stop | 1.397 / 1.227 / 1.132 | f1, f2 |
 
 Information only: M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
 tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
@@ -76,7 +104,8 @@ demonetisation drop (Nov 2016) were short, so switching out cost more than it sa
 
 ## Still open (your call)
 
-1. Pin vs M61 vs the half blend, each run in four decision-day tranches (above). The half blend is the
+1. Pin vs M61 vs the half blend vs gold 0.10 + 10% stop, each run in four decision-day tranches (above). If you
+   value both return and drawdown, gold 0.10 + stop is the strongest on 2010–23; the half blend is better in 2008. The half blend is the
    conservative choice: it gives up 1 point of CAGR against M61 but wins fold 2 and trades less.
 2. The one-time `--final` test on the locked 2024–26 period, for whichever you pick.
 3. Paper deployment of the chosen book (needs your OK; M61 needs paper-code support for the rotation first).
