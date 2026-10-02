@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -83,13 +83,14 @@ def _discreteness(r: Ranking) -> pl.Expr:
 
 def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
            top_n: int | None = None, offset_sessions: int = 0, min_momentum: float | None = None,
-           fund_symbols: frozenset[str] | None = None) -> dict[date, list[str]]:
+           fund_symbols: frozenset[str] | None = None, every_sessions: tuple[int, int] | None = None) -> dict[date, list[str]]:
     """For each month-end in [start, end], the eligible symbols best first (ties by symbol).
 
     `top_n` is needed only by the M10 frog-in-the-pan option; `offset_sessions` moves the decision date (M11);
     `min_momentum` drops names whose lookback-to-skip return is not above it (M12). `fund_symbols` (M35) are the
     symbols of fund units for `fund_units_by_symbol`; by default those with a fund ISIN in `panel`, which misses every
-    fund when the panel ends before mid-2011 (no ISINs in the older bhavcopies).
+    fund when the panel ends before mid-2011 (no ISINs in the older bhavcopies). `every_sessions` (M57) = (every, phase):
+    decide on the sessions of [start, end] with index = phase mod every instead of at month-ends.
     """
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
     part = r.return_part if isinstance(r, RankingM55) else "total"
@@ -190,7 +191,12 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
                  else panel.filter(pl.col("security_id").str.starts_with("isin:INF"))["symbol"].unique().to_list())
         eligible = eligible & ~pl.col("symbol").is_in(pl.Series(funds, dtype=pl.String).implode())
     out: dict[date, list[str]] = {}
-    for d in decision_dates(f, start, end, offset_sessions):
+    if every_sessions is None:
+        dates = decision_dates(f, start, end, offset_sessions)
+    else:
+        every, phase = every_sessions
+        dates = f.select("date").unique().sort("date")["date"].to_list()[phase::every]
+    for d in dates:
         day = f.filter((pl.col("date") == d) & eligible)
         if max_frac is not None:
             drop = day.sort("maxret", "symbol", descending=[True, False]).head(math.ceil(max_frac * day.height))["symbol"]
@@ -289,7 +295,9 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
-                   m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols)
+                   m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols,
+                   (p.schedule.every_sessions, p.schedule.phase_session)
+                   if isinstance(p.schedule, ScheduleM57) and p.schedule.every_sessions is not None else None)
     if isinstance(p, ParamsM46):  # M46: only every n-th month decides
         ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
     regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}

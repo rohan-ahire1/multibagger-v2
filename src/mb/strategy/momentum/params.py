@@ -444,3 +444,27 @@ class RankingM55(RankingM29):
 
 class ParamsM55(ParamsM53):
     ranking: RankingM55
+
+
+# M57 option (docs/research/m57.md).
+
+class ScheduleM57(Schedule):
+    # Null: month-ends as before. Otherwise decide on the sessions of [start, end] whose index from the period's first
+    # session is phase_session mod every_sessions; decision_offset_sessions must then be 0.
+    every_sessions: int | None
+    phase_session: int
+
+    @model_validator(mode="after")
+    def _every(self) -> ScheduleM57:
+        if self.every_sessions is None:
+            if self.phase_session != 0:
+                raise ValueError("phase_session needs every_sessions")
+        elif self.every_sessions < 1 or not 0 <= self.phase_session < self.every_sessions:
+            raise ValueError("every_sessions must be >= 1 and phase_session in [0, every_sessions)")
+        elif self.decision_offset_sessions != 0:
+            raise ValueError("every_sessions needs decision_offset_sessions 0")
+        return self
+
+
+class ParamsM57(ParamsM55):
+    schedule: ScheduleM57
