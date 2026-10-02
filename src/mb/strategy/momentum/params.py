@@ -468,3 +468,28 @@ class ScheduleM57(Schedule):
 
 class ParamsM57(ParamsM55):
     schedule: ScheduleM57
+
+
+# M75 option (docs/research/m75.md).
+
+class ExitsM75(ExitsM21):
+    # Set: the proceeds of stop-loss sales buy this symbol at the same open instead of waiting in cash; the next rebalance
+    # trims it back to its target. It must be a fixed-weight symbol, and it is never stopped itself.
+    stop_proceeds_to: str | None
+
+    @model_validator(mode="after")
+    def _to(self) -> ExitsM75:
+        if self.stop_proceeds_to is not None and self.stop_loss_frac is None:
+            raise ValueError("stop_proceeds_to needs stop_loss_frac")
+        return self
+
+
+class ParamsM75(ParamsM57):
+    exits: ExitsM75
+
+    @model_validator(mode="after")
+    def _park(self) -> ParamsM75:
+        to = self.exits.stop_proceeds_to
+        if to is not None and to not in self.portfolio.fixed_weights:
+            raise ValueError(f"stop_proceeds_to {to} must be in portfolio.fixed_weights")
+        return self
