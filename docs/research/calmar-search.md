@@ -35,6 +35,7 @@ its own `mNN.md`; this file only summarises.
 | 53 | Drop names with the weakest recent delivered volume vs their past year (Gervais, Kaniel & Mingelgrin 2001) | 1.081 (drop 25%) / 0.983 (50%) vs pin 1.125 | | fails every window; churns the book |
 | 54 | The pin in four tranches (offsets 0/5/10/15; Hoffstein et al. 2020) | 1.105 vs 1.125 | 26.65% | fails; same drawdowns, so ~1.10 is the timing-luck-free pin |
 | 55 | Rank on daytime-only or overnight-only return (Lou, Polk & Skouras 2019; Barardehi, Bogousslavsky & Muravyev) | 0.736 (daytime) / 0.599 (overnight) vs 1.125 | | fails; the whole return is the signal |
+| 56 | Hold buffer / no resizing on the new pin (Novy-Marx & Velikov 2016) | hold 35: 1.214 at month-end (30.9% CAGR, 25.4% DD) | loses offsets 5/10/15; four-offset mean 1.089 vs 1.106 | fails; month-end gain is timing luck, but wins at 25 bps |
 
 What the evidence says so far:
 
