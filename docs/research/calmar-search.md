@@ -67,6 +67,8 @@ its own `mNN.md`; this file only summarises.
 | 85 | 10% stop on the stitched out-of-sample walk-forward 2014–23 (information) | **half + stop tranches 1.543 (26.1% CAGR, 16.9% DD)** vs book 0.956, half 1.159 | wins every piece | the stop's gain holds out of sample; M78's form is the best OOS book |
 | 86 | No gold + 10% stop; and its half blend | 1.329 / 1.289; tranches **1.509 (32.8% CAGR, 21.7% DD)** / 1.501 (30.3%, 20.2%) | f1, f2; g0s10 loses 55% in 2008 (0.248) | gold covers slow bears, the stop fast crashes |
 | 87 | Stop sells on lower-circuit days (realism, information) | stop books lose 0.1–0.35 pts CAGR a year vs the pin's 0.08 | — | no conclusion changes; live stop sells must retry |
+| 88 | No-gold stop book + 200-day NIFTYBEES filter (risk-off 0 / 0.5, cash) | 1.793 / **1.928**; tranches 1.692 / 1.698 | f1 (2011 whipsaw, no gold) | |
+| 89 | M88 with the risk-off share in GOLDBEES | **r50g 1.991 (34.0% CAGR, 17.1% DD)**; r0g 1.534; tranches **1.788 / 1.885** (32.4% / 31.6% CAGR) | f1 only (1.479 vs 1.598) | best family found; beats the pin's CAGR in every fold |
 
 What the evidence says so far:
 

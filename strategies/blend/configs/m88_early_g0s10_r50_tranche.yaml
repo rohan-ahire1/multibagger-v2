@@ -1,0 +1,21 @@
+# M88 (docs/research/m88.md): g0s10_r50 tranches, 2007-09.
+name: blend
+version: m88_early_g0s10_r50_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m88_early_g0s10_r50.yaml
+      config_hash: cc091297edd841b9c93aa807db728e2382025cd897c494e0ffd68c68202ce6ae
+      weight: 0.25
+    - config: strategies/momentum/configs/m88_early_g0s10_r50_off5.yaml
+      config_hash: 0be4e372afbeb3618152169f6b928710ebe913cb815f6eba9fe7ad448ecec003
+      weight: 0.25
+    - config: strategies/momentum/configs/m88_early_g0s10_r50_off10.yaml
+      config_hash: 23293bffc8617ffa1e213a481702927f91346c24c2b27a08e3baef5a46edf9d4
+      weight: 0.25
+    - config: strategies/momentum/configs/m88_early_g0s10_r50_off15.yaml
+      config_hash: 2089bf5549499d8a86060115f567bfc92bdaa110f39a41e3a48aecf6982762d2
+      weight: 0.25
+  initial_capital: 1000000
