@@ -1,0 +1,21 @@
+# M100 (docs/research/m100.md): g10gt_r50g_jr in four tranches.
+name: blend
+version: m100_g10gt_r50g_jr_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_b2.yaml
+      config_hash: 436e935ef10caf9b6f807d5714a5e9a5ebd9e86032c067da89cfe9a20de86608
+      weight: 0.25
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_off5_b2.yaml
+      config_hash: d594038da2aa9af8e232821dae5835abc6af1f1a57f360c2e2cbdf935c2b481d
+      weight: 0.25
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_off10_b2.yaml
+      config_hash: e26dc87ee4181f744072d52c66211a76fd0d6dd403d635c936ba15c834136496
+      weight: 0.25
+    - config: strategies/momentum/configs/m100_g10gt_r50g_jr_off15_b2.yaml
+      config_hash: b4f594f1d48c666451acc30b9ae51fd9a466619ac6377750b434b48ae8c51423
+      weight: 0.25
+  initial_capital: 1000000
