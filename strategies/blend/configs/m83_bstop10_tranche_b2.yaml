@@ -1,0 +1,21 @@
+# M83 (docs/research/m83.md): m83_bstop10 in four 25% tranches.
+name: blend
+version: m83_bstop10_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m83_bstop10_b2.yaml
+      config_hash: 8a616087d28e5d0c6770558a05b36878688aacee89819b84620279ee75d768d9
+      weight: 0.25
+    - config: strategies/momentum/configs/m83_bstop10_off5_b2.yaml
+      config_hash: 65dbc3cd1bc9ac16f01c4acec9c229d01614ac8f9107e02bf90120604632edcd
+      weight: 0.25
+    - config: strategies/momentum/configs/m83_bstop10_off10_b2.yaml
+      config_hash: 4d2eb7476b4fd37a68748593df6537f637d3c1dc7659c5ea43d52b85ee2b33c0
+      weight: 0.25
+    - config: strategies/momentum/configs/m83_bstop10_off15_b2.yaml
+      config_hash: 359c375488d3973d25551d5ca9d3457e6a3e0d0058ec8870cf31cb85095eac82
+      weight: 0.25
+  initial_capital: 1000000

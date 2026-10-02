@@ -62,6 +62,7 @@ its own `mNN.md`; this file only summarises.
 | 80 | M61 (top 20 half blend) with 10% stops in both sleeves | 1.416; tranches 1.514 (27.6% CAGR, 18.2% DD) | f2; no better than M78 |
 | 81 | 10% stop, proceeds re-spread over the held names | 1.170 | everywhere; worse than cash |
 | 82 | 10% stop with re-entry at the reference price (Kaminski & Lo 2014) | 1.324 | f1, f2; same as the plain stop. The name stop never lowers 2010–17 drawdowns, only CAGR |
+| 83 | M21's book stop (10 / 15%) on the current pin | 1.423 / 1.038; bstop10 tranches 1.365 (28.3% CAGR, 20.8% DD) | f1, f2 (bstop10); whipsaws in 2016 as in M21 |
 
 What the evidence says so far:
 
