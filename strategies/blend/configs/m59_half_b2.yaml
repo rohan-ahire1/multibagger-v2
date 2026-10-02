@@ -1,0 +1,15 @@
+# M59 (docs/research/m59.md): 50% the pin m49_b_b2 and 50% the rotation m59_rot_b2, never rebalanced against each other.
+name: blend
+version: m59_half_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m49_b_b2.yaml
+      config_hash: 0103cc7f2fcca664bf87a047a12f0c3cf7949629e6e81ea7786123f4498613cd
+      weight: 0.5
+    - config: strategies/momentum/configs/m59_rot_b2.yaml
+      config_hash: 1b7d48cf5c26d5173dad74411088750151305d085cb192dda0829fb41fde9eef
+      weight: 0.5
+  initial_capital: 1000000
