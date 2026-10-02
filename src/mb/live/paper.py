@@ -142,8 +142,7 @@ def check_supported(p: Params) -> None:
         on.append("exits.stop_respread")
     if isinstance(p, ParamsM82) and p.exits.stop_reentry:
         on.append("exits.stop_reentry")
-    if isinstance(p, ParamsM89) and p.regime.risk_off_symbol is not None:
-        on.append("regime.risk_off_symbol")
+    # M106: regime.risk_off_symbol (the M89 gold switch) is supported: targets() puts the risk-off share in it.
     if isinstance(p, ParamsM97) and p.regime.extra_benchmark_symbols:
         on.append("regime.extra_benchmark_symbols")
     if isinstance(p, ParamsM99) and p.regime.breadth_min_frac is not None:

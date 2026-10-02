@@ -24,14 +24,15 @@ def test_the_uninvested_share_buys_the_symbol():
     assert with_risk_off(Target({"A": 0.75, "G": 0.25}, 0.5), "G").weights == pytest.approx({"A": 0.375, "G": 0.625})
 
 
-def test_the_option_is_validated_routed_and_refused_by_paper():
+def test_the_option_is_validated_and_routed_and_paper_refuses_only_the_stop():
     with pytest.raises(ValidationError, match="needs the regime enabled"):
         RegimeM89(enabled=False, benchmark_symbol="NIFTYBEES", sma_sessions=200, risk_off_gross=0.0,
                   risk_off_symbol="GOLDBEES")
     cfg = load_strategy_config(ROOT / "strategies/momentum/configs/m89_g0s10_r50g_b2.yaml", ROOT)
     assert type(cfg.params) is ParamsM89
-    with pytest.raises(ValueError, match="regime.risk_off_symbol"):
+    with pytest.raises(ValueError, match="exits.stop_loss_frac") as e:  # M106: the gold switch itself is supported
         check_supported(cfg.params)
+    assert "regime.risk_off_symbol" not in str(e.value)
 
 
 def test_without_the_symbol_the_m88_run_is_unchanged():
