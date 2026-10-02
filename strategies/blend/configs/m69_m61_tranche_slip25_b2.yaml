@@ -1,0 +1,33 @@
+# M69 (docs/research/m69.md): equal decision-day tranches at 25 bps, never rebalanced against each other.
+name: blend
+version: m69_m61_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m58_top20_slip25_b2.yaml
+      config_hash: 7f1ec564da5f58a0985ea0e7874afec80dfff05d17469236c63d9aeebc454f2d
+      weight: 0.125
+    - config: strategies/momentum/configs/m69_top20_off5_slip25_b2.yaml
+      config_hash: 1ef67e09a5fd273fe352b40c4a5beef350b806175209fb2650f61641bb6bc6aa
+      weight: 0.125
+    - config: strategies/momentum/configs/m69_top20_off10_slip25_b2.yaml
+      config_hash: 6de2281360f273fcfe0401cb3300a28f6ea3d28cfaacffcbb554b904a52888bc
+      weight: 0.125
+    - config: strategies/momentum/configs/m69_top20_off15_slip25_b2.yaml
+      config_hash: b28fdcd7dda3a7c558ca3ac35b1632820dd380fbc997153f8e957f26d66c9961
+      weight: 0.125
+    - config: strategies/momentum/configs/m61_rot_top20_slip25_b2.yaml
+      config_hash: b452b77184179abdfae6f0f81871a81f1e1da67a77e28f17e38a08a02368fbb8
+      weight: 0.125
+    - config: strategies/momentum/configs/m69_rot_top20_off5_slip25_b2.yaml
+      config_hash: b4b974924b05deb9bc9581142d596834ac3336f0391bba3396355a85d2566820
+      weight: 0.125
+    - config: strategies/momentum/configs/m69_rot_top20_off10_slip25_b2.yaml
+      config_hash: ac45ebba6c46e6d3d9e42978d4f579c4904e2f9af158cb3ed431858c9cc45db3
+      weight: 0.125
+    - config: strategies/momentum/configs/m69_rot_top20_off15_slip25_b2.yaml
+      config_hash: de1e82bea375bdecc5a37989680426e72a3a5e6cf2dfdc3bc0786b0cce335cfc
+      weight: 0.125
+  initial_capital: 1000000
