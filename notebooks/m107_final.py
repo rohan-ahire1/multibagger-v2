@@ -35,5 +35,5 @@ for w, (a, b) in WINDOWS.items():
             print(f"    {name}: ends {c['date'].max()}, see the TRI window")
             continue
         m = equity_metrics(c, a, b)
-        print(f"    {name} ({ids.get(name, '-')}): CAGR {m['cagr'] * 100:.2f}% max DD {m['max_drawdown'] * 100:.2f}% "
+        print(f"    {name} ({ids.get(name, '-')}): CAGR {m['cagr_pct']:.2f}% max DD {m['max_dd_pct']:.2f}% "
               f"Calmar {m['calmar']:.3f}")
