@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40, UniverseM44,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -143,6 +143,14 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         keys_extra = ["deliv_share"]
     else:
         keys_extra = []
+    abd = u.abnormal_delivery if isinstance(u, UniverseM53) else None
+    if abd is not None:  # M53
+        dq0 = pl.col("deliv_qty").fill_null(0).cast(pl.Float64)
+        recent = dq0.rolling_sum(abd.recent_sessions, min_samples=abd.recent_sessions) / abd.recent_sessions
+        base = (dq0.rolling_sum(abd.base_sessions, min_samples=abd.base_sessions).shift(abd.recent_sessions)
+                / abd.base_sessions)
+        cols.append(pl.when(base > 0).then(recent / base).over("symbol").alias("abd_ratio"))
+        keys_extra.append("abd_ratio")
     max_gap = u.max_gap_days if isinstance(u, UniverseM44) else None
     if max_gap is not None:
         w = r.lookback_sessions
@@ -182,6 +190,9 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
             day = day.filter(~pl.col("symbol").is_in(drop.implode()))
         if dfrac is not None:
             drop = day.sort("deliv_share", "symbol").head(math.ceil(dfrac * day.height))["symbol"]
+            day = day.filter(~pl.col("symbol").is_in(drop.implode()))
+        if abd is not None:
+            drop = day.sort("abd_ratio", "symbol").head(math.ceil(abd.drop_frac * day.height))["symbol"]
             day = day.filter(~pl.col("symbol").is_in(drop.implode()))
         if second is not None:  # mean of the two percentile ranks, 1 = best
             # Ranks are summed before dividing so equal means tie exactly and fall back to the symbol order.

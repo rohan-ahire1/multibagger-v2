@@ -390,3 +390,36 @@ class ScheduleM46(Schedule):
 
 class ParamsM46(ParamsM40):
     schedule: ScheduleM46
+
+
+# M53 option (docs/research/m53.md).
+
+class AbnormalDelivery(Strict):
+    # ratio = mean deliv_qty over the last `recent_sessions` rows up to the decision date / mean over the
+    # `base_sessions` rows before those (missing records count as 0); a zero base is not eligible. After the
+    # delivery-share drop, the `drop_frac` share (rounded up) of the remaining names with the lowest ratio is dropped.
+    recent_sessions: int
+    base_sessions: int
+    drop_frac: float
+
+    @model_validator(mode="after")
+    def _abnormal(self) -> AbnormalDelivery:
+        if self.recent_sessions < 1 or self.base_sessions < 1:
+            raise ValueError("abnormal_delivery: recent_sessions and base_sessions must be at least 1")
+        if not 0.0 < self.drop_frac < 1.0:
+            raise ValueError("abnormal_delivery.drop_frac must be in (0, 1)")
+        return self
+
+
+class UniverseM53(UniverseM44):
+    abnormal_delivery: AbnormalDelivery | None
+
+    @model_validator(mode="after")
+    def _needs_delivery(self) -> UniverseM53:
+        if self.abnormal_delivery is not None and self.delivery_drop_frac is None:
+            raise ValueError("abnormal_delivery needs delivery_drop_frac (the delivery columns)")
+        return self
+
+
+class ParamsM53(ParamsM44):
+    universe: UniverseM53

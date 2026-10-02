@@ -29,7 +29,7 @@ from mb.config.loader import Resolved
 from mb.config.models import PaperConfig
 from mb.data import datasets
 from mb.live import calendar
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM32, ParamsM40, ParamsM46
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM32, ParamsM40, ParamsM46, ParamsM53
 from mb.strategy.momentum.targets import targets
 
 PANEL_COLUMNS = ("date", "symbol", "security_id", "series", "open", "close", "turnover", "adj_open", "adj_close",
@@ -125,8 +125,10 @@ def check_supported(p: Params) -> None:
         on.append("portfolio.vol_states")
     if isinstance(p, ParamsM46) and p.schedule.every_months != 1:
         on.append("schedule.every_months")
+    if isinstance(p, ParamsM53) and p.universe.abnormal_delivery is not None:
+        on.append("universe.abnormal_delivery")
     if on:
-        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32/M46 options yet: {', '.join(on)}")
+        raise ValueError(f"paper trading does not support these M8/M10/M11/M12/M21/M22/M27/M32/M46/M53 options yet: {', '.join(on)}")
 
 
 def panel_columns(p: Params) -> tuple[str, ...]:
