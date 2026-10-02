@@ -78,6 +78,7 @@ its own `mNN.md`; this file only summarises.
 | 96 | r50g_jr robustness: neighbours, bootstrap, stitched (information) | neighbours' tranches 1.61–1.89; bootstrap **92% Calmar / 98% CAGR above pin tranches**; stitched tranches 1.661 (33.9% CAGR, 20.4% DD) | 3 of 5 settings pass (150 days and ¼-to-gold miss f1) | strongest candidate; f1 is the fragile fold |
 | 97 | Graded filter: a quarter to gold per index (Nifty 50, Next 50) below its 200-day average | 1.785 (34.4% CAGR, 19.3% DD); tranches 1.726 | f1 (1.570 vs 1.598; tranches 1.569 vs 1.590) | between M89 and M95; passes f2 at offset 0 |
 | 98 | Top 20 in r50g_jr | 1.576 (offset 0); **tranches 1.603 (34.3% CAGR, 21.4% DD; 1.740 / 2.378 / 1.774); 25 bps 1.451; 2007–09 0.660** | offset 0 f2; **tranches pass, also at 25 bps** | more return, a bit less Calmar than M95 |
+| 99 | Filter on breadth (half the universe above its own 200-day average; Zweig 1986) | 1.565; tranches 1.608 (32.7% CAGR, 20.3% DD) | offset 0 f1; tranches f2 vs the pin's tranches (2.189 vs 2.199) | worse than the Next 50 filter |
 
 What the evidence says so far:
 

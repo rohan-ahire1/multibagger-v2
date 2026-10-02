@@ -1,0 +1,21 @@
+# M99 (docs/research/m99.md): r50g_br tranches at 25 bps.
+name: blend
+version: m99_r50g_br_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m99_r50g_br_slip25_b2.yaml
+      config_hash: 5d38ed20d96b615a22a0cbc5f6aed29b9608434c89435af0050abfd27e1e9799
+      weight: 0.25
+    - config: strategies/momentum/configs/m99_r50g_br_off5_slip25_b2.yaml
+      config_hash: 5b02c5cd61278047deeb8cb98e9d37839d1ef1193fc049fdbcad7d955d310c00
+      weight: 0.25
+    - config: strategies/momentum/configs/m99_r50g_br_off10_slip25_b2.yaml
+      config_hash: d7445c8409d8fe8d7fe08a1049e3d3e48f76ee228cfcb26be391856c0b76fd70
+      weight: 0.25
+    - config: strategies/momentum/configs/m99_r50g_br_off15_slip25_b2.yaml
+      config_hash: 5403014892c46cec2e7b685c776a27626aa8012e93658d0926d199f985dd2ba6
+      weight: 0.25
+  initial_capital: 1000000

@@ -1,0 +1,21 @@
+# M99 (docs/research/m99.md): r50g_br tranches, 2007-09.
+name: blend
+version: m99_early_r50g_br_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m99_early_r50g_br.yaml
+      config_hash: fd3853e0d13f086627d0977c8ae592b42c725da9123ad26586a0c047e6f26e1a
+      weight: 0.25
+    - config: strategies/momentum/configs/m99_early_r50g_br_off5.yaml
+      config_hash: f0c89e6e03287cd2f61e8c1d88249639a778c37e368c9425ad39a62f631c2b4e
+      weight: 0.25
+    - config: strategies/momentum/configs/m99_early_r50g_br_off10.yaml
+      config_hash: dab305881ee4122427d2e364dec38ae009164e708cd66e51473d67dd9a72c937
+      weight: 0.25
+    - config: strategies/momentum/configs/m99_early_r50g_br_off15.yaml
+      config_hash: 19b044ff0070dfc244271966ebc7248f50895607b666c60745486e498c94d22d
+      weight: 0.25
+  initial_capital: 1000000
