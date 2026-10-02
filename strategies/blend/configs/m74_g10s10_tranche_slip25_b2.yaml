@@ -1,0 +1,21 @@
+# M74 (docs/research/m74.md): m74_g10s10 tranches at 25 bps.
+name: blend
+version: m74_g10s10_tranche_slip25_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m74_g10s10_slip25_b2.yaml
+      config_hash: ae4a4f2d6333b48d7edc80c607b8b70c73b1ec5ec2678ae0def2c15e5e00c1a5
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_g10s10_off5_slip25_b2.yaml
+      config_hash: 892231a385d464cb09ec25553ffdf1c78355a688663abfb99ca508b499579854
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_g10s10_off10_slip25_b2.yaml
+      config_hash: 5b2809b6a325be71bfe9b4b233ddd0b7bcd92034d7b9ee3d877ce513e38aa51d
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_g10s10_off15_slip25_b2.yaml
+      config_hash: 0de74695d79320d15d01e4b640dcd2a62f7935e6c1906572a0dc570a253f8ec7
+      weight: 0.25
+  initial_capital: 1000000

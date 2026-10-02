@@ -1,0 +1,21 @@
+# M74 (docs/research/m74.md): m74_t20s10 tranches on 2007-09.
+name: blend
+version: m74_early_t20s10_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m74_early_t20s10.yaml
+      config_hash: 89ed3b950adfacfb6e5189ff0183556330d8b8d31ab25820f6e1c3bb455eae71
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_early_t20s10_off5.yaml
+      config_hash: 95d3c27ed4cd7ba05922bf436d158972db57d5f43c5616b9c2b65b4523cb1164
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_early_t20s10_off10.yaml
+      config_hash: 7f3d8bf3da64feacac2b2766098414fa196a063824a13ba2164d35e11f6a60b8
+      weight: 0.25
+    - config: strategies/momentum/configs/m74_early_t20s10_off15.yaml
+      config_hash: 7cedecb2f684db6cebe0479d5c31bd1c5a03b110af8ffdb0ea5f8a05c2cc1a2b
+      weight: 0.25
+  initial_capital: 1000000
