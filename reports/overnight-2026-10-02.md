@@ -18,7 +18,7 @@ Branch `m97-graded-regime` (from `m43-paper-delivery`), all committed, nothing p
   miss by 0.04–0.10 (150 days; ¼ to gold). (4) Paper code supports neither the stop nor the gold switch yet.
   Adopting it, and spending `--final` on 2024+, are your calls.
 
-- **Passing alternatives, none better (M97–M100).** Top 20 instead of 10 on the same rule (`blend/m98_t20_r50g_jr_tranche_b2`,
+- **Passing alternatives, none better (M97–M100).** Top 20 instead of 25 on the same rule (`blend/m98_t20_r50g_jr_tranche_b2`,
   run 20261002-043350-fef356b4): 34.3% CAGR, 21.4% DD, 1.603; folds 1.740 / 2.378 / 1.774; 25 bps 1.451; 2007–09 0.660
   (more CAGR, more names, slightly lower Calmar). 10% trend gold added (`blend/m100_g10gt_r50g_jr_tranche_b2`, run
   20261002-044315-3695bf93): 31.8% CAGR, 19.4% DD, 1.644; folds 1.898 / 2.550 / 1.770 (firmer fold 1, less CAGR).
