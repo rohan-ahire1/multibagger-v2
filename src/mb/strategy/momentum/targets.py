@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -92,6 +92,13 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     fund when the panel ends before mid-2011 (no ISINs in the older bhavcopies).
     """
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
+    part = r.return_part if isinstance(r, RankingM55) else "total"
+    if part != "total":  # M55
+        span = r.lookback_sessions - r.skip_sessions
+        top, bottom = ("adj_close", "adj_open") if part == "intraday" else ("adj_open", None)
+        prev = pl.col("adj_close").shift(1) if bottom is None else pl.col(bottom)
+        lr = pl.when((pl.col(top) > 0) & (prev > 0)).then((pl.col(top) / prev).log())
+        mom = lr.rolling_sum(span, min_samples=span).shift(r.skip_sessions).exp() - 1.0
     cols = [pl.col("turnover").rolling_mean(u.adv_window_sessions, min_samples=u.adv_window_sessions).over("symbol").alias("adv"),
             mom.over("symbol").alias("mom")]
     if r.score == "return_over_vol":

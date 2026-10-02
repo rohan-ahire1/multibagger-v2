@@ -423,3 +423,24 @@ class UniverseM53(UniverseM44):
 
 class ParamsM53(ParamsM44):
     universe: UniverseM53
+
+
+# M55 option (docs/research/m55.md).
+
+class RankingM55(RankingM29):
+    # total: momentum from adj_close as before. intraday: exp(sum of log(adj_close / adj_open)) - 1 over the same
+    # `lookback - skip` rows; overnight: the same with log(adj_open / previous adj_close). The vol is unchanged.
+    return_part: Literal["total", "intraday", "overnight"]
+
+    @model_validator(mode="after")
+    def _part(self) -> RankingM55:
+        if self.return_part != "total":
+            on = [k for k in ("second_lookback_sessions", "high_window_sessions", "residual_beta_sessions",
+                              "frog_candidates_per_slot") if getattr(self, k) is not None]
+            if on or self.order != "score":
+                raise ValueError(f"return_part {self.return_part} needs order score and none of: {', '.join(on) or 'order'}")
+        return self
+
+
+class ParamsM55(ParamsM53):
+    ranking: RankingM55
