@@ -1,0 +1,15 @@
+# M78 (docs/research/m78.md): 50% m74_g10s10_b2 family + 50% rotation with a 10% stop.
+name: blend
+version: m78_half_g10s10_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m74_g10s10_b2.yaml
+      config_hash: 268dc7819570d4a77f156d7f6ae103805348a4d99b87cc7fc11c60c8bb61c544
+      weight: 0.5
+    - config: strategies/momentum/configs/m78_rot_s10_b2.yaml
+      config_hash: 8a695cf6cff6143bdacb05c2ecba4eb222195bf99f318801c750fc331857e014
+      weight: 0.5
+  initial_capital: 1000000

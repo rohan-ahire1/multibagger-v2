@@ -57,6 +57,7 @@ its own `mNN.md`; this file only summarises.
 | 75 | Stop proceeds parked in gold (stop10, g10s10) | 1.243 / 1.224; tranches 1.340 / 1.350 | f2; worse than cash parking — gold fell in Mar 2020 and 2022 |
 | 76 | Trailing 10% / 15% stop; stop widened to 4.5σ for volatile names (Kaminski & Lo 2014) | trail10 tranches 1.501 (25.2% CAGR, 16.8% DD); trail15 1.393; vol45 1.310 | f1, f2; none beats the fixed 10% stop (1.513) |
 | 77 | Tighter stops 7.5% / 5% | 1.523 / 1.647; tranches 1.551 (24.7% CAGR, 15.9% DD) / 1.485 (21.4%, 14.4%) | f1, f2; return falls as fast as drawdown |
+| 78 | 10% stop in both sleeves of the half rotation blend (pin or gold-0.10 book) | half_s10 tranches **1.542 (26.9% CAGR, 17.5% DD), 2007–09 0.716**; half_g10s10 tranches 1.528 (28.9%, 18.9%) | f2 at offset 0; best all-round books; bootstrap Calmar > pin tranches 83% |
 
 What the evidence says so far:
 
