@@ -49,6 +49,7 @@ its own `mNN.md`; this file only summarises.
 | 67 | Lookback ensemble 189 / 273 / 378, a third each (specification diversification) | 1.076 (27.9% CAGR, 26.0% DD) | four-offset mean 1.078; 2007–09 0.281 | fails everywhere |
 | 68 | Near-misses in four decision-day tranches (information) | **half (M59) 1.176: folds 1.69 / 2.15 / 1.38, all above the pinned run**; M61 1.201; top 20 1.145 | 2007–09 half 0.617, M61 0.630 vs 0.284 | information; half beats the pinned run everywhere but trails the pin's own tranches in f2 (2.149 vs 2.199) |
 | 69 | Tranche books at 25 bps (information) | pin 1.059, half 1.100, M61 1.121 | half vs the pin's 25 bps run: f2 1.962 vs 1.971, f3 1.295 vs 1.310 | information; half tranches fail the 25 bps check by a hair |
+| 70 | Half-rotation rule on the out-of-sample walk-forward 2014–23 (information) | **1.202 (28.4% CAGR, 23.6% DD) vs plain 0.953 (24.8%, 26.1%)** | 4 tranches: 1.159 vs 0.956 | information; largest out-of-sample gain so far |
 
 What the evidence says so far:
 
