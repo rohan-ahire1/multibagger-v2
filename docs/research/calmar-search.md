@@ -75,6 +75,7 @@ its own `mNN.md`; this file only summarises.
 | 93 | M91's fixed gold held only while gold trends up (252 sessions, M22) | g10 1.934 (f1 1.594, f2 2.055); g25 1.837; **g25 tranches 1.721 (28.5% CAGR, 16.5% DD; 1.627 / 2.413 / 1.969)** | offset 0: g10 f1, f2 by a hair; g25 f2. g25 tranches beat the pin everywhere but fail 25 bps on f1 (1.481 vs 1.498); no 2007–09 | first tranche book above the pin on every fold |
 | 94 | M93 g25gt robustness: neighbours, bootstrap, stitched (information) | neighbours' tranches 1.68–1.94 (189 sessions 1.944); bootstrap 86.5% vs pin; stitched tranches 1.773 (29.7% CAGR, 16.7% DD) | — | fold 1 edge fragile (2 of 4 neighbours lose it); r50g earns ~4 pts more at the same Calmar |
 | 95 | 200-day filter on JUNIORBEES (Nifty Next 50) instead of NIFTYBEES, in r50g and g25gt | r50g_jr 1.614 (offset 0); **tranches 1.656 (33.4% CAGR, 20.2% DD; 1.784 / 2.731 / 1.763), 25 bps 1.497 (1.624 / 2.495 / 1.584), 2007–09 0.591** | offset 0 fails f2; **r50g_jr tranches pass the bar, also at 25 bps** | first pass in any form; built in sample over M86–M95 |
+| 96 | r50g_jr robustness: neighbours, bootstrap, stitched (information) | neighbours' tranches 1.61–1.89; bootstrap **92% Calmar / 98% CAGR above pin tranches**; stitched tranches 1.661 (33.9% CAGR, 20.4% DD) | 3 of 5 settings pass (150 days and ¼-to-gold miss f1) | strongest candidate; f1 is the fragile fold |
 
 What the evidence says so far:
 

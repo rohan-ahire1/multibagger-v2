@@ -1,0 +1,21 @@
+# M96 (docs/research/m96.md): r25g_jr in four tranches.
+name: blend
+version: m96_r25g_jr_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m96_r25g_jr_b2.yaml
+      config_hash: 7dc12a7c2b6c8026924d06a9dc68bcd4e2bcc47805a65fb9c9bb766242234058
+      weight: 0.25
+    - config: strategies/momentum/configs/m96_r25g_jr_off5_b2.yaml
+      config_hash: 0f86d6e4ed2f266edd433c14a2c0e65d1bfff40f7405c00cc9fb4626af1c84b6
+      weight: 0.25
+    - config: strategies/momentum/configs/m96_r25g_jr_off10_b2.yaml
+      config_hash: 5be169acd301ac2e86728d7e80729134f210632838e90e8f5fa225e652223523
+      weight: 0.25
+    - config: strategies/momentum/configs/m96_r25g_jr_off15_b2.yaml
+      config_hash: b8b9b6514aa4a9d6d48e226576e22d8b43529de09b3306af91bfb4813833287c
+      weight: 0.25
+  initial_capital: 1000000
