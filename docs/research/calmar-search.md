@@ -76,6 +76,7 @@ its own `mNN.md`; this file only summarises.
 | 94 | M93 g25gt robustness: neighbours, bootstrap, stitched (information) | neighbours' tranches 1.68–1.94 (189 sessions 1.944); bootstrap 86.5% vs pin; stitched tranches 1.773 (29.7% CAGR, 16.7% DD) | — | fold 1 edge fragile (2 of 4 neighbours lose it); r50g earns ~4 pts more at the same Calmar |
 | 95 | 200-day filter on JUNIORBEES (Nifty Next 50) instead of NIFTYBEES, in r50g and g25gt | r50g_jr 1.614 (offset 0); **tranches 1.656 (33.4% CAGR, 20.2% DD; 1.784 / 2.731 / 1.763), 25 bps 1.497 (1.624 / 2.495 / 1.584), 2007–09 0.591** | offset 0 fails f2; **r50g_jr tranches pass the bar, also at 25 bps** | first pass in any form; built in sample over M86–M95 |
 | 96 | r50g_jr robustness: neighbours, bootstrap, stitched (information) | neighbours' tranches 1.61–1.89; bootstrap **92% Calmar / 98% CAGR above pin tranches**; stitched tranches 1.661 (33.9% CAGR, 20.4% DD) | 3 of 5 settings pass (150 days and ¼-to-gold miss f1) | strongest candidate; f1 is the fragile fold |
+| 97 | Graded filter: a quarter to gold per index (Nifty 50, Next 50) below its 200-day average | 1.785 (34.4% CAGR, 19.3% DD); tranches 1.726 | f1 (1.570 vs 1.598; tranches 1.569 vs 1.590) | between M89 and M95; passes f2 at offset 0 |
 
 What the evidence says so far:
 
