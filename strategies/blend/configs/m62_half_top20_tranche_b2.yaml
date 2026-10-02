@@ -1,0 +1,33 @@
+# M62 (docs/research/m62.md): equal tranches of the sleeves below, never rebalanced against each other.
+name: blend
+version: m62_half_top20_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m58_top20_b2.yaml
+      config_hash: d82665ba4cbd98ab3e2850806fb764a3e19c7a1c41e84df6b8d95fc0314dd527
+      weight: 0.125
+    - config: strategies/momentum/configs/m58_top20_off5_b2.yaml
+      config_hash: 5a05e742b83d1b303cf611b26d150423256534f1784a617c9c8a465443ddd3b1
+      weight: 0.125
+    - config: strategies/momentum/configs/m58_top20_off10_b2.yaml
+      config_hash: 69ec65e7aa0c0958370deb8b8fb63e8c34fefabc4a13f30e01190c3cfed65c4c
+      weight: 0.125
+    - config: strategies/momentum/configs/m58_top20_off15_b2.yaml
+      config_hash: 11f31e4784ece63f111d2f48c4b489344330b594b7745010d7002b17f20a1b8e
+      weight: 0.125
+    - config: strategies/momentum/configs/m61_rot_top20_b2.yaml
+      config_hash: 6408dfe4df9e3f11835aaa7eb7a53aff876445073f5e60501917ba3fc65be0a7
+      weight: 0.125
+    - config: strategies/momentum/configs/m61_rot_top20_off5_b2.yaml
+      config_hash: aa71d37f9c4ecdde371da0df9551d7de1ec7265431d298c9fa1cac9352bdfa7b
+      weight: 0.125
+    - config: strategies/momentum/configs/m61_rot_top20_off10_b2.yaml
+      config_hash: b5352956a2a2238ec45fc4cd31c1d528a11c0fdb1ae76748945c570d496f9915
+      weight: 0.125
+    - config: strategies/momentum/configs/m61_rot_top20_off15_b2.yaml
+      config_hash: 2c58e29d5176a37997da1f06ea74fd227fd5c8bb094fcc7738fa65fa092ab8fc
+      weight: 0.125
+  initial_capital: 1000000
