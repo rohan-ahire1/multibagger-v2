@@ -45,6 +45,7 @@ its own `mNN.md`; this file only summarises.
 | 63 | Slower rotation signal (3/6/12 m) in the M61 book | 1.267 | offsets 0.968 / 1.155 / 1.175; 2007–09 0.623 | fails f2 (1.82); no gain over M61 |
 | 64 | Top 15, past M42's search edge | 1.161 (32.2% CAGR, 27.7% DD) | four-offset mean 1.167; 25 bps 1.111; 2007–09 0.357 | fails f2 (1.75); concentration peaks at 15–20 |
 | 65 | Square-root market impact at ₹10 lakh – ₹10 crore (information) | pin 1.098 / 1.065 / 1.006 / 0.863 | M61 1.271 / 1.220 / 1.133 / 0.940 | information; edge holds to ~₹2 crore, ordering unchanged |
+| 66 | ADV floor ₹50 lakh, past M42's search edge (Amihud 2002) | 1.164 (30.4% CAGR, 26.1% DD) | f2 2.09 beats the pin; 2007–09 0.288 | fails f1 (1.52 vs 1.60) |
 
 What the evidence says so far:
 

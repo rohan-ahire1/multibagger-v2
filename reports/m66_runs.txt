@@ -1,0 +1,9 @@
+m66_adv50l_b2 run 20261002-005221-b108c235
+m66_adv50l_off5_b2 refused by the data gate: PTL held through 2017-03-27 (close x0.372, BE series), not checked (verdict already decided)
+m66_adv50l_off10_b2 run 20261002-005236-09e5f110
+m66_adv50l_off15_b2 run 20261002-005245-1e9302d7
+m66_adv50l_slip25_b2 run 20261002-005255-1dc3c2c2
+m66_early_adv50l run 20261002-005304-5f5de88e
+m66_early_adv50l_off5 run 20261002-005305-959da496
+m66_early_adv50l_off10 run 20261002-005306-d627a8f0
+m66_early_adv50l_off15 run 20261002-005307-916994e1
