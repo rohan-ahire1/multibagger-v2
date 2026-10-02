@@ -2,7 +2,7 @@
 name: blend
 version: m59_half_slip25_b2
 dataset: nse_research@2026-10-02b
-market: nse_cash
+market: nse_cash_slip25
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
   sleeves:
