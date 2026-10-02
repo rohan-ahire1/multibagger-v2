@@ -493,3 +493,28 @@ class ParamsM75(ParamsM57):
         if to is not None and to not in self.portfolio.fixed_weights:
             raise ValueError(f"stop_proceeds_to {to} must be in portfolio.fixed_weights")
         return self
+
+
+# M76 options (docs/research/m76.md).
+
+class ExitsM76(ExitsM75):
+    # True: the stop reference ratchets up to the highest close since the last rebalance (a trailing stop).
+    stop_trailing: bool
+    # Set (both): a name's stop is max(stop_loss_frac, stop_vol_mult x the std of its daily close returns over the
+    # stop_vol_sessions sessions up to the decision close); volatile names get a wider stop, none a tighter one.
+    stop_vol_sessions: int | None
+    stop_vol_mult: float | None
+
+    @model_validator(mode="after")
+    def _m76(self) -> ExitsM76:
+        if (self.stop_vol_sessions is None) != (self.stop_vol_mult is None):
+            raise ValueError("stop_vol_sessions and stop_vol_mult go together")
+        if (self.stop_trailing or self.stop_vol_sessions is not None) and self.stop_loss_frac is None:
+            raise ValueError("stop_trailing and stop_vol_* need stop_loss_frac")
+        if self.stop_vol_sessions is not None and (self.stop_vol_sessions < 2 or self.stop_vol_mult <= 0):
+            raise ValueError("stop_vol_sessions must be >= 2 and stop_vol_mult > 0")
+        return self
+
+
+class ParamsM76(ParamsM75):
+    exits: ExitsM76

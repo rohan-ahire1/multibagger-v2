@@ -4,9 +4,10 @@ A rebalance strategy decides at the close of a decision date which names it want
 fraction of equity to invest (`gross`). The trades happen at the next session's open: sells first, then buys, all buys
 scaled down together if cash is short. Prices are the adjusted series. With a stop-loss (M11), a held name that closes at
 or below (1 - stop) x its open at the last rebalance session is sold at the next open; the cash waits for the next
-rebalance, or with `stop_to` (M75) buys that symbol at the same open (it is never stopped itself). A name with no open
-that session is not bought and
-is sold at its last close; a name that stops trading is valued at its last close until it is sold.
+rebalance, or with `stop_to` (M75) buys that symbol at the same open (it is never stopped itself). M76: with
+`stop_trail` the reference ratchets up to the highest close since the rebalance; with `stop_vol` = (n, k) a name's stop is
+max(stop, k x the std of its last n daily close returns up to the decision close). A name with no open that session is
+not bought and is sold at its last close; a name that stops trading is valued at its last close until it is sold.
 
 The 12-1 momentum baseline and every rebalance strategy run through this one function.
 """
@@ -46,7 +47,8 @@ class RebalanceResult:
 
 
 def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list[date], market: MarketConfig,
-                     initial_capital: float, stop_loss_frac: float | None = None, stop_to: str | None = None) -> RebalanceResult:
+                     initial_capital: float, stop_loss_frac: float | None = None, stop_to: str | None = None,
+                     stop_trail: bool = False, stop_vol: tuple[int, float] | None = None) -> RebalanceResult:
     """`bars` has date, symbol, open, close (adjusted) for every name any target mentions; `days` is the session calendar.
 
     A target dated on a session is traded at the next session's open.
@@ -62,6 +64,8 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
     if stop_to is not None and (stop_loss_frac is None or stop_to not in col):
         raise ValueError(f"stop_to {stop_to} needs a stop and must be in every target's names")
     park = col[stop_to] if stop_to is not None else -1
+    if (stop_trail or stop_vol is not None) and stop_loss_frac is None:
+        raise ValueError("stop_trail and stop_vol need a stop")
     for j in range(cls.shape[1]):  # a delisted or suspended name keeps its last close
         v = cls[:, j]
         ok = ~np.isnan(v)
@@ -80,6 +84,7 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
     pending: Target | None = None
     rebalances = 0
     ref = np.full(len(names), np.nan)  # stop reference: the open at the last rebalance session
+    frac = np.full(len(names), stop_loss_frac if stop_loss_frac is not None else np.nan)  # each name's stop
     stops: list[int] = []              # names whose stop fired at the last close; sold at this open
 
     def close_holding(j: int, day: date, status: str, mark: float = 0.0) -> None:
@@ -135,6 +140,14 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
             stops = []
             if stop_loss_frac is not None:
                 ref = np.where(shares > 0.0, px, np.nan)
+                if stop_vol is not None:
+                    n_vol, k_vol = stop_vol
+                    win = cls[max(i - n_vol - 1, 0):i]
+                    with np.errstate(invalid="ignore", divide="ignore"):
+                        r = win[1:] / win[:-1] - 1.0
+                    ok = (~np.isnan(r)).sum(axis=0) == n_vol
+                    sd = np.where(ok, np.nanstd(np.where(np.isnan(r), 0.0, r), axis=0, ddof=1), 0.0)
+                    frac = np.maximum(stop_loss_frac, k_vol * sd)
         elif stops:
             px = np.where(np.isnan(opn[i]), cls[i], opn[i])
             freed = 0.0
@@ -162,7 +175,9 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
         if d in targets:
             pending = targets[d]
         elif stop_loss_frac is not None:
-            stops = [j for j in np.flatnonzero(shares > 0.0) if j != park and cls[i, j] <= ref[j] * (1.0 - stop_loss_frac)]
+            if stop_trail:
+                ref = np.where(shares > 0.0, np.fmax(ref, cls[i]), ref)
+            stops = [j for j in np.flatnonzero(shares > 0.0) if j != park and cls[i, j] <= ref[j] * (1.0 - frac[j])]
 
     for j in range(len(names)):
         if opened[j] is not None:
