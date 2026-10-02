@@ -1,0 +1,15 @@
+# M86 (docs/research/m86.md): half blend, 2007-09, off15.
+name: blend
+version: m86_early_half_g0s10_off15
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m86_early_g0s10_off15.yaml
+      config_hash: 12ef7ceba3d09a9c08db88b91a2439a2f10641ca628f0ac80f580c870a228a63
+      weight: 0.5
+    - config: strategies/momentum/configs/m78_early_rot_s10_off15.yaml
+      config_hash: d9a795a412008bfcf6b87bcf0fc24f711a074724a9eac812d866c8e8161fc05d
+      weight: 0.5
+  initial_capital: 1000000

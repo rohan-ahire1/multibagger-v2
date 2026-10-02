@@ -1,0 +1,21 @@
+# M86 (docs/research/m86.md): g0s10 tranches, 2007-09.
+name: blend
+version: m86_early_g0s10_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2007-04-02, end: 2009-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m86_early_g0s10.yaml
+      config_hash: 1f01ea0e75428b74316f28affb9c55624fbbe59cda29a95a77ba5565015e5bbd
+      weight: 0.25
+    - config: strategies/momentum/configs/m86_early_g0s10_off5.yaml
+      config_hash: 12a04d49a45876b2ec23d0c9660082fe5fa69f8a7eff4f9eec89e87e77767ade
+      weight: 0.25
+    - config: strategies/momentum/configs/m86_early_g0s10_off10.yaml
+      config_hash: 5bc25dfa1b459edc63dafce4cbef2ac80410153094ccd2e65fcc9d00e8d5ef2d
+      weight: 0.25
+    - config: strategies/momentum/configs/m86_early_g0s10_off15.yaml
+      config_hash: 12ef7ceba3d09a9c08db88b91a2439a2f10641ca628f0ac80f580c870a228a63
+      weight: 0.25
+  initial_capital: 1000000
