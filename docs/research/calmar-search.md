@@ -66,6 +66,7 @@ its own `mNN.md`; this file only summarises.
 | 84 | Frog in the pan (M10 rule, 2 × top_n) on the current pin (Da, Gurun & Warachka 2014) | 0.963; tranches 0.943 | wins f1, f2; loses f3 badly (28.8% vs 35.5% CAGR). Pin's f2 is 2.070, not 2.072 (no verdict changes) |
 | 85 | 10% stop on the stitched out-of-sample walk-forward 2014–23 (information) | **half + stop tranches 1.543 (26.1% CAGR, 16.9% DD)** vs book 0.956, half 1.159 | wins every piece | the stop's gain holds out of sample; M78's form is the best OOS book |
 | 86 | No gold + 10% stop; and its half blend | 1.329 / 1.289; tranches **1.509 (32.8% CAGR, 21.7% DD)** / 1.501 (30.3%, 20.2%) | f1, f2; g0s10 loses 55% in 2008 (0.248) | gold covers slow bears, the stop fast crashes |
+| 87 | Stop sells on lower-circuit days (realism, information) | stop books lose 0.1–0.35 pts CAGR a year vs the pin's 0.08 | — | no conclusion changes; live stop sells must retry |
 
 What the evidence says so far:
 
