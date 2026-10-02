@@ -1,4 +1,4 @@
-# Overnight research, 2026-10-02 (M53–M67)
+# Overnight research, 2026-10-02 (M53–M69)
 
 Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/research/m53.md` … `m67.md` and the log
 `docs/research/calmar-search.md`.
@@ -11,6 +11,12 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
   (`blend/m61_half_top20_b2`, run 20261002-003634-96a48489): **32.4% CAGR, 24.7% max DD, Calmar 1.313**. It fails only
   fold 2 (2014–17: 1.72 vs the pin's 2.07). In the 2008 crash window it more than doubles the pin's Calmar.
 - Realistic expectation for any of these books going forward: Calmar about 0.95–1.10, lower if the book is large.
+
+- **Closest to a pass: the half blend (M59) split over four decision days** (`blend/m68_half_tranche_b2`, run
+  20261002-010041-4c963e79): 29.4% CAGR, 25.0% DD, Calmar 1.176, folds 1.69 / 2.15 / 1.38. That beats the pinned run on
+  the whole period and on every fold, and scores 0.617 vs 0.284 on 2007–09. Three reasons it is not adopted: it was
+  pre-registered as information only (M68); its fold 2 trails the pin's own four-day form (2.149 vs 2.199); and at
+  25 bps it misses the pin in f2 and f3 by 0.01–0.02 (M69).
 
 ## Your decision: pin or M61
 
@@ -26,7 +32,7 @@ Branch `m43-paper-delivery`, all committed, nothing pushed. Detail in `docs/rese
 | Bootstrap: M61 split over 4 days beats the pin split over 4 days | | 59% of resamples (weak) |
 | Trades 2010–23 | 1,276 | 2,224 |
 
-**Recommendation:** M61, run split over the four decision days (the M62 form), if you accept a book that loses in
+**Recommendation:** M61 or the half blend, run split over the four decision days (the M62 form), if you accept a book that loses in
 strong bull years like 2014–17 in exchange for better crash protection. The 2010–23 edge alone is mostly noise
 (59%); the real case is 2007–09, a window no search ever saw, where M61 lost ~40% against the pin's ~51%. If you
 want to keep the strict rule, stay on the pin. Either way, the paper book needs your OK, and the M61 rotation is not
@@ -50,7 +56,9 @@ yet supported by the paper code (`check_supported` refuses it).
 | 66 | Liquidity floor ₹50 lakh | 1.164 | fold 1 |
 | 67 | Lookback ensemble 189 / 273 / 378 | 1.076 | everywhere |
 
-Information only: M62 (decision-day tranches), M65 (trading impact by book size).
+Information only: M62 (M61 in decision-day tranches), M65 (trading impact by book size), M68 (all near-misses in
+tranches: half 1.176, M61 1.201, top 20 1.145, pin 1.105), M69 (tranche books at 25 bps: half 1.100, M61 1.121,
+pin 1.059).
 
 ## Why nothing passes
 
@@ -61,7 +69,8 @@ demonetisation drop (Nov 2016) were short, so switching out cost more than it sa
 
 ## Still open (your call)
 
-1. Pin vs M61 (above).
+1. Pin vs M61 vs the half blend, each run in four decision-day tranches (above). The half blend is the
+   conservative choice: it gives up 1 point of CAGR against M61 but wins fold 2 and trades less.
 2. The one-time `--final` test on the locked 2024–26 period, for whichever you pick.
 3. Paper deployment of the chosen book (needs your OK; M61 needs paper-code support for the rotation first).
 4. Nothing is pushed.
