@@ -1,0 +1,21 @@
+# M54 (docs/research/m54.md): the pin m49_b_b2 in four 25% tranches at decision offsets 0, 5, 10, 15.
+name: blend
+version: m54_b_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m49_b_b2.yaml
+      config_hash: 0103cc7f2fcca664bf87a047a12f0c3cf7949629e6e81ea7786123f4498613cd
+      weight: 0.25
+    - config: strategies/momentum/configs/m49_b_off5_b2.yaml
+      config_hash: cd46ce38a464d24ff8cb70ac85610a933db6bc4515426546eab8c450bfbee105
+      weight: 0.25
+    - config: strategies/momentum/configs/m49_b_off10_b2.yaml
+      config_hash: 2eeac13e63d0ddf43812c8e15a352b1f5e2bb8b12a12ceb1c36fde5a2dad1e65
+      weight: 0.25
+    - config: strategies/momentum/configs/m49_b_off15_b2.yaml
+      config_hash: 322c418e187739f2df4466d535e7422745176e8e6cd761d8e83242f2e402dc97
+      weight: 0.25
+  initial_capital: 1000000
