@@ -86,6 +86,7 @@ its own `mNN.md`; this file only summarises.
 | 104 | Deflated Sharpe ratio over ~900 tries (Bailey & López de Prado 2014; information) | M95's return gain over the pin: DSR 0.46 (effective N 4.7) | | the return edge is a coin flip after selection; the drawdown gain is untested by DSR |
 | 105 | The Next 50 filter alone on the pin (keep 25% gold, no stop); and with no gold (information) | pin + filter **1.514 (30.2% CAGR, 20.0% DD; 2.259 / 2.085 / 1.735)**; tranches 1.341 | passes at offset 0 and in tranches, 5 and 25 bps; 2007–09 0.668 | simplest passing change: one rule, no stop |
 | 106 | Paper support for the gold switch; draft book "pin + Next 50 filter" with the gap rule | 1.500 (30.1% CAGR, 20.1% DD; 2.259 / 2.200 / 1.683) | paper = research on all 8 decisions Jan–Sep 2026; replay gap −0.28% | **ready to deploy as a draft, on the user's OK** |
+| 107 | **Final (locked 2024-01-01..2026-09-28)** of the adopted book and M95 | adopted 1.314 (20.4% CAGR, 15.5% DD); M95 0.639; 12-1 0.482 | adopted passes; M95's edge did not hold | **adopted book confirmed; M95 dropped as the upgrade path** |
 
 What the evidence says so far:
 
