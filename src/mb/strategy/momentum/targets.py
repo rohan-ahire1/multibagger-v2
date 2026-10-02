@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -235,6 +235,32 @@ def risk_on(panel: pl.DataFrame, symbol: str, sma_sessions: int, dates: list[dat
     return got
 
 
+def breadth_on(panel: pl.DataFrame, u: Universe, sma_sessions: int, min_frac: float, dates: list[date],
+               fund_symbols: frozenset[str] | None) -> dict[date, bool]:
+    """M99: True where at least `min_frac` of the universe's stocks close at or above their own `sma_sessions` average.
+    The universe is the ranking's: allowed series, price and liquidity floors, fund units out; a stock counts once it
+    has the full average. A date with no such stock is an error."""
+    f = (panel.sort("symbol", "date")
+         .with_columns(pl.col("turnover").rolling_mean(u.adv_window_sessions, min_samples=u.adv_window_sessions)
+                       .over("symbol").alias("adv"),
+                       pl.col("adj_close").rolling_mean(sma_sessions, min_samples=sma_sessions).over("symbol").alias("sma"))
+         .filter(pl.col("date").is_in(dates)))
+    ok = (pl.col("series").is_in(u.allowed_series) & (pl.col("close") >= u.min_price_inr) & (pl.col("adv") >= u.min_adv_inr)
+          & pl.col("sma").is_not_null())
+    if u.exclude_fund_units:
+        ok = ok & ~pl.col("security_id").str.starts_with("isin:INF")
+    if isinstance(u, UniverseM13) and u.fund_units_by_symbol:
+        funds = (sorted(fund_symbols) if fund_symbols is not None
+                 else panel.filter(pl.col("security_id").str.starts_with("isin:INF"))["symbol"].unique().to_list())
+        ok = ok & ~pl.col("symbol").is_in(pl.Series(funds, dtype=pl.String).implode())
+    share = f.filter(ok).group_by("date").agg((pl.col("adj_close") >= pl.col("sma")).mean().alias("up"))
+    got = {d: up >= min_frac for d, up in share.iter_rows()}
+    missing = [d for d in dates if d not in got]
+    if missing:
+        raise ValueError(f"breadth: no eligible stock with a {sma_sessions}-session average on {missing[:3]}")
+    return got
+
+
 def vol_gross(panel: pl.DataFrame, s: Sizing, days_per_year: int, dates: list[date]) -> dict[date, float]:
     """min(1, target / the benchmark's annualised realised volatility) at each date. Missing data is an error."""
     assert s.vol_target_annual is not None
@@ -300,7 +326,10 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
                    if m11 and isinstance(m11.schedule, ScheduleM57) and m11.schedule.every_sessions is not None else None)
     if isinstance(p, ParamsM46):  # M46: only every n-th month decides
         ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
-    regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
+    if isinstance(p, ParamsM99) and p.regime.breadth_min_frac is not None:
+        regime = breadth_on(panel, p.universe, p.regime.sma_sessions, p.regime.breadth_min_frac, list(ranks), fund_symbols)
+    else:
+        regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
     extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
     signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
     on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on

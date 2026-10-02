@@ -617,3 +617,27 @@ class RegimeM97(RegimeM89):
 
 class ParamsM97(ParamsM89):
     regime: RegimeM97
+
+
+# M99 options (docs/research/m99.md).
+
+BREADTH = "UNIVERSE"  # benchmark_symbol value that selects the breadth signal
+
+
+class RegimeM99(RegimeM97):
+    # Null: the benchmark signal. Otherwise benchmark_symbol must be "UNIVERSE" and the signal is breadth: risk-on when
+    # at least this fraction of the universe's stocks (series, price, liquidity and fund rules of the ranking) close at
+    # or above their own sma_sessions average.
+    breadth_min_frac: float | None
+
+    @model_validator(mode="after")
+    def _m99(self) -> RegimeM99:
+        if (self.breadth_min_frac is not None) != (self.benchmark_symbol == BREADTH):
+            raise ValueError(f"breadth_min_frac and benchmark_symbol {BREADTH} go together")
+        if self.breadth_min_frac is not None and not 0.0 < self.breadth_min_frac < 1.0:
+            raise ValueError("breadth_min_frac must be in (0, 1)")
+        return self
+
+
+class ParamsM99(ParamsM97):
+    regime: RegimeM99
