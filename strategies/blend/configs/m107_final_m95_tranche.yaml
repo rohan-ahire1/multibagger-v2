@@ -1,0 +1,21 @@
+# M107 (docs/research/m107.md): the best book in four tranches. Final config: m95_r50g_jr_tranche_b2 over 2010-01-04 to 2026-09-28.
+name: blend
+version: m107_final_m95_tranche
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2026-09-28}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m107_final_m95.yaml
+      config_hash: 7b5f10d92ef63b563fb59cb1ecc5233971a16c37b23635168246bc8ca424145c
+      weight: 0.25
+    - config: strategies/momentum/configs/m107_final_m95_off5.yaml
+      config_hash: 4f28c534616cb3caa85a7f03efeb174534a7c16fe46fe807d89f1b95786eb358
+      weight: 0.25
+    - config: strategies/momentum/configs/m107_final_m95_off10.yaml
+      config_hash: 2d662239d269b1896dd8d72c7f9245f61b513aa5d1c39bfdbd61ed40ebb27f5b
+      weight: 0.25
+    - config: strategies/momentum/configs/m107_final_m95_off15.yaml
+      config_hash: 08d7a1268f62d42c26bb9669a6887249bc9716b7d166ec4c14aacc8a307ec886
+      weight: 0.25
+  initial_capital: 1000000
