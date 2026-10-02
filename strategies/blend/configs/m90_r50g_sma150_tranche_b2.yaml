@@ -1,0 +1,21 @@
+# M90 (docs/research/m90.md): m90_r50g_sma150 in four tranches.
+name: blend
+version: m90_r50g_sma150_tranche_b2
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m90_r50g_sma150_b2.yaml
+      config_hash: 616fb68df4e43de14836897e45556eaec8592db165f1e56fe4d2a2999f37171d
+      weight: 0.25
+    - config: strategies/momentum/configs/m90_r50g_sma150_off5_b2.yaml
+      config_hash: 877a365de988026201343d23228fc083857f4bdfff6149722976b0734f12533c
+      weight: 0.25
+    - config: strategies/momentum/configs/m90_r50g_sma150_off10_b2.yaml
+      config_hash: 4a2226b7c923be5686171bf8488bddb20e3ce522add819c68f1a474de34aaaff
+      weight: 0.25
+    - config: strategies/momentum/configs/m90_r50g_sma150_off15_b2.yaml
+      config_hash: d08ffbb9bf114dda1ae0826a34b2d72561cae1957d0a380a6d55d5c43751883a
+      weight: 0.25
+  initial_capital: 1000000

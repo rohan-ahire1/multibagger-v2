@@ -69,6 +69,7 @@ its own `mNN.md`; this file only summarises.
 | 87 | Stop sells on lower-circuit days (realism, information) | stop books lose 0.1–0.35 pts CAGR a year vs the pin's 0.08 | — | no conclusion changes; live stop sells must retry |
 | 88 | No-gold stop book + 200-day NIFTYBEES filter (risk-off 0 / 0.5, cash) | 1.793 / **1.928**; tranches 1.692 / 1.698 | f1 (2011 whipsaw, no gold) | |
 | 89 | M88 with the risk-off share in GOLDBEES | **r50g 1.991 (34.0% CAGR, 17.1% DD)**; r0g 1.534; tranches **1.788 / 1.885** (32.4% / 31.6% CAGR) | f1 only (1.479 vs 1.598) | best family found; beats the pin's CAGR in every fold |
+| 90 | M89 robustness: neighbours, bootstrap, stitched walk-forward (information) | r50g neighbours 1.66–1.81 in tranches; bootstrap 87% vs pin; stitched OOS **1.877 (34.1% CAGR, 18.2% DD)** | — | r50g robust; r0g fragile at 150 days |
 
 What the evidence says so far:
 
