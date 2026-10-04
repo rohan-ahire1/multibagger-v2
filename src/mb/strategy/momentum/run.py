@@ -6,15 +6,15 @@ from pathlib import Path
 import polars as pl
 
 from mb.config.loader import Resolved
-from mb.data import datasets, insider
+from mb.data import datasets, insider, results
 from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, UniverseM40
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, UniverseM40
 from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "ParamsM89", "ParamsM97", "ParamsM99", "ParamsM103", "ParamsM110", "ParamsM111", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "ParamsM89", "ParamsM97", "ParamsM99", "ParamsM103", "ParamsM110", "ParamsM111", "ParamsM114", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -39,7 +39,8 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
     ins = (insider.load(root / p.insider.raw_dir, p.insider.categories)
            if isinstance(p, ParamsM111) and p.insider is not None else None)
     tg = targets(panel, p, period.start, period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year,
-                 fund_symbols=funds, insider_trades=ins)
+                 fund_symbols=funds, insider_trades=ins,
+                 meetings=results.load(root / p.results.raw_dir) if isinstance(p, ParamsM114) and p.results is not None else None)
     stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
     stop_to = p.exits.stop_proceeds_to if isinstance(p, ParamsM75) else None
     trail = p.exits.stop_trailing if isinstance(p, ParamsM76) else False

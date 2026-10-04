@@ -729,3 +729,38 @@ class ParamsM111(ParamsM110):
         if self.insider is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("insider needs max_per_sector null")
         return self
+
+
+# M114 option (docs/research/m114.md).
+
+
+class Results(Strict):
+    raw_dir: str                 # NSE board-meeting announcements, relative to the project root
+    benchmark_symbol: str        # the reaction is the stock's return minus this symbol's
+    lookback_days: int           # use the latest results meeting held this many calendar days before a decision
+    # noneg: a name not held is not bought if its reaction is below 0. posfirst: new buys first take names with a
+    # reaction above 0 ranked under rank_max, then the rest in rank order.
+    rule: Literal["noneg", "posfirst"]
+    rank_max: int | None         # posfirst only
+
+    @model_validator(mode="after")
+    def _results(self) -> Results:
+        if self.lookback_days <= 0:
+            raise ValueError("lookback_days must be positive")
+        if (self.rule == "posfirst") != (self.rank_max is not None):
+            raise ValueError("rank_max is set exactly when rule is posfirst")
+        return self
+
+
+class ParamsM114(ParamsM111):
+    results: Results | None
+
+    @model_validator(mode="after")
+    def _m114(self) -> ParamsM114:
+        if self.results is not None and self.insider is not None:
+            raise ValueError("results and insider are exclusive")
+        if self.results is not None and self.results.rank_max is not None and self.results.rank_max < self.portfolio.top_n:
+            raise ValueError("results.rank_max must be at least top_n")
+        if self.results is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("results needs max_per_sector null")
+        return self
