@@ -77,5 +77,5 @@ params:
     benchmark_symbol: NIFTYBEES
     lookback_days: 100
     rule: noneg
-    rank_max: null null
+    rank_max: null
   initial_capital: 1000000
