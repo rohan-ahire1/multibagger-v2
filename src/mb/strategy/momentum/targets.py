@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.data import insider, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -336,10 +336,11 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
             days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
-            insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None) -> dict[date, Target]:
+            insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
+            deal_trades: pl.DataFrame | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
-    `mb.data.results.load`) when `p.results` is set."""
+    `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
@@ -386,6 +387,12 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
                                          list(ranks), res.lookback_days)
         ins = Insider(raw_dir=res.raw_dir, categories=[], lookback_days=res.lookback_days,
                       rule="nosell" if res.rule == "noneg" else "buyfirst", rank_max=res.rank_max)
+    dl = p.deals if isinstance(p, ParamsM116) else None
+    if dl is not None:  # M116: the same two rules, on net bulk and block deal value
+        if deal_trades is None:
+            raise ValueError("deals rule needs deal_trades")
+        net = insider.net_by_decision(deal_trades, list(ranks), dl.lookback_days)
+        ins = Insider(raw_dir="", categories=[], lookback_days=dl.lookback_days, rule=dl.rule, rank_max=dl.rank_max)
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]

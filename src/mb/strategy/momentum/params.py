@@ -764,3 +764,37 @@ class ParamsM114(ParamsM111):
         if self.results is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("results needs max_per_sector null")
         return self
+
+
+# M116 option (docs/research/m116.md).
+
+
+class Deals(Strict):
+    raw_dirs: list[str]          # bulk and block deal folders, relative to the project root
+    lookback_days: int           # calendar days of deals before a decision
+    # nosell: a name not held is not bought if its net deal value is below 0. buyfirst: new buys first take names with
+    # net value above 0 ranked under rank_max, then the rest in rank order.
+    rule: Literal["nosell", "buyfirst"]
+    rank_max: int | None         # buyfirst only
+
+    @model_validator(mode="after")
+    def _deals(self) -> Deals:
+        if self.lookback_days <= 0:
+            raise ValueError("lookback_days must be positive")
+        if (self.rule == "buyfirst") != (self.rank_max is not None):
+            raise ValueError("rank_max is set exactly when rule is buyfirst")
+        return self
+
+
+class ParamsM116(ParamsM114):
+    deals: Deals | None
+
+    @model_validator(mode="after")
+    def _m116(self) -> ParamsM116:
+        if self.deals is not None and (self.insider is not None or self.results is not None):
+            raise ValueError("deals, results and insider are exclusive")
+        if self.deals is not None and self.deals.rank_max is not None and self.deals.rank_max < self.portfolio.top_n:
+            raise ValueError("deals.rank_max must be at least top_n")
+        if self.deals is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("deals needs max_per_sector null")
+        return self
