@@ -11,8 +11,9 @@ from datetime import date
 import numpy as np
 import polars as pl
 
+from mb.data import insider
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -334,8 +335,10 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 
 
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
-            days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None) -> dict[date, Target]:
-    """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`."""
+            days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
+            insider_trades: pl.DataFrame | None = None) -> dict[date, Target]:
+    """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
+    `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
@@ -369,6 +372,11 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     since: dict[str, tuple[date, float]] = {}  # M110: held name -> (decision that first picked it, adjusted close then)
     closes = ({(d, s): c for d, s, c in panel.filter(pl.col("date").is_in(list(ranks)))
                .select("date", "symbol", "adj_close").iter_rows()} if tax else {})
+    ins = p.insider if isinstance(p, ParamsM111) else None
+    if ins is not None and insider_trades is None:
+        raise ValueError("insider rule needs insider_trades")
+    net = (insider.net_by_decision(insider_trades, list(ranks), ins.lookback_days)
+           if ins is not None and insider_trades is not None else {})
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]
@@ -378,7 +386,15 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             keep += [s for s in held if s not in keep and s in pos and pos[s] < tax.tax_hold_rank_max
                      and tax.tax_hold_from_days <= (d - since[s][0]).days < tax.tax_hold_until_days
                      and closes[(d, s)] > since[s][1]]
-        if cap is None:
+        if ins is not None and d in net:
+            new = [s for s in order if s not in set(keep)]
+            if ins.rule == "nosell":
+                new = [s for s in new if net[d].get(s, 0.0) >= 0.0]
+            else:
+                first = [s for s in new if pos[s] < (ins.rank_max or 0) and net[d].get(s, 0.0) > 0.0]
+                new = first + [s for s in new if s not in set(first)]
+            pick = keep + new[: p.portfolio.top_n - len(keep)]
+        elif cap is None:
             pick = keep + [s for s in order if s not in set(keep)][: p.portfolio.top_n - len(keep)]
         else:
             pick = _pick(order, keep, p.portfolio.top_n, cap, sectors or {})

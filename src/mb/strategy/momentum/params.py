@@ -696,3 +696,36 @@ class PortfolioM110(PortfolioM32):
 
 class ParamsM110(ParamsM103):
     portfolio: PortfolioM110
+
+
+# M111 option (docs/research/m111.md).
+
+
+class Insider(Strict):
+    raw_dir: str                 # relative to the project root
+    categories: list[str]        # PIT person categories that count as insiders
+    lookback_days: int           # calendar days of broadcasts before a decision
+    # nosell: a name not held is not bought if its net insider value is below 0. buyfirst: new buys first take names
+    # with net value above 0 ranked under rank_max, then the rest in rank order.
+    rule: Literal["nosell", "buyfirst"]
+    rank_max: int | None         # buyfirst only
+
+    @model_validator(mode="after")
+    def _insider(self) -> Insider:
+        if self.lookback_days <= 0:
+            raise ValueError("lookback_days must be positive")
+        if (self.rule == "buyfirst") != (self.rank_max is not None):
+            raise ValueError("rank_max is set exactly when rule is buyfirst")
+        return self
+
+
+class ParamsM111(ParamsM110):
+    insider: Insider | None
+
+    @model_validator(mode="after")
+    def _m111(self) -> ParamsM111:
+        if self.insider is not None and self.insider.rank_max is not None and self.insider.rank_max < self.portfolio.top_n:
+            raise ValueError("insider.rank_max must be at least top_n")
+        if self.insider is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("insider needs max_per_sector null")
+        return self
