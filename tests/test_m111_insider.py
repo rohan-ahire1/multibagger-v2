@@ -38,3 +38,15 @@ def test_net_by_decision_window(tmp_path):
     assert net_by_decision(t, [date(2020, 1, 5)], 3)[date(2020, 1, 5)] == {"A": 1000.0, "B": -700.0}
     with pytest.raises(ValueError):
         net_by_decision(t, [date(2020, 2, 1)], 1)
+
+
+def test_load_xbrl_file_beside_old_drops_replaced_filings(tmp_path):
+    raw(tmp_path)  # old-feed file x.parquet
+    cols = ["date", "symbol", "acqName", "personCategory", "acqMode", "acqfromDt", "acqtoDt", "secAcq", "secVal",
+            "appId", "prevAppId", "extra"]
+    rows = [("06-May-2026 20:00", "C", "P2", "Promoters", "Market Purchase", "05-May-2026", "05-May-2026", "9", "900", "1", None, "x"),
+            ("07-May-2026 20:00", "C", "P2", "Promoters", "Market Purchase", "05-May-2026", "05-May-2026", "9", "990", "2", "1", "x")]
+    pl.DataFrame(rows, schema=cols, orient="row").write_parquet(tmp_path / "y.parquet")
+    t = load(tmp_path, ["Promoters", "Director"])
+    assert ("C", date(2026, 5, 8), 990.0) in t.rows() and len(t.filter(pl.col("symbol") == "C")) == 1
+    assert t.height == 3

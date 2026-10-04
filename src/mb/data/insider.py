@@ -8,6 +8,8 @@ import polars as pl
 
 BUY_MODE, SELL_MODE = "Market Purchase", "Market Sale"
 DEDUP_KEY = ["symbol", "acqName", "acqfromDt", "acqtoDt", "secAcq", "acqMode"]
+COLUMNS = [*DEDUP_KEY, "personCategory", "date", "secVal"]
+FILING_COLUMNS = ["appId", "prevAppId"]  # XBRL feed only (M112): a revision names the filing it replaces
 STALE_DAYS = 7  # a decision this many days after the last broadcast has no data behind it
 
 
@@ -17,7 +19,15 @@ def load(raw_dir: Path, categories: list[str]) -> pl.DataFrame:
     files = sorted(raw_dir.glob("*.parquet"))
     if not files:
         raise FileNotFoundError(f"no insider files in {raw_dir}")
-    x = pl.read_parquet(files)
+    parts = []
+    for f in files:
+        have = pl.read_parquet_schema(f)
+        parts.append(pl.read_parquet(f, columns=COLUMNS + [c for c in FILING_COLUMNS if c in have]).with_columns(
+            [pl.col(c).cast(pl.String) for c in COLUMNS + [c for c in FILING_COLUMNS if c in have]]
+            + [pl.lit(None, pl.String).alias(c) for c in FILING_COLUMNS if c not in have]))
+    x = pl.concat(parts, how="vertical")
+    replaced = x["prevAppId"].drop_nulls().unique().implode()
+    x = x.filter(pl.col("appId").is_null() | ~pl.col("appId").is_in(replaced))
     x = (x.filter(pl.col("acqMode").is_in([BUY_MODE, SELL_MODE]) & pl.col("personCategory").is_in(categories))
          .unique(subset=DEDUP_KEY, keep="first", maintain_order=True)
          .with_columns(pl.col("date").str.strptime(pl.Datetime, "%d-%b-%Y %H:%M").dt.date().alias("broadcast"),
