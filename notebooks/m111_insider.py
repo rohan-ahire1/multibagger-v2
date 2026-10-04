@@ -17,7 +17,7 @@ ROOT = Path('.')
 TAX = load_tax_config(ROOT / 'configs/tax/india_fy2026.yaml')
 WIN = {'pre-rule 2010-16': (date(2010, 1, 4), date(2016, 3, 31)), 'live 2016-04..23': (date(2016, 4, 1), date(2023, 12, 31)),
        'f2 2014-17': (date(2014, 1, 1), date(2017, 12, 31)), 'f3 2018-23': (date(2018, 1, 1), date(2023, 12, 31)),
-       'locked 24-26/04': (date(2024, 1, 1), date(2026, 4, 30))}
+       'locked 24-26/04': (date(2024, 1, 1), date(2026, 4, 30)), 'locked 24-26/09': (date(2024, 1, 1), date(2026, 9, 28))}
 
 ref = None
 for arg in sys.argv[1:]:
