@@ -1,0 +1,15 @@
+# Indian capital-gains tax as of FY 2025-26 (Finance Act 2024 rates, from 2024-07-23), applied to every year of a
+# backtest so books compare on today's rules. Resident individual in the top slab. Surcharge ignored (adds up to 15% of
+# the tax on gains above Rs 1 crore a year). Dividends are inside the adjusted prices, so they are taxed here as gains
+# (in reality at the slab rate when paid).
+equity_short_rate: 0.20
+equity_long_rate: 0.125
+equity_long_exemption_inr: 125000
+# Gold ETFs bought from 2025-04-01: held over 12 months 12.5%, otherwise the slab rate (top slab 30%).
+slab_short_rate: 0.30
+slab_long_rate: 0.125
+cess: 0.04
+long_term_days: 365
+slab_symbols: [GOLDBEES]
+# Advance tax instalments (s.211): 15 Jun, 15 Sep, 15 Dec, 15 Mar.
+advance_tax_dates: ["06-15", "09-15", "12-15", "03-15"]

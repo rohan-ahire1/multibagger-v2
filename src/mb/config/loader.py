@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from mb.config.models import BaselinesConfig, DataConfig, DataConfigM14, DataConfigM40, MarketConfig, PaperConfig, StrategyConfig
+from mb.config.models import BaselinesConfig, DataConfig, DataConfigM14, DataConfigM40, MarketConfig, PaperConfig, StrategyConfig, TaxConfig
 
 
 class ConfigError(Exception):
@@ -110,3 +110,7 @@ def load_data_config(path: Path) -> tuple[DataConfig, str]:
     cfg = _validate(DataConfig | DataConfigM14 | DataConfigM40, _read_yaml(path.resolve()), str(path))
     text = yaml.safe_dump(cfg.model_dump(mode="json"), sort_keys=True)
     return cfg, hashlib.sha256(text.encode()).hexdigest()
+
+
+def load_tax_config(path: Path) -> TaxConfig:
+    return _validate(TaxConfig, _read_yaml(path), str(path))

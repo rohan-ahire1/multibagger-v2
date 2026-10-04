@@ -22,6 +22,29 @@ class MarketConfig(Strict):
     sector_map_file: str
 
 
+class TaxConfig(Strict):
+    """Indian capital-gains tax on a book's realised gains (M110). Rates are fractions before cess."""
+    equity_short_rate: float           # listed equity held long_term_days or less (STCG, s.111A)
+    equity_long_rate: float            # listed equity held longer (LTCG, s.112A), above the yearly exemption
+    equity_long_exemption_inr: float   # per financial year, on equity long-term gains after set-off
+    slab_short_rate: float             # non-equity funds (gold ETFs) held long_term_days or less: the slab rate
+    slab_long_rate: float              # non-equity funds held longer (s.112)
+    cess: float                        # health and education cess on the tax
+    long_term_days: int                # held more than this many calendar days = long term
+    slab_symbols: list[str]            # symbols taxed as non-equity funds
+    # Advance-tax dates ("MM-DD"): at the first session on or after each, the tax on the financial year's gains so far
+    # is paid up (a capital gain may be paid at the instalment after it arises, without interest). Trued up at year end.
+    advance_tax_dates: list[str]
+
+    @field_validator("advance_tax_dates")
+    @classmethod
+    def _month_days(cls, v: list[str]) -> list[str]:
+        for md in v:
+            if not re.fullmatch(r"(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])", md):
+                raise ValueError(f"advance_tax_dates: '{md}' is not MM-DD")
+        return v
+
+
 class BuyAndHold(Strict):
     tri_file: str
 

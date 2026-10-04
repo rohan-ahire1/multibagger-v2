@@ -664,3 +664,35 @@ class RegimeM103(RegimeM99):
 
 class ParamsM103(ParamsM99):
     regime: RegimeM103
+
+
+# M110 option (docs/research/m110.md).
+
+
+class PortfolioM110(PortfolioM32):
+    # Null: off. Set: a held name the hold buffer would drop is kept while it has been held (calendar days since the
+    # decision that first picked it) at least tax_hold_from_days and less than tax_hold_until_days, its adjusted close is
+    # above the one at that decision, and its rank is below tax_hold_rank_max; it is sold at the first decision from
+    # tax_hold_until_days on, so the sale is a long-term gain. It keeps its slot.
+    tax_hold_from_days: int | None
+    tax_hold_until_days: int | None
+    tax_hold_rank_max: int | None
+
+    @model_validator(mode="after")
+    def _m110(self) -> PortfolioM110:
+        on = [self.tax_hold_from_days, self.tax_hold_until_days, self.tax_hold_rank_max]
+        if any(v is None for v in on) and any(v is not None for v in on):
+            raise ValueError("tax_hold_* are all null or all set")
+        if self.tax_hold_from_days is not None:
+            assert self.tax_hold_until_days is not None and self.tax_hold_rank_max is not None
+            if not 0 < self.tax_hold_from_days < self.tax_hold_until_days:
+                raise ValueError("tax_hold_from_days must be in (0, tax_hold_until_days)")
+            if self.tax_hold_rank_max < self.hold_rank_max:
+                raise ValueError("tax_hold_rank_max must be at least hold_rank_max")
+            if self.rotation is not None or self.vol_states is not None or self.max_per_sector is not None:
+                raise ValueError("tax_hold_* needs rotation, vol_states and max_per_sector null")
+        return self
+
+
+class ParamsM110(ParamsM103):
+    portfolio: PortfolioM110

@@ -12,7 +12,7 @@ import numpy as np
 import polars as pl
 
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -365,9 +365,19 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     resize = m8.portfolio.resize_held if m8 else True
     out: dict[date, Target] = {}
     held: list[str] = []
+    tax = p.portfolio if isinstance(p, ParamsM110) and p.portfolio.tax_hold_from_days is not None else None
+    since: dict[str, tuple[date, float]] = {}  # M110: held name -> (decision that first picked it, adjusted close then)
+    closes = ({(d, s): c for d, s, c in panel.filter(pl.col("date").is_in(list(ranks)))
+               .select("date", "symbol", "adj_close").iter_rows()} if tax else {})
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]
+        if tax:
+            assert tax.tax_hold_from_days is not None and tax.tax_hold_until_days is not None
+            assert tax.tax_hold_rank_max is not None
+            keep += [s for s in held if s not in keep and s in pos and pos[s] < tax.tax_hold_rank_max
+                     and tax.tax_hold_from_days <= (d - since[s][0]).days < tax.tax_hold_until_days
+                     and closes[(d, s)] > since[s][1]]
         if cap is None:
             pick = keep + [s for s in order if s not in set(keep)][: p.portfolio.top_n - len(keep)]
         else:
@@ -379,6 +389,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             gross *= len(pick) / p.portfolio.top_n
         out[d] = Target({s: 1.0 for s in pick}, gross, frozenset() if resize else frozenset(keep))
         held = pick if gross > 0.0 else []
+        if tax:
+            since = {s: since[s] if s in since else (d, closes[(d, s)]) for s in held}
     if m11 and m11.portfolio.weighting == "inverse_vol":
         w = inverse_vol_weights(panel, m11.portfolio.inverse_vol_sessions, {d: list(t.weights) for d, t in out.items()})
         out = {d: Target(w[d], t.gross, t.keep_size) for d, t in out.items()}
