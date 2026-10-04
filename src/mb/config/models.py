@@ -45,6 +45,20 @@ class TaxConfig(Strict):
         return v
 
 
+class HarvestConfig(Strict):
+    """M113 March tax-loss selling (src/mb/evaluation/tax.py: harvest)."""
+    sell_session_from_month_end: int    # sell at the close of this session counted back from March's last (2 = second-last)
+    loss_min_frac: float                # sell a symbol when its open lots, net of sell costs, are this far below cost
+    harvest_long_term_exemption: bool   # also realise equity long-term gains up to the unused yearly exemption
+
+    @field_validator("sell_session_from_month_end")
+    @classmethod
+    def _rebuy_in_march(cls, v: int) -> int:
+        if v < 2:
+            raise ValueError("sell_session_from_month_end must be >= 2 so the buy-back is still in March")
+        return v
+
+
 class BuyAndHold(Strict):
     tri_file: str
 

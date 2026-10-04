@@ -1,0 +1,4 @@
+# M113 (docs/research/m113.md): March tax-loss selling plus equity long-term gains up to the yearly exemption.
+sell_session_from_month_end: 2
+loss_min_frac: 0.02
+harvest_long_term_exemption: true

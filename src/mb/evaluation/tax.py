@@ -17,7 +17,7 @@ from datetime import date
 
 import polars as pl
 
-from mb.config.models import TaxConfig
+from mb.config.models import HarvestConfig, MarketConfig, TaxConfig
 
 BUCKETS = ("slab_short", "equity_short", "slab_long", "equity_long")  # highest rate first within each term
 EPS_SHARES = 1e-9
@@ -149,3 +149,95 @@ def after_tax(equity: pl.DataFrame, gains: pl.DataFrame, cfg: TaxConfig,
         rows.append((d, v, k * v, pay, k))
     return pl.DataFrame(rows, schema={"date": pl.Date, "equity": pl.Float64, "after": pl.Float64, "tax": pl.Float64,
                                       "k": pl.Float64}, orient="row")
+
+
+def harvest(fills: pl.DataFrame, bars: pl.DataFrame, equity: pl.DataFrame, market: MarketConfig, cfg: TaxConfig,
+            h: HarvestConfig) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """M113 March tax-loss selling on top of a book's fills (the strategy's own trades are unchanged).
+
+    bars: date, symbol, open, close (the prices the fills use). equity: date, equity (the pre-tax book).
+    Each March: sell at the close of session T (h.sell_session_from_month_end back from the month's last) every symbol
+    whose open lots, net of sell costs, are at least h.loss_min_frac below cost; with h.harvest_long_term_exemption,
+    also long-term equity lots in gain (oldest first) while the year's equity long-term gains stay within the exemption.
+    Buy the same shares back at the next session's open. Returns the fills with these trades added, and date, scale:
+    the factor on the pre-tax book from each buy-back on (1 - round-trip cost / book), cumulative.
+    """
+    slip = market.slippage_bps_per_side / 1e4
+    buy_f, sell_f = (1 + slip) * (1 + market.buy_charge_rate), (1 - slip) * (1 - market.sell_charge_rate)
+    days = equity["date"].to_list()
+    value = dict(equity.select("date", "equity").iter_rows())
+    close = {(d, s): c for d, s, c in bars.select("date", "symbol", "close").iter_rows() if c is not None}
+    opn = {(d, s): o for d, s, o in bars.select("date", "symbol", "open").iter_rows() if o is not None}
+    last_close: dict[str, float] = {}
+    by_day: dict[date, list[tuple[str, float]]] = defaultdict(list)
+    for d, s, c in bars.filter(pl.col("date") <= days[-1]).sort("date").select("date", "symbol", "close").iter_rows():
+        if c is not None:
+            by_day[d].append((s, c))
+    extra: list[tuple] = []
+    scale, rows = 1.0, []
+    march = defaultdict(list)
+    for d in days:
+        if d.month == 3:
+            march[d.year].append(d)
+    pairs = {}
+    for ds in march.values():
+        if len(ds) >= h.sell_session_from_month_end:
+            t = ds[-h.sell_session_from_month_end]
+            pairs[t] = ds[ds.index(t) + 1]
+    pending: dict[date, float] = {}
+    for d in days:
+        for s, c in by_day.get(d, ()):
+            last_close[s] = c
+        if d in pending:
+            scale *= 1.0 - pending.pop(d) / value[d]
+        rows.append((d, scale))
+        if d not in pairs:
+            continue
+        t1 = pairs[d]
+        cur = pl.concat([fills.select(list(FILL_COLUMNS)), _fills(extra)]) if extra else fills.select(list(FILL_COLUMNS))
+        gains, lots = realised(cur, cfg, until=d)
+        sell: dict[str, float] = {}
+        for s, q in lots.items():
+            px = last_close.get(s)
+            if px is None or (t1, s) not in opn:
+                continue
+            n = sum(lot.shares for lot in q)
+            if n <= EPS_SHARES:  # float dust left by resizing
+                continue
+            basis = sum(lot.shares * lot.cost_per_share for lot in q)
+            if n * px * sell_f <= basis * (1.0 - h.loss_min_frac):
+                sell[s] = n
+        if h.harvest_long_term_exemption:
+            fy = gains.filter(pl.col("date").map_elements(fy_end, return_dtype=pl.Int64) == fy_end(d))
+            room = cfg.equity_long_exemption_inr - max(fy.filter(pl.col("bucket") == "equity_long")["gain"].sum(), 0.0)
+            for s, q in lots.items():
+                px = last_close.get(s)
+                if s in sell or s in cfg.slab_symbols or px is None or (t1, s) not in opn:
+                    continue
+                n = 0.0
+                for lot in q:  # FIFO: only a prefix of the queue can be sold
+                    g = lot.shares * (px * sell_f - lot.cost_per_share)
+                    if (d - lot.day).days <= cfg.long_term_days or g <= 0.0 or g > room:
+                        break
+                    room -= g
+                    n += lot.shares
+                if n > EPS_SHARES:
+                    sell[s] = n
+        cost = 0.0
+        for s, n in sell.items():
+            px, o = last_close[s], opn[(t1, s)]
+            got, paid = n * px * sell_f - market.dp_fee_per_sale_inr, n * o * buy_f
+            extra += [(d, s, "sell", n, px, got), (t1, s, "buy", n, o, -paid)]
+            cost += paid - got
+        if sell:
+            pending[t1] = cost
+    out = pl.concat([fills.select(list(FILL_COLUMNS)), _fills(extra)]) if extra else fills.select(list(FILL_COLUMNS))
+    return out, pl.DataFrame(rows, schema={"date": pl.Date, "scale": pl.Float64}, orient="row")
+
+
+FILL_COLUMNS = {"date": pl.Date, "symbol": pl.String, "side": pl.String, "shares": pl.Float64, "price": pl.Float64,
+                "cash_flow": pl.Float64}
+
+
+def _fills(rows: list[tuple]) -> pl.DataFrame:
+    return pl.DataFrame(rows, schema=FILL_COLUMNS, orient="row")
