@@ -49,6 +49,9 @@ params:
     sma_sessions: 200
     risk_off_gross: 0.5
     risk_off_symbol: GOLDBEES
+    extra_benchmark_symbols: []
+    breadth_min_frac: null
+    band_frac: null
   sizing:
     vol_target_annual: null
     vol_benchmark_symbol: NIFTYBEES
