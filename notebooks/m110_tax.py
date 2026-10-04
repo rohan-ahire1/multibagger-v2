@@ -50,6 +50,9 @@ for arg in sys.argv[1:]:
     print(row('  pre  whole', eq, a, b))
     print(row('  post whole', paid.select('date', pl.col('after').alias('equity')), a, b))
     print(row('  post whole+liq', liq.select('date', pl.col('after').alias('equity')), a, b))
-    for f in cfg.baselines.folds:
-        print(row(f'  pre  {f.name[:2]}', eq, f.start, f.end) + '   |' +
-              row(f'post {f.name[:2]}', paid.select('date', pl.col('after').alias('equity')), f.start, f.end)[8:])
+    windows = [(f.name[:2], f.start, f.end) for f in cfg.baselines.folds]
+    if b >= cfg.baselines.locked_from:
+        windows.append(('24', cfg.baselines.locked_from, b))
+    for fname, fa, fb in windows:
+        print(row(f'  pre  {fname}', eq, fa, fb) + '   |' +
+              row(f'post {fname}', paid.select('date', pl.col('after').alias('equity')), fa, fb)[8:])
