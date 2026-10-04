@@ -798,3 +798,25 @@ class ParamsM116(ParamsM114):
         if self.deals is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("deals needs max_per_sector null")
         return self
+
+
+# M117 option (docs/research/m117.md).
+
+
+class RegimeM117(RegimeM103):
+    # Empty: off. Otherwise a decision dated in one of these calendar months is risk-off whatever the benchmark says
+    # (Bouman & Jacobsen 2002, "sell in May": decisions dated April-September hold May-October).
+    risk_off_months: list[int]
+
+    @model_validator(mode="after")
+    def _m117(self) -> RegimeM117:
+        if self.risk_off_months:
+            if not self.enabled:
+                raise ValueError("risk_off_months needs the regime enabled")
+            if len(set(self.risk_off_months)) != len(self.risk_off_months) or not all(1 <= m <= 12 for m in self.risk_off_months):
+                raise ValueError("risk_off_months must be distinct months 1-12")
+        return self
+
+
+class ParamsM117(ParamsM116):
+    regime: RegimeM117

@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.data import insider, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -355,6 +355,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         regime = risk_on(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, list(ranks)) if p.regime.enabled else {}
     if isinstance(p, ParamsM103) and p.regime.band_frac is not None:
         regime = banded(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, p.regime.band_frac, list(ranks))
+    if isinstance(p, ParamsM117) and p.regime.risk_off_months:
+        regime = seasonal_off(regime, p.regime.risk_off_months)
     extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
     signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
     on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on
@@ -438,6 +440,11 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             raise ValueError("risk_off_symbol and book_stop_frac are exclusive")
         out = {d: t if on[d] == 1.0 else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
     return out
+
+
+def seasonal_off(regime: dict[date, bool], months: list[int]) -> dict[date, bool]:
+    """M117: decisions dated in `months` are risk-off; the rest keep the benchmark's state."""
+    return {d: on and d.month not in months for d, on in regime.items()}
 
 
 def with_risk_off(t: Target, symbol: str) -> Target:
