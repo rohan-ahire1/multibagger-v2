@@ -533,3 +533,4 @@ ABFRL,"",demerger,2025-05-22,,,,,0.36438,"Lifestyle brands demerged to Aditya Bi
 KPRMILL,"",split,2016-11-29,,,,,0.5,"FV 10->5, ex-date 2016-11-29; not in the feed. Ex-date open 575 / cum close 1129.9 = 0.509 (M33)",manual
 RSWM,"",rights,2022-12-16,,,,,0.640865,"Rights 1:1 at Rs 100, record date 2022-12-16; not in the feed. Factor = TERP (354.95 + 100) / 2 / cum close 354.95 (M33)",manual
 DTIL,"",bonus,2021-08-05,,,,,0.666667,"Bonus 1:2, record date 2021-08-06, ex-date 2021-08-05; not in the feed. Ex-date close 346.65 / cum close 521.15 = 0.665 (M33)",manual
+BHAGYANGR,"",demerger,2026-10-08,,,,,0.085799,"Demerger (feed: demerger), no factor. Factor = ex-date price discovery: open 39 / cum close 454.55 (paper halt 2026-10-08)",manual
