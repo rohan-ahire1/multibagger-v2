@@ -1,7 +1,7 @@
 # M119 (docs/research/m119.md): large-cap options book, candidate: top fifth by skew, equal weight.
 name: options_book
 version: m119_skew_off15
-dataset: nse_research@2026-10-02b
+dataset: nse_research@2026-10-14
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
