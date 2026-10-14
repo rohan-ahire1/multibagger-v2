@@ -6,15 +6,15 @@ from pathlib import Path
 import polars as pl
 
 from mb.config.loader import Resolved
-from mb.data import datasets, deals, insider, results
+from mb.data import datasets, deals, insider, market, results
 from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, UniverseM40
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, UniverseM40
 from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "ParamsM89", "ParamsM97", "ParamsM99", "ParamsM103", "ParamsM110", "ParamsM111", "ParamsM114", "ParamsM116", "ParamsM117", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "ParamsM89", "ParamsM97", "ParamsM99", "ParamsM103", "ParamsM110", "ParamsM111", "ParamsM114", "ParamsM116", "ParamsM117", "ParamsM118", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -42,7 +42,8 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
                  fund_symbols=funds, insider_trades=ins,
                  meetings=results.load(root / p.results.raw_dir) if isinstance(p, ParamsM114) and p.results is not None else None,
                  deal_trades=deals.load([root / d for d in p.deals.raw_dirs])
-                 if isinstance(p, ParamsM116) and p.deals is not None else None)
+                 if isinstance(p, ParamsM116) and p.deals is not None else None,
+                 market_values=market_values(p, root))
     stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
     stop_to = p.exits.stop_proceeds_to if isinstance(p, ParamsM75) else None
     trail = p.exits.stop_trailing if isinstance(p, ParamsM76) else False
@@ -70,6 +71,19 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
         k = vol_state_scales(shadow.select("date", "equity"), shadow_tg, p.portfolio.vol_states, sorted(tg))
         tg = {d: with_book_scale(t, k[d], set(p.portfolio.fixed_weights)) for d, t in tg.items()}
     return simulate_targets(tg, bars, days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread, reentry)
+
+
+def market_values(p: Params, root: Path) -> pl.DataFrame | None:
+    """M118: the series behind p.regime.market_signal, None when there is none."""
+    ms = p.regime.market_signal if isinstance(p, ParamsM118) else None
+    if ms is None:
+        return None
+    if ms.kind == "vrp":
+        return market.load_vix(root / ms.raw_dir)
+    if ms.kind == "pcr":
+        assert ms.option_symbol is not None
+        return market.load_pcr(root / ms.raw_dir, ms.option_symbol)
+    return market.load_fii_long_share(root / ms.raw_dir)
 
 
 def run(cfg: Resolved, root: Path) -> RunResult:

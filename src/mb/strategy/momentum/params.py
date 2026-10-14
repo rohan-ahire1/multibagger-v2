@@ -820,3 +820,49 @@ class RegimeM117(RegimeM103):
 
 class ParamsM117(ParamsM116):
     regime: RegimeM117
+
+
+# M118 option (docs/research/m118.md).
+
+
+class MarketSignal(Strict):
+    # A second risk-off condition: a decision is risk-off when the benchmark filter says so or this signal is off.
+    kind: Literal["vrp", "pcr", "fii_futures"]
+    raw_dir: str                  # under the repo root: nse_india_vix (vrp), nse_fo_bhav (pcr), nse_participant_oi (fii_futures)
+    option_symbol: str | None     # pcr: the index whose options give the put-call ratio
+    rv_symbol: str | None         # vrp: realised variance from this symbol's adj_close
+    rv_sessions: int | None       # vrp
+    window_sessions: int | None   # pcr, fii_futures: off when the value ranks below min_pct of its last this many values
+    min_pct: float | None
+
+    @model_validator(mode="after")
+    def _m118(self) -> MarketSignal:
+        vrp = (self.rv_symbol, self.rv_sessions)
+        ranked = (self.window_sessions, self.min_pct)
+        if self.kind == "vrp":
+            if None in vrp or ranked != (None, None) or self.option_symbol is not None:
+                raise ValueError("vrp takes rv_symbol and rv_sessions only")
+            assert self.rv_sessions is not None
+            if self.rv_sessions < 2:
+                raise ValueError("rv_sessions must be at least 2")
+        else:
+            if None in ranked or vrp != (None, None) or (self.option_symbol is None) != (self.kind != "pcr"):
+                raise ValueError(f"{self.kind} takes window_sessions and min_pct (and option_symbol for pcr) only")
+            assert self.window_sessions is not None and self.min_pct is not None
+            if self.window_sessions < 2 or not 0.0 < self.min_pct < 1.0:
+                raise ValueError("window_sessions must be at least 2 and min_pct in (0, 1)")
+        return self
+
+
+class RegimeM118(RegimeM117):
+    market_signal: MarketSignal | None
+
+    @model_validator(mode="after")
+    def _m118(self) -> RegimeM118:
+        if self.market_signal is not None and not self.enabled:
+            raise ValueError("market_signal needs the regime enabled")
+        return self
+
+
+class ParamsM118(ParamsM117):
+    regime: RegimeM118

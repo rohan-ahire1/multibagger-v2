@@ -11,9 +11,9 @@ from datetime import date
 import numpy as np
 import polars as pl
 
-from mb.data import insider, results
+from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -337,10 +337,11 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
             days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
             insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
-            deal_trades: pl.DataFrame | None = None) -> dict[date, Target]:
+            deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
-    `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set."""
+    `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set, `market_values` (M118, from the matching
+    `mb.data.market.load_*`) when `p.regime.market_signal` is set."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
@@ -357,6 +358,17 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         regime = banded(panel, p.regime.benchmark_symbol, p.regime.sma_sessions, p.regime.band_frac, list(ranks))
     if isinstance(p, ParamsM117) and p.regime.risk_off_months:
         regime = seasonal_off(regime, p.regime.risk_off_months)
+    ms = p.regime.market_signal if isinstance(p, ParamsM118) else None
+    if ms is not None:  # M118: risk-off also when the market signal is off
+        if market_values is None:
+            raise ValueError("market_signal needs market_values")
+        if ms.kind == "vrp":
+            assert ms.rv_symbol is not None and ms.rv_sessions is not None
+            flag = market.vrp_on(market_values, panel, ms.rv_symbol, ms.rv_sessions, list(ranks))
+        else:
+            assert ms.window_sessions is not None and ms.min_pct is not None
+            flag = market.ranked_on(market_values, list(ranks), ms.window_sessions, ms.min_pct)
+        regime = {d: on and flag[d] for d, on in regime.items()}
     extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
     signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
     on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on
