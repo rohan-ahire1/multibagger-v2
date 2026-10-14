@@ -19,3 +19,19 @@ SPICETELE,2009-02-12,"Real rise after a pullback: close 79.3 from 52.05; volume 
 COREEDUTEC,2013-02-25,"Real crash: margin-funding forced selling (Business Standard / Reuters 2013-02-27, 'Core Education slumps as much as 47 percent'); close 110.5 from 293.85, volume 19.7m shares vs 13.9k the session before, no corporate action in the feed (M47)",manual
 COREEDUTEC,2013-02-27,"Real crash, continued: close 60.5 from 111.65 (the week's fall 76%, same source); volume 27.2m shares (M47)",manual
 GTL,2011-06-20,"Real crash: closed at Rs 127.80, down 62.4% on rumours of pledged promoter shares (Business Today / GoodReturns 2011-06-20); data x0.378, no corporate action in the feed (M60)",manual
+SUZLON,2013-02-28,"Real crash: promoters sold a 6.19% stake in the open market under the debt restructuring; close 24.25 -> 16.00, volume 3.6x the session before, stock future x0.649 the same day (Business Standard/Reuters, 2013-02-28) (M119)",manual
+OPTOCIRCUI,2013-05-31,"Real crash after Q4 results (already reviewed as real in M33); close 50.80 -> 31.65, volume 26x, stock future x0.610 (M119)",manual
+UNITECH,2015-06-03,"Real crash (already reviewed as real in M31); close 13.45 -> 8.65, volume 13x, stock future x0.647 (M119)",manual
+AMTEKAUTO,2015-09-03,"Real crash on debt-default fears; close 48.45 -> 31.50, volume 11x, stock future x0.648 (M119)",manual
+AMTEKAUTO,2015-09-11,"Real rebound after the 2015-09-03 crash (an up move, not a split); close 30.50 -> 46.95, volume 6x, stock future x1.541 (M119)",manual
+RCOM,2018-05-17,"Real rally (an up move, not a split); close 10.50 -> 16.40, volume 2.7x, stock future x1.566 (M119)",manual
+CCAVENUE,2018-09-28,"Real crash: Infibeam intraday fall on a social-media clip about its loans (already reviewed as real in M33); close 200.35 -> 58.45, volume 6x, stock future x0.287 (M119)",manual
+RPOWER,2019-02-04,"Real crash: ADAG group sell-off after RCOM's insolvency filing; close 26.40 -> 17.20, volume 11x, stock future x0.648 (M119)",manual
+RCOM,2019-02-04,"Real crash: RCOM said it would file for insolvency (already reviewed as real in M31); close 11.60 -> 7.55, volume 6.7x, stock future x0.652 (M119)",manual
+JETAIRWAYS,2019-06-18,"Real crash: insolvency case admitted (already reviewed as real in M31); close 68.40 -> 40.50, volume 1.9x, stock future x0.601 (M119)",manual
+JETAIRWAYS,2019-06-20,"Real rebound (an up move, not a split); close 33.10 -> 62.85, volume 2.8x, stock future x1.917 (M119)",manual
+SAMMAANCAP,2019-09-30,"Real crash: Indiabulls Housing fell 34% after RBI action on Lakshmi Vilas Bank, its merger partner (Business Standard, 2019-09-30); close 390.10 -> 255.90, volume 4.6x, stock future x0.698 (M119)",manual
+YESBANK,2020-03-06,"Real crash: RBI moratorium and board supersession (already reviewed as real in M31); close 36.80 -> 16.15, volume 1.6x, stock future x0.295 (M119)",manual
+YESBANK,2020-03-17,"Real rebound after the reconstruction scheme (an up move, not a split); close 37.10 -> 58.65, stock future x1.708 (M119)",manual
+IDEA,2020-03-18,"Real crash: Supreme Court rebuke over self-assessed AGR dues, Vodafone Idea -35% (Business Standard/PTI, 2020-03-18); close 4.85 -> 3.15, volume 3.2x, stock future x0.653 (M119)",manual
+SAMMAANCAP,2020-03-19,"Real crash in the March 2020 sell-off, housing finance stocks hit hardest; close 135.45 -> 89.75, volume 1.9x, stock future x0.672, no corporate action in the feed (M119)",manual
