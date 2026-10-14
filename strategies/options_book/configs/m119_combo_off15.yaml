@@ -1,0 +1,26 @@
+# M119 (docs/research/m119.md): large-cap options book, candidate: top fifth by combo, equal weight.
+name: options_book
+version: m119_combo_off15
+dataset: nse_research@2026-10-02b
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  allowed_series: [EQ]
+  signals:
+    raw_dir: data/raw/nse_fo_bhav
+    rate_annual: 0.065
+    min_days_to_expiry: 10
+    spread_min_m: 0.9
+    spread_max_m: 1.1
+    skew_put_min_m: 0.80
+    skew_put_max_m: 0.95
+    skew_put_target_m: 0.95
+    skew_call_min_m: 0.95
+    skew_call_max_m: 1.05
+    skew_call_target_m: 1.0
+    volume_sessions: 21
+  portfolio:
+    signal: combo
+    top_frac: 0.2
+  decision_offset_sessions: 15
+  initial_capital: 1000000
