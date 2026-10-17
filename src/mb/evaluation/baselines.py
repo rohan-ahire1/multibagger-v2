@@ -5,38 +5,21 @@ the same slippage and charges. Prices come from the dataset panel cut at `end`, 
 """
 from __future__ import annotations
 
-import hashlib
 import json
-import os
-from collections.abc import Iterator
-from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 from typing import Any
 
 import polars as pl
 
-import mb
 from mb.config.models import BaselinesConfig, MarketConfig, Momentum
-from mb.data import datasets
 from mb.engine.rebalance import Target, simulate_targets
 from mb.evaluation.metrics import equity_metrics
+from mb.runs import cache
 from mb.strategy.momentum.params import Ranking, Universe
 from mb.strategy.momentum.targets import ranked
 
-CACHE_DIR = Path("data") / "cache" / "baselines"
-_use_cache = True
-
-
-@contextmanager
-def cache_off() -> Iterator[None]:
-    """Build the baseline curve from scratch inside this block, so `mb runs verify` re-computes the whole result."""
-    global _use_cache
-    before, _use_cache = _use_cache, False
-    try:
-        yield
-    finally:
-        _use_cache = before
+CACHE_DIR = cache.ROOT / "baselines"
 
 
 def buy_and_hold_curve(root: Path, cfg: BaselinesConfig) -> pl.DataFrame:
@@ -67,46 +50,24 @@ def momentum_curve(cfg: BaselinesConfig, market: MarketConfig, panel_path: Path,
     return res.equity, res.rebalances
 
 
-def _code_hash() -> str:
-    """sha256 over every source file of the `mb` package, so any code change starts a fresh cache."""
-    h = hashlib.sha256()
-    pkg = Path(mb.__file__).parent
-    for p in sorted(pkg.rglob("*.py")):
-        h.update(p.relative_to(pkg).as_posix().encode())
-        h.update(p.read_bytes())
-    return h.hexdigest()
-
-
 def cached_momentum_curve(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: Path, start: date,
                           end: date) -> tuple[pl.DataFrame, int]:
-    """`momentum_curve`, kept in `data/cache/baselines/` keyed by everything it depends on.
+    """`momentum_curve`, kept in `data/cache/baselines/` (see `mb.runs.cache`).
 
     The curve is the same for every strategy run on one dataset and period, and building it was about half a momentum run.
-    The key holds the panel's sha256 from the dataset manifest, the baseline and market settings, the period and the hash of
-    the code. A panel without a manifest (a test panel) is not cached, and nothing is read or written inside `cache_off`. Files are written once and never changed.
+    The key holds the panel's sha256, the baseline and market settings and the period.
     """
-    if not _use_cache:
+    sha = cache.panel_sha(panel_path) if cache.enabled() else None
+    if sha is None:
         return momentum_curve(cfg, market, panel_path, start, end)
-    try:
-        panel_sha = datasets.read_manifest(panel_path.parent)["outputs"][datasets.PANEL_FILE]["sha256"]
-    except FileNotFoundError:
-        return momentum_curve(cfg, market, panel_path, start, end)
-    key = hashlib.sha256(json.dumps({
-        "panel": panel_sha, "momentum": cfg.momentum.model_dump(mode="json"), "market": market.model_dump(mode="json"),
-        "start": start.isoformat(), "end": end.isoformat(), "code": _code_hash(),
-    }, sort_keys=True).encode()).hexdigest()
-    cache = root / CACHE_DIR
-    curve_file, meta_file = cache / f"{key}.parquet", cache / f"{key}.json"
+    key = cache.key(panel=sha, momentum=cfg.momentum.model_dump(mode="json"), market=market.model_dump(mode="json"),
+                    start=start.isoformat(), end=end.isoformat())
+    curve_file, meta_file = (root / CACHE_DIR / f"{key}{ext}" for ext in (".parquet", ".json"))
     if curve_file.is_file() and meta_file.is_file():
         return pl.read_parquet(curve_file), json.loads(meta_file.read_text())["rebalances"]
     curve, rebalances = momentum_curve(cfg, market, panel_path, start, end)
-    cache.mkdir(parents=True, exist_ok=True)
-    # Write to a temp name, then rename: parallel runs may build the same curve at once.
-    curve_tmp, meta_tmp = (cache / f".{p.name}.{os.getpid()}.tmp" for p in (curve_file, meta_file))
-    curve.write_parquet(curve_tmp)
-    meta_tmp.write_text(json.dumps({"rebalances": rebalances}))
-    curve_tmp.replace(curve_file)
-    meta_tmp.replace(meta_file)
+    cache.write_once(curve_file, curve.write_parquet)
+    cache.write_once(meta_file, lambda p: p.write_text(json.dumps({"rebalances": rebalances})))
     return curve, rebalances
 
 

@@ -10,6 +10,7 @@ from mb.data import datasets, deals, insider, market, results
 from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
+from mb.runs import cache
 from mb.runs.record import RunResult
 from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, UniverseM40
 from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
@@ -22,7 +23,10 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
     p = cfg.params
     assert isinstance(p, Params)
     period = cfg.strategy.period
-    panel = (pl.scan_parquet(datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE)
+    panel_path = datasets.dataset_path(root, cfg.strategy.dataset) / datasets.PANEL_FILE
+    sha = cache.panel_sha(panel_path)
+    panel_id = (root, f"{sha}@{period.end.isoformat()}") if sha is not None else None  # the panel below: this file cut at period.end
+    panel = (pl.scan_parquet(panel_path)
              .filter(pl.col("date") <= period.end)
              .select("date", "symbol", "security_id", "series", "close", "turnover", "adj_open", "adj_high", "adj_close",
                      *(("volume", "deliv_qty") if isinstance(p.universe, UniverseM40)
@@ -43,7 +47,7 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
                  meetings=results.load(root / p.results.raw_dir) if isinstance(p, ParamsM114) and p.results is not None else None,
                  deal_trades=deals.load([root / d for d in p.deals.raw_dirs])
                  if isinstance(p, ParamsM116) and p.deals is not None else None,
-                 market_values=market_values(p, root))
+                 market_values=market_values(p, root), panel_id=panel_id)
     stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
     stop_to = p.exits.stop_proceeds_to if isinstance(p, ParamsM75) else None
     trail = p.exits.stop_trailing if isinstance(p, ParamsM76) else False
@@ -57,7 +61,7 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
         # M27: the shadow book is the same strategy from the panel's first session; its equity is the book's record.
         all_days = sorted(panel["date"].unique().to_list())
         shadow_tg = targets(panel, p, all_days[0], period.end, sectors=sectors, days_per_year=cfg.market.trading_days_per_year,
-                            fund_symbols=funds)
+                            fund_symbols=funds, panel_id=panel_id)
         shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread, reentry).equity
         share = rotation_shares(shadow.select("date", "equity"), panel, p.portfolio.rotation, sorted(tg))
         tg = {d: with_rotation(t, share[d]) for d, t in tg.items()}
@@ -66,7 +70,7 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
         all_days = sorted(panel["date"].unique().to_list())
         bare = p.model_copy(update={"portfolio": p.portfolio.model_copy(update={"fixed_weights": {}, "vol_states": None})})
         shadow_tg = targets(panel, bare, all_days[0], period.end, sectors=sectors,
-                            days_per_year=cfg.market.trading_days_per_year, fund_symbols=funds)
+                            days_per_year=cfg.market.trading_days_per_year, fund_symbols=funds, panel_id=panel_id)
         shadow = simulate_targets(shadow_tg, bars, all_days, cfg.market, p.initial_capital, stop, stop_to, trail, svol, smkt, respread, reentry).equity
         k = vol_state_scales(shadow.select("date", "equity"), shadow_tg, p.portfolio.vol_states, sorted(tg))
         tg = {d: with_book_scale(t, k[d], set(p.portfolio.fixed_weights)) for d, t in tg.items()}

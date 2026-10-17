@@ -5,16 +5,30 @@ decision date, and the engine trades at the next session's open.
 """
 from __future__ import annotations
 
+import json
 import math
 from datetime import date
+from pathlib import Path
 
 import numpy as np
 import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
+from mb.runs import cache
 from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
+
+
+def by_symbol_date(f: pl.DataFrame) -> pl.DataFrame:
+    """`f` sorted by symbol, then date.
+
+    Dataset panels are stored in that order and sorting millions of rows again took longer than ranking them, so a frame
+    already in strict order (no repeated symbol and date) comes back as it is: the sort would give the same rows.
+    """
+    s, d = pl.col("symbol"), pl.col("date")
+    in_order = ((s > s.shift(1)) | ((s == s.shift(1)) & (d > d.shift(1)))).fill_null(False).slice(1).all()
+    return f if f.height < 2 or f.select(in_order).item() else f.sort("symbol", "date")
 
 
 def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
@@ -112,7 +126,7 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         cols.append(_score(r, second).alias("score2"))
     m10 = r if isinstance(r, RankingM10) else None
     keys: list[str] = []  # M10: sort keys ahead of the usual score (all descending)
-    f = panel.sort("symbol", "date")
+    f = by_symbol_date(panel)
     if m10 is not None and (m10.residual_beta_sessions is not None or m10.frog_candidates_per_slot is not None):
         f = f.with_columns(_log_ret().over("symbol").alias("_ret"))
     if m10 is not None and m10.high_window_sessions is not None:
@@ -257,12 +271,37 @@ def banded(panel: pl.DataFrame, symbol: str, sma_sessions: int, band: float, dat
     return out
 
 
+def cached_ranked(panel_id: tuple[Path, str] | None, panel: pl.DataFrame, u: Universe, r: Ranking, start: date,
+                  end: date, top_n: int | None, offset_sessions: int, min_momentum: float | None,
+                  fund_symbols: frozenset[str] | None, every_sessions: tuple[int, int] | None) -> dict[date, list[str]]:
+    """`ranked`, kept in `data/cache/rankings/` (see `mb.runs.cache`) when `panel_id` = (repo root, id of `panel`) is given.
+
+    Most runs change only the portfolio, regime or exits, and the ranking was over half of a momentum run. The id must
+    name exactly the rows and values of `panel` (the runner uses the dataset panel's sha256 and the date it is cut at);
+    the key holds it and every other argument.
+    """
+    args = (u, r, start, end, top_n, offset_sessions, min_momentum, fund_symbols, every_sessions)
+    if panel_id is None or not cache.enabled():
+        return ranked(panel, *args)
+    root, pid = panel_id
+    key = cache.key(kind="ranked", panel=pid, universe=u.model_dump(mode="json"), ranking=r.model_dump(mode="json"),
+                    ranking_type=type(r).__name__, universe_type=type(u).__name__, start=start.isoformat(),
+                    end=end.isoformat(), top_n=top_n, offset=offset_sessions, min_momentum=min_momentum,
+                    funds=sorted(fund_symbols) if fund_symbols is not None else None, every=every_sessions)
+    path = root / cache.ROOT / "rankings" / f"{key}.json"
+    if path.is_file():
+        return {date.fromisoformat(d): order for d, order in json.loads(path.read_text())}
+    out = ranked(panel, *args)
+    cache.write_once(path, lambda p: p.write_text(json.dumps([[d.isoformat(), order] for d, order in out.items()])))
+    return out
+
+
 def breadth_on(panel: pl.DataFrame, u: Universe, sma_sessions: int, min_frac: float, dates: list[date],
                fund_symbols: frozenset[str] | None) -> dict[date, bool]:
     """M99: True where at least `min_frac` of the universe's stocks close at or above their own `sma_sessions` average.
     The universe is the ranking's: allowed series, price and liquidity floors, fund units out; a stock counts once it
     has the full average. A date with no such stock is an error."""
-    f = (panel.sort("symbol", "date")
+    f = (by_symbol_date(panel)
          .with_columns(pl.col("turnover").rolling_mean(u.adv_window_sessions, min_samples=u.adv_window_sessions)
                        .over("symbol").alias("adv"),
                        pl.col("adj_close").rolling_mean(sma_sessions, min_samples=sma_sessions).over("symbol").alias("sma"))
@@ -302,7 +341,7 @@ def vol_gross(panel: pl.DataFrame, s: Sizing, days_per_year: int, dates: list[da
 def inverse_vol_weights(panel: pl.DataFrame, sessions: int, picks: dict[date, list[str]]) -> dict[date, dict[str, float]]:
     """1 / stdev of daily log returns over `sessions` rows ending at each date, for the picked names. Missing is an error."""
     names = sorted({s for v in picks.values() for s in v})
-    vol = (panel.filter(pl.col("symbol").is_in(names)).sort("symbol", "date")
+    vol = (by_symbol_date(panel.filter(pl.col("symbol").is_in(names)))
            .with_columns(_log_ret().rolling_std(sessions, min_samples=sessions).over("symbol").alias("vol"))
            .filter(pl.col("date").is_in(list(picks))))
     got = {(d, s): v for d, s, v in vol.select("date", "symbol", "vol").iter_rows()}
@@ -340,17 +379,20 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
             days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
             insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
-            deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None) -> dict[date, Target]:
+            deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None,
+            panel_id: tuple[Path, str] | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
+    `panel_id` = (repo root, id of `panel`) keeps the ranking in the cache, see `cached_ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
     `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set, `market_values` (M118, from the matching
     `mb.data.market.load_*`) when `p.regime.market_signal` is set."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
-    ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
-                   m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols,
-                   (m11.schedule.every_sessions, m11.schedule.phase_session)
-                   if m11 and isinstance(m11.schedule, ScheduleM57) and m11.schedule.every_sessions is not None else None)
+    ranks = cached_ranked(panel_id, panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
+                          m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols,
+                          (m11.schedule.every_sessions, m11.schedule.phase_session)
+                          if m11 and isinstance(m11.schedule, ScheduleM57) and m11.schedule.every_sessions is not None
+                          else None)
     if isinstance(p, ParamsM46):  # M46: only every n-th month decides
         ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
     if isinstance(p, ParamsM99) and p.regime.breadth_min_frac is not None:
@@ -472,7 +514,7 @@ def with_risk_off(t: Target, symbol: str) -> Target:
 
 def trend_up(panel: pl.DataFrame, symbols: list[str], sessions: int, dates: list[date]) -> dict[tuple[date, str], bool]:
     """(date, symbol) -> adjusted close above the close `sessions` rows earlier. Missing data is an error."""
-    t = (panel.filter(pl.col("symbol").is_in(symbols)).sort("symbol", "date")
+    t = (by_symbol_date(panel.filter(pl.col("symbol").is_in(symbols)))
          .with_columns(pl.col("adj_close").shift(sessions).over("symbol").alias("then"))
          .filter(pl.col("date").is_in(dates)))
     got = {(d, s): c > b for d, s, c, b in t.select("date", "symbol", "adj_close", "then").iter_rows() if b is not None}

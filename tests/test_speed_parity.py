@@ -10,9 +10,10 @@ from test_m3_sepa import _cfg, _market, _panel
 
 from mb.data import datasets
 from mb.evaluation import baselines
+from mb.runs import cache
 from mb.strategy.sepa.contraction import contraction_counts, count_contractions
 from mb.strategy.momentum.params import Ranking, Universe
-from mb.strategy.momentum.targets import month_ends, ranked
+from mb.strategy.momentum.targets import cached_ranked, month_ends, ranked
 
 
 def _per_date_ranking(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date) -> dict[date, list[str]]:
@@ -90,7 +91,7 @@ def test_cache_off_builds_from_scratch_and_writes_nothing(tmp_path):
     panel, days = _dataset(tmp_path)
     cfg, market = _cfg("unused"), _market(True)
     built, rebalances = baselines.momentum_curve(cfg, market, panel, days[0], days[-1])
-    with baselines.cache_off():
+    with cache.off():
         curve, n = baselines.cached_momentum_curve(tmp_path, cfg, market, panel, days[0], days[-1])
     assert curve.equals(built) and n == rebalances
     assert not (tmp_path / baselines.CACHE_DIR).exists()
@@ -115,3 +116,23 @@ def test_per_symbol_contraction_counts_match_the_per_window_count():
                 want[i] = count_contractions(w, smooth, peak)
         assert got == want
         assert lookback == 4 or any(want)
+
+
+def test_cached_ranking_equals_the_built_one_and_is_skipped_when_off(tmp_path):
+    days = _panel(tmp_path / "p.parquet", {"A": 0.003, "B": 0.001, "C": -0.001, "D": 0.002}, n=300)
+    panel = pl.read_parquet(tmp_path / "p.parquet")
+    r = Ranking(lookback_sessions=40, skip_sessions=5, score="return")
+    args = (_universe(), r, days[0], days[-1], 2, 0, None, None, None)
+    built = ranked(panel, *args)
+    store = tmp_path / cache.ROOT / "rankings"
+    with cache.off():
+        assert cached_ranked((tmp_path, "id"), panel, *args) == built
+    assert not store.exists()
+    for _ in range(2):
+        got = cached_ranked((tmp_path, "id"), panel, *args)
+        assert got == built and list(got) == list(built)
+    assert len(list(store.iterdir())) == 1
+    cached_ranked((tmp_path, "other"), panel, *args)
+    cached_ranked((tmp_path, "id"), panel, _universe(min_price=20.0), *args[1:])
+    assert len(list(store.iterdir())) == 3
+    assert cached_ranked(None, panel, *args) == built
