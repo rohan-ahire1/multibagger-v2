@@ -100,6 +100,7 @@ def _fmt(v: Any) -> str:
 def verify(runs_dir: Path, ref: str, root: Path) -> list[str]:
     """Re-run a non-final run's config and list every difference from the recorded result (empty = exact match)."""
     from mb.config.loader import load_strategy_config
+    from mb.evaluation import baselines
     from mb.strategy.registry import runner
 
     path = _run_dir(runs_dir, ref)
@@ -109,7 +110,8 @@ def verify(runs_dir: Path, ref: str, root: Path) -> list[str]:
     cfg = load_strategy_config(Path(m["config_file"]), root)
     if cfg.hash() != m["config_hash"]:
         return [f"config file changed since the run (hash {m['config_hash'][:8]} -> {cfg.hash()[:8]})"]
-    result = runner(cfg.strategy.name)(cfg, root)
+    with baselines.cache_off():
+        result = runner(cfg.strategy.name)(cfg, root)
     problems = []
     recorded = json.loads((path / "metrics.json").read_text())
     if json.loads(json.dumps(result.metrics, sort_keys=True, default=str)) != recorded:

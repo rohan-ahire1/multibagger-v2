@@ -8,6 +8,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -23,6 +25,19 @@ from mb.strategy.momentum.params import Ranking, Universe
 from mb.strategy.momentum.targets import ranked
 
 CACHE_DIR = Path("data") / "cache" / "baselines"
+_use_cache = True
+
+
+@contextmanager
+def cache_off() -> Iterator[None]:
+    """Build the baseline curve from scratch inside this block, so `mb runs verify` re-computes the whole result."""
+    global _use_cache
+    before, _use_cache = _use_cache, False
+    try:
+        yield
+    finally:
+        _use_cache = before
+
 
 def buy_and_hold_curve(root: Path, cfg: BaselinesConfig) -> pl.DataFrame:
     return pl.read_csv(root / cfg.buy_and_hold.tri_file, try_parse_dates=True).rename({"tri": "equity"})
@@ -68,8 +83,10 @@ def cached_momentum_curve(root: Path, cfg: BaselinesConfig, market: MarketConfig
 
     The curve is the same for every strategy run on one dataset and period, and building it was about half a momentum run.
     The key holds the panel's sha256 from the dataset manifest, the baseline and market settings, the period and the hash of
-    the code. A panel without a manifest (a test panel) is not cached. Files are written once and never changed.
+    the code. A panel without a manifest (a test panel) is not cached, and nothing is read or written inside `cache_off`. Files are written once and never changed.
     """
+    if not _use_cache:
+        return momentum_curve(cfg, market, panel_path, start, end)
     try:
         panel_sha = datasets.read_manifest(panel_path.parent)["outputs"][datasets.PANEL_FILE]["sha256"]
     except FileNotFoundError:

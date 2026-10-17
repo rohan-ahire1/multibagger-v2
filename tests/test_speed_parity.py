@@ -1,14 +1,16 @@
-"""Speed changes that must not move a result: one-pass month-end ranking and the cached 12-1 baseline curve."""
+"""Speed changes that must not move a result: one-pass month-end ranking, the cached 12-1 baseline curve and per-symbol contraction counts."""
 from __future__ import annotations
 
 import json
 from datetime import date
 
+import numpy as np
 import polars as pl
 from test_m3_sepa import _cfg, _market, _panel
 
 from mb.data import datasets
 from mb.evaluation import baselines
+from mb.strategy.sepa.contraction import contraction_counts, count_contractions
 from mb.strategy.momentum.params import Ranking, Universe
 from mb.strategy.momentum.targets import month_ends, ranked
 
@@ -82,3 +84,34 @@ def test_cache_key_follows_settings_and_skips_panels_without_a_manifest(tmp_path
     _panel(bare / "p.parquet", {"UP": 0.004})
     baselines.cached_momentum_curve(bare, cfg, _market(True), bare / "p.parquet", days[0], days[-1])
     assert not (bare / baselines.CACHE_DIR).exists()
+
+
+def test_cache_off_builds_from_scratch_and_writes_nothing(tmp_path):
+    panel, days = _dataset(tmp_path)
+    cfg, market = _cfg("unused"), _market(True)
+    built, rebalances = baselines.momentum_curve(cfg, market, panel, days[0], days[-1])
+    with baselines.cache_off():
+        curve, n = baselines.cached_momentum_curve(tmp_path, cfg, market, panel, days[0], days[-1])
+    assert curve.equals(built) and n == rebalances
+    assert not (tmp_path / baselines.CACHE_DIR).exists()
+    baselines.cached_momentum_curve(tmp_path, cfg, market, panel, days[0], days[-1])
+    assert len(list((tmp_path / baselines.CACHE_DIR).glob("*.parquet"))) == 1
+
+
+def test_per_symbol_contraction_counts_match_the_per_window_count():
+    rng = np.random.default_rng(7)
+    sizes = [5, 80, 140, 60]
+    r = np.abs(np.concatenate([np.cumsum(rng.normal(0, 0.01, n)) for n in sizes])) + 0.02
+    r[[100, 101, 230]] = np.nan
+    frame = pl.DataFrame({"symbol": np.repeat(["A", "B", "C", "D"], sizes), "range10": r})
+    wanted = pl.Series(rng.random(len(r)) < 0.8)
+    for lookback, smooth, peak in ((30, 3, 0.02), (20, 1, 0.01), (40, 5, 0.03), (4, 3, 0.02)):
+        got = contraction_counts(frame, wanted, lookback, smooth, peak).to_list()
+        want = [0] * len(r)
+        for i in range(len(r)):
+            w, sym = r[max(0, i - lookback + 1): i + 1], frame["symbol"][i]
+            same = (frame["symbol"][max(0, i - lookback + 1): i + 1] == sym).all()
+            if wanted[i] and len(w) == lookback and same and not np.isnan(w).any():
+                want[i] = count_contractions(w, smooth, peak)
+        assert got == want
+        assert lookback == 4 or any(want)

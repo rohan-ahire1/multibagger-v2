@@ -50,6 +50,15 @@ class RebalanceResult:
     rebalances: int
 
 
+def _positions(f: pl.DataFrame, idx: dict[date, int]) -> np.ndarray:
+    return f["date"].replace_strict(idx, return_dtype=pl.Int64).cast(pl.Int64).to_numpy()
+
+
+def _floats(f: pl.DataFrame, name: str) -> np.ndarray:
+    """A price column as floats, missing prices as NaN (what writing None into a float array gives)."""
+    return f[name].cast(pl.Float64).to_numpy()
+
+
 def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list[date], market: MarketConfig,
                      initial_capital: float, stop_loss_frac: float | None = None, stop_to: str | None = None,
                      stop_trail: bool = False, stop_vol: tuple[int, float] | None = None,
@@ -65,8 +74,8 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
     opn = np.full((len(days), len(names)), np.nan)
     cls = np.full((len(days), len(names)), np.nan)
     sub = bars.filter(pl.col("symbol").is_in(names) & pl.col("date").is_in(days))
-    for d, s, o, c in sub.select("date", "symbol", "open", "close").iter_rows():
-        opn[idx[d], col[s]], cls[idx[d], col[s]] = o, c
+    r, c = _positions(sub, idx), sub["symbol"].replace_strict(col, return_dtype=pl.Int64).cast(pl.Int64).to_numpy()
+    opn[r, c], cls[r, c] = _floats(sub, "open"), _floats(sub, "close")
     if stop_to is not None and (stop_loss_frac is None or stop_to not in col):
         raise ValueError(f"stop_to {stop_to} needs a stop and must be in every target's names")
     park = col[stop_to] if stop_to is not None else -1
@@ -81,8 +90,8 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
         if mkt.is_empty():
             raise ValueError(f"stop_market symbol {stop_market[0]} has no bars")
         mo, mc = np.full(len(days), np.nan), np.full(len(days), np.nan)
-        for d, o, c in mkt.select("date", "open", "close").iter_rows():
-            mo[idx[d]], mc[idx[d]] = o, c
+        r = _positions(mkt, idx)
+        mo[r], mc[r] = _floats(mkt, "open"), _floats(mkt, "close")
         last = np.maximum.accumulate(np.where(~np.isnan(mc), np.arange(len(mc)), -1))
         mc = np.where(last >= 0, mc[np.maximum(last, 0)], np.nan)
     mref = np.nan
