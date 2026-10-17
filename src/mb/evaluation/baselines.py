@@ -5,18 +5,24 @@ the same slippage and charges. Prices come from the dataset panel cut at `end`, 
 """
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 from datetime import date
 from pathlib import Path
 from typing import Any
 
 import polars as pl
 
+import mb
 from mb.config.models import BaselinesConfig, MarketConfig, Momentum
+from mb.data import datasets
 from mb.engine.rebalance import Target, simulate_targets
 from mb.evaluation.metrics import equity_metrics
 from mb.strategy.momentum.params import Ranking, Universe
 from mb.strategy.momentum.targets import ranked
 
+CACHE_DIR = Path("data") / "cache" / "baselines"
 
 def buy_and_hold_curve(root: Path, cfg: BaselinesConfig) -> pl.DataFrame:
     return pl.read_csv(root / cfg.buy_and_hold.tri_file, try_parse_dates=True).rename({"tri": "equity"})
@@ -46,6 +52,47 @@ def momentum_curve(cfg: BaselinesConfig, market: MarketConfig, panel_path: Path,
     return res.equity, res.rebalances
 
 
+def _code_hash() -> str:
+    """sha256 over every source file of the `mb` package, so any code change starts a fresh cache."""
+    h = hashlib.sha256()
+    pkg = Path(mb.__file__).parent
+    for p in sorted(pkg.rglob("*.py")):
+        h.update(p.relative_to(pkg).as_posix().encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def cached_momentum_curve(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: Path, start: date,
+                          end: date) -> tuple[pl.DataFrame, int]:
+    """`momentum_curve`, kept in `data/cache/baselines/` keyed by everything it depends on.
+
+    The curve is the same for every strategy run on one dataset and period, and building it was about half a momentum run.
+    The key holds the panel's sha256 from the dataset manifest, the baseline and market settings, the period and the hash of
+    the code. A panel without a manifest (a test panel) is not cached. Files are written once and never changed.
+    """
+    try:
+        panel_sha = datasets.read_manifest(panel_path.parent)["outputs"][datasets.PANEL_FILE]["sha256"]
+    except FileNotFoundError:
+        return momentum_curve(cfg, market, panel_path, start, end)
+    key = hashlib.sha256(json.dumps({
+        "panel": panel_sha, "momentum": cfg.momentum.model_dump(mode="json"), "market": market.model_dump(mode="json"),
+        "start": start.isoformat(), "end": end.isoformat(), "code": _code_hash(),
+    }, sort_keys=True).encode()).hexdigest()
+    cache = root / CACHE_DIR
+    curve_file, meta_file = cache / f"{key}.parquet", cache / f"{key}.json"
+    if curve_file.is_file() and meta_file.is_file():
+        return pl.read_parquet(curve_file), json.loads(meta_file.read_text())["rebalances"]
+    curve, rebalances = momentum_curve(cfg, market, panel_path, start, end)
+    cache.mkdir(parents=True, exist_ok=True)
+    # Write to a temp name, then rename: parallel runs may build the same curve at once.
+    curve_tmp, meta_tmp = (cache / f".{p.name}.{os.getpid()}.tmp" for p in (curve_file, meta_file))
+    curve.write_parquet(curve_tmp)
+    meta_tmp.write_text(json.dumps({"rebalances": rebalances}))
+    curve_tmp.replace(curve_file)
+    meta_tmp.replace(meta_file)
+    return curve, rebalances
+
+
 def _covers(curve: pl.DataFrame, start: date) -> bool:
     """The TRI file starts 2010-01-04; a window starting before it has no TRI figures (the adoption check reads None)."""
     return curve["date"].min() <= start
@@ -57,7 +104,7 @@ def compute(root: Path, cfg: BaselinesConfig, market: MarketConfig, panel_path: 
     Each baseline runs once over the period; a fold is a slice of that one curve, the same way the strategy's folds are.
     """
     tri = buy_and_hold_curve(root, cfg)
-    mom, rebalances = momentum_curve(cfg, market, panel_path, start, end)
+    mom, rebalances = cached_momentum_curve(root, cfg, market, panel_path, start, end)
     windows = {"period": (start, end)} | {f.name: (f.start, f.end) for f in cfg.folds if f.start >= start and f.end <= end}
     out: dict[str, Any] = {}
     for label, curve in (("nifty500_tri_buy_and_hold", tri), ("momentum_12_1", mom)):

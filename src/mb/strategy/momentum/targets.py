@@ -197,8 +197,11 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     else:
         every, phase = every_sessions
         dates = f.select("date").unique().sort("date")["date"].to_list()[phase::every]
+    # One filter over the panel, then split by date: filtering the whole panel once per date was most of a run's time.
+    by_date = (f.filter(pl.col("date").is_in(pl.Series(dates, dtype=pl.Date).implode()) & eligible)
+               .partition_by("date", as_dict=True))
     for d in dates:
-        day = f.filter((pl.col("date") == d) & eligible)
+        day = by_date.get((d,), f.clear())
         if max_frac is not None:
             drop = day.sort("maxret", "symbol", descending=[True, False]).head(math.ceil(max_frac * day.height))["symbol"]
             day = day.filter(~pl.col("symbol").is_in(drop.implode()))
