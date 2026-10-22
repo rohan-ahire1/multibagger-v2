@@ -97,3 +97,14 @@ Idea: grade the Next 50 filter over 150/200/250 (or 100-300) SMAs (trend ensembl
 Next queue: offset-0 results keep misleading (M120, M123, M126): pre-screen future ideas at all four offsets first
 and skip the after-tax/bootstrap work when they split. Ideas left: FII/DII holding changes (heavy XBRL fetch; check
 evidence), realism on the newest data once the paper book has history.
+
+## 2026-10-23, cycle 8: M127 momentum-score tilt
+
+Housekeeping: the three tests needing dataset 2026-10-02b now skip where it is absent (suite: 305 passed, 9 skipped).
+Skipped after research: FII/DII holding changes (evidence weak: FIIs chase returns; heavy XBRL fetch).
+Idea: tilt weights by the MSCI / Nifty 200 Momentum 30 normalised score (1+Z). Result: fail (docs/research/m127.md):
+offset 0 1.413 vs 1.500 (more 2022 drawdown), offsets 5/10/15 higher; +0.7-1.2 pts CAGR at every offset. Pre-screen
+at four offsets saved the rest. Variants: ~1,005.
+Next queue: ideas on this book are thin. Remaining: (1) risk-off concentration: under risk-off hold the top 12 at full
+weight instead of 25 at half (untried form); (2) promoter-holding level from the shareholding master (cheap fetch,
+weak evidence); (3) data/realism work.

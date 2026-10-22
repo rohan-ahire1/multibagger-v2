@@ -94,6 +94,7 @@ its own `mNN.md`; this file only summarises.
 | 124 | No-trade band: held names left alone within 20% / 50% of their goal (Leland 1999; Donohue & Yip 2003; Novy-Marx & Velikov 2016) | band20 1.524 / after tax 1.126 vs 1.500 / 1.102 | band20 fails offset 5 by 0.003, f1, f2; band50 offsets 5, 10, f1 | fails; saves almost no tax (exits, not trims, carry the tax) |
 | 125 | No new buys in the weaker half of NSE sectors / industries by 12-1 momentum (Moskowitz & Grinblatt 1999; new `mb data fetch industry`) | sector 1.532 (29.2% CAGR, 19.0% DD); after tax 1.115 vs 1.102 | sector wins 4/4 offsets and 25 bps; bootstrap 37% | fails f1 (2.117), f2 (2.149); ~1 pt CAGR for ~1 pt DD |
 | 126 | Next 50 filter graded over 150/200/250 or 100–300 SMAs (trend ensembles; Zakamulin 2017; Levine & Pedersen 2016) | ens3 1.654 (30.1% CAGR, 18.2% DD) at offset 0 | flat at offsets 5/10/15 (1.07 / 1.28 / 1.41) | fails offsets, f1; month-end-only gain (M109's SMA nudges were timing luck) |
+| 127 | Inverse-vol weights tilted by the MSCI / Nifty Momentum normalised score (1+Z, clip 3) | 1.413 (31.0% CAGR, 21.9% DD) vs 1.500 | offsets 5/10/15 higher (1.10 / 1.33 / 1.45); +0.7–1.2 pts CAGR at every offset | fails offset 0, f2, f3 (more 2022 drawdown) |
 
 What the evidence says so far:
 
