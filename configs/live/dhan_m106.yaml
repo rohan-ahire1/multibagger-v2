@@ -1,0 +1,28 @@
+# M137 (docs/research/m137.md): offline Dhan order plan for the M106 paper book. Nothing is sent; `mb live plan`
+# writes the order bodies and `mb live reconcile` checks a saved holdings response. Sending is M7 proper.
+name: dhan_m106
+paper_config: configs/paper/momentum_b_top25_gold25_jr_gap.yaml
+capital_inr: 1000000
+scrips:
+  url: https://images.dhan.co/api-data/api-scrip-master.csv
+  raw_dir: data/raw/dhan_scrips
+  timeout_s: 120
+  exchange: NSE
+  segment: E
+  series: [EQ, BE, BZ]
+exchange_segment: NSE_EQ
+product_type: CNC
+validity: DAY
+# Backtest and paper fill at the open (M130: a day late costs ~0.6 pts CAGR a year). Sells go into the pre-open
+# auction; buys go in at the open, after the sells have filled and freed the cash. MARKET avoids limits outside a
+# stock's price band (2-20%), which the exchange rejects.
+sell: {order_type: MARKET, amo_time: PRE_OPEN, limit_buffer_frac: null}
+buy: {order_type: MARKET, amo_time: OPEN, limit_buffer_frac: null}
+rails:
+  max_order_value_inr: 650000       # the largest normal order is the risk-off switch: 37.5% of the book into GOLDBEES
+  max_name_weight: 0.12             # inverse-vol picks hold 75% (37.5% risk-off) over 25 names
+  max_weight_by_symbol: {GOLDBEES: 0.65}   # 25% fixed + 37.5% risk-off
+  max_buy_frac: 1.0
+  max_orders: 60
+  kill_switch_file: data/live/STOP
+  reconcile_weight_tol: 0.02

@@ -41,6 +41,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `docs/research/` | Pre-registration and results per research milestone |
 | `src/mb/live/` | M6 paper trading: `calendar.py` (NSE holiday list, month-end), `paper.py` (book: fills, corporate actions, jump refusal), `replay.py` (backtest check), `alerts.py` (ntfy), `daily.py` (the daily job) |
 | `configs/paper/` | Paper configs; each pins its strategy config by resolved hash |
+| `configs/live/` | M137 offline Dhan order plans (`src/mb/live/broker.py`): order fields and safety rails; nothing is sent |
 | `deploy/` | systemd user service + timer for the daily job on the VPS |
 | `configs/reference/` | Symbol → industry map for the sector caps |
 | `docs/reference/` | v1 reference trades, metrics, resolved settings |
@@ -63,6 +64,8 @@ uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-ye
 uv run mb data fetch pledges configs/data/nse_pledges.yaml --from YYYY-MM --to YYYY-MM   # SAST Reg 31 pledge events (M134)
 uv run mb paper daily configs/paper/momentum_voladj_stocks.yaml [--no-fetch] [--today D]   # the VPS daily job
 uv run mb paper status configs/paper/momentum_voladj_stocks.yaml
+uv run mb live plan configs/live/dhan_m106.yaml [--decided D] [--holdings F] [--paper-root P]   # Dhan order bodies, not sent (M137)
+uv run mb live reconcile configs/live/dhan_m106.yaml --holdings F                 # saved Dhan holdings vs the paper book
 uv run mb vcp check <vcp-config> [--sample 30 --seed 1]  # VCP funnel + breakout charts (no returns) -> reports/vcp-check/
 uv run pytest
 ```

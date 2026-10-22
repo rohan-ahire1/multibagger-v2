@@ -228,6 +228,22 @@ def fetch_pledges(
         raise _fail(f"months failed: {', '.join(failed)}")
 
 
+@fetch_app.command("dhan-scrips")
+def fetch_dhan_scrips(
+    live_config: Annotated[Path, typer.Argument(help="Live config YAML (configs/live/dhan_m106.yaml).")],
+    root: Root = _ROOT,
+) -> None:
+    """Snapshot Dhan's public scrip master (security ids; one immutable file per day)."""
+    from mb.config.loader import load_live_config
+    from mb.sources import dhan_scrips
+
+    try:
+        out = dhan_scrips.fetch(load_live_config(live_config).scrips, root, date.today())
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"wrote {out}")
+
+
 @data_app.command("build")
 def data_build(
     data_config: DataCfg,
@@ -290,6 +306,87 @@ def paper_status(paper_config: PaperCfg, root: Root = _ROOT) -> None:
         typer.echo(daily.status(paper_config, root))
     except ConfigError as e:
         raise _fail(str(e)) from None
+
+
+live_app = typer.Typer(no_args_is_help=True)
+app.add_typer(live_app, name="live", help="Offline Dhan order plans and holdings checks (M137; nothing is sent).")
+LiveCfg = Annotated[Path, typer.Argument(help="Live config YAML, e.g. configs/live/dhan_m106.yaml.")]
+PaperRoot = Annotated[Path | None, typer.Option("--paper-root", help="Checkout whose data/paper/ holds the book (default: --root).")]
+Holdings = Annotated[Path | None, typer.Option("--holdings", help="Saved Dhan GET /holdings response (JSON list).")]
+
+
+def _live(live_config: Path, root: Path, paper_root: Path | None):  # noqa: ANN202
+    from mb.config.loader import load_live_config, load_paper_config
+    from mb.live.paper import Store
+
+    cfg = load_live_config(live_config)
+    pcfg, _ = load_paper_config(root / cfg.paper_config, root)
+    return cfg, pcfg, Store(paper_root or root, pcfg.name)
+
+
+@live_app.command("plan")
+def live_plan(
+    live_config: LiveCfg,
+    decided: Annotated[str | None, typer.Option("--decided", help="Plan a past decision, YYYY-MM-DD (default: the pending orders).")] = None,
+    holdings: Holdings = None,
+    paper_root: PaperRoot = None,
+    root: Root = _ROOT,
+) -> None:
+    """Dhan order bodies for the paper book's decision at the live capital -> data/live/<name>/plans/. Exit 1: refused."""
+    import json
+
+    from mb.live import broker
+    from mb.sources import dhan_scrips
+
+    try:
+        cfg, pcfg, store = _live(live_config, root, paper_root)
+        if decided is None:
+            book = store.load_book(pcfg)
+            if not book.pending:
+                raise _fail(f"{pcfg.name}: no pending orders (use --decided for a past decision)")
+            decided = book.pending["decided"]
+            rec = json.loads((store.dir / "days" / f"{decided}.json").read_text())
+            want = [{k: o[k] for k in ("symbol", "side", "shares")} for o in rec["decision"]["orders"]]
+            if want != book.pending["orders"]:
+                raise _fail(f"{pcfg.name}: pending orders differ from days/{decided}.json")
+        else:
+            f = store.dir / "days" / f"{decided}.json"
+            if not f.exists():
+                raise _fail(f"no paper day record {f}")
+            rec = json.loads(f.read_text())
+        src = dhan_scrips.newest(cfg.scrips, root)
+        held = broker.holdings_qty(json.loads(holdings.read_text())) if holdings else None
+        p = broker.plan(cfg, broker.decision_from_day(rec), dhan_scrips.load(cfg.scrips, src), root, held)
+        out = broker.write(p, src.name, root)
+    except broker.Refused as e:
+        raise _fail("plan refused:\n" + "\n".join(f"  {r}" for r in e.reasons)) from None
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(out.read_text())
+
+
+@live_app.command("reconcile")
+def live_reconcile(
+    live_config: LiveCfg,
+    holdings: Annotated[Path, typer.Option("--holdings", help="Saved Dhan GET /holdings response (JSON list).")],
+    paper_root: PaperRoot = None,
+    root: Root = _ROOT,
+) -> None:
+    """Broker holdings vs the paper book. Exit 1 on any mismatch."""
+    import json
+
+    from mb.live import broker
+
+    try:
+        cfg, pcfg, store = _live(live_config, root, paper_root)
+        book = store.load_book(pcfg)
+        gaps = broker.reconcile(cfg, {s: (p.shares, p.last_close) for s, p in book.positions.items()},
+                                broker.holdings_qty(json.loads(holdings.read_text())))
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    if gaps:
+        raise _fail(f"{pcfg.name} (book as of {book.as_of}): {len(gaps)} mismatches\n" + "\n".join(f"  {g}" for g in gaps))
+    typer.echo(f"{pcfg.name}: broker holdings match the paper book as of {book.as_of} ({len(book.positions)} names)")
 
 
 vcp_app = typer.Typer(no_args_is_help=True)

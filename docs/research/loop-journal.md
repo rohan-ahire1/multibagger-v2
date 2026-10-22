@@ -282,3 +282,23 @@ for the M135 tranche books (not installed). Variants: unchanged (~1,014).
 Next queue: (1) after the 2026-10-30 evening job, fetch 10-23..10-30, build a dataset, and compare the M106 paper book's
 first decision (`~/projects/multibagger-v2/data/paper/momentum_b_top25_gold25_jr_gap/days/2026-10-30.json`) with
 `targets()` of `m136_ref` on that dataset; (2) the user's call on the tranche drafts.
+
+## 2026-10-23, cycle 20: M137 offline Dhan order plan (live prep)
+
+Research (journal only, nothing counted): MF crowding (only global studies, Indian evidence none), network /
+supply-chain momentum (no emerging-market long-only evidence; China lead-lag fades at daily data), relative +
+absolute momentum (IJoEM 2025; absolute momentum is dead here, M72), BacktestIndia "scaled turnover" (dropped in
+cycle 10). Dropped at the information stage: risk-off share in GOLDBEES only while gold is above its 200-day average,
+otherwise cash; it would act at 5 of 45 risk-off month-ends in 2010-23 (6 with a 12-month rule), too few to tell from
+decision-day luck.
+Work (LOOP step 10, M7): `mb live plan` turns the paper book's pending orders into Dhan v2 order bodies at the live
+capital (sells MARKET in the pre-open, buys MARKET at the open, CNC, AMO) behind rails (order value, name weight,
+GOLDBEES cap, buy total, order count, kill switch); `mb live reconcile` checks a saved Dhan holdings response
+against the book; `mb data fetch dhan-scrips` stores Dhan's public scrip master. Nothing is sent and no token is read.
+Checks (docs/research/m137.md): 13 new tests, suite 345 passed / 9 skipped; voladj 2026-09-30 decision maps 30/30
+symbols and passes the rails; reconcile matches the current voladj book. Whole shares put a floor of ~₹2.5 lakh on live
+capital for M106. Variants: unchanged (~1,014).
+Next queue: (1) after the 2026-10-30 evening job: compare M106's first paper decision with research, and run
+`mb live plan configs/live/dhan_m106.yaml --paper-root ~/projects/multibagger-v2` on its pending orders as the
+first real dry run; (2) M7 needs the user: capital, client id, static IP; (3) signal ideas are thin; only new data
+families are left.

@@ -258,6 +258,57 @@ class PaperConfig(Strict):
         return v
 
 
+class DhanScripSource(Strict):
+    # M137: Dhan's public scrip master (no login); one gzipped, unchanged copy per fetch date under raw_dir.
+    url: str
+    raw_dir: str
+    timeout_s: float
+    exchange: str             # SEM_EXM_EXCH_ID of the rows used (NSE)
+    segment: str              # SEM_SEGMENT of the rows used (E = cash equity)
+    series: list[str]         # SEM_SERIES values a paper symbol may map to; more than one match is refused
+
+
+class LiveOrderLeg(Strict):
+    # Dhan v2 POST /orders fields for one side. MARKET sends price 0. LIMIT sends the decision close times
+    # (1 + buffer) for buys or (1 - buffer) for sells, rounded to the tick toward the close.
+    order_type: Literal["MARKET", "LIMIT"]
+    amo_time: Literal["PRE_OPEN", "OPEN", "OPEN_30", "OPEN_60"]
+    limit_buffer_frac: float | None
+
+    @model_validator(mode="after")
+    def _m137(self) -> LiveOrderLeg:
+        if (self.order_type == "LIMIT") != (self.limit_buffer_frac is not None):
+            raise ValueError("limit_buffer_frac is set for LIMIT orders only")
+        if self.limit_buffer_frac is not None and not 0.0 <= self.limit_buffer_frac < 0.2:
+            raise ValueError("limit_buffer_frac must be in [0, 0.2)")
+        return self
+
+
+class LiveRails(Strict):
+    # Any breach refuses the whole plan.
+    max_order_value_inr: float        # one order's shares x decision close
+    max_name_weight: float            # a name's value after the plan / live capital
+    max_weight_by_symbol: dict[str, float]  # exceptions to max_name_weight (fixed and risk-off sleeves)
+    max_buy_frac: float               # all buys / live capital
+    max_orders: int
+    kill_switch_file: str             # under the repo root; while it exists every plan is refused
+    reconcile_weight_tol: float       # holdings check: largest allowed gap between broker and book weights
+
+
+class LiveConfig(Strict):
+    # M137 (docs/research/m137.md): offline order plan for Dhan from a paper book's decisions. Nothing is sent.
+    name: str
+    paper_config: str
+    capital_inr: float                # live capital; paper shares are scaled by capital_inr / paper equity at the decision
+    scrips: DhanScripSource
+    exchange_segment: Literal["NSE_EQ"]
+    product_type: Literal["CNC"]
+    validity: Literal["DAY"]
+    sell: LiveOrderLeg
+    buy: LiveOrderLeg
+    rails: LiveRails
+
+
 class PledgeSource(Strict):
     # M134: SEBI SAST Regulation 31 encumbrance events (pledge creation / release / invocation by promoters) from NSE's
     # corporate-filings API (`sources/nse_pledges.py`). One file per calendar month of broadcasts; history from 2014.
