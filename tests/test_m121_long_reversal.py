@@ -36,3 +36,10 @@ def test_bad_settings_fail():
         LongReversal(from_sessions=252, to_sessions=756, drop_frac=0.1)
     with pytest.raises(ValidationError):
         LongReversal(from_sessions=756, to_sessions=252, drop_frac=1.0)
+
+
+def test_m123_short_window_ends_at_the_decision():
+    from mb.strategy.momentum.targets import top_returns
+    p = _panel({"A": [1, 1, 1, 100, 1, 150], "B": [1, 1, 1, 100, 1, 120]})
+    d = date(2020, 1, 6)
+    assert top_returns(p, 2, 0, 0.5, {d: ["A", "B"]}) == {d: {"A": -1.0}}

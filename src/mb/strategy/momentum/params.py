@@ -954,3 +954,33 @@ class RegimeM122(RegimeM118):
 
 class ParamsM122(ParamsM121):
     regime: RegimeM122
+
+
+# M123 option (docs/research/m123.md).
+
+
+class ShortReversal(Strict):
+    # The short-term return is adj_close at the decision / adj_close `sessions` sessions earlier - 1. A name not held is
+    # not bought when it is in the top drop_frac of the decision's ranked names that have one.
+    sessions: int
+    drop_frac: float
+
+    @model_validator(mode="after")
+    def _m123(self) -> ShortReversal:
+        if self.sessions < 1 or not 0.0 < self.drop_frac < 1.0:
+            raise ValueError("sessions must be at least 1 and drop_frac in (0, 1)")
+        return self
+
+
+class ParamsM123(ParamsM122):
+    short_reversal: ShortReversal | None
+
+    @model_validator(mode="after")
+    def _m123(self) -> ParamsM123:
+        if self.short_reversal is not None and (self.long_reversal is not None or self.limit_hits is not None
+                                                or self.insider is not None or self.results is not None
+                                                or self.deals is not None):
+            raise ValueError("short_reversal, long_reversal, limit_hits, deals, results and insider are exclusive")
+        if self.short_reversal is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("short_reversal needs max_per_sector null")
+        return self
