@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -106,7 +106,11 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
             mom.over("symbol").alias("mom")]
     if r.score == "return_over_vol":
         span = r.lookback_sessions - r.skip_sessions
-        vol = (pl.col("adj_close") / pl.col("adj_close").shift(1)).log().rolling_std(span, min_samples=span).shift(r.skip_sessions)
+        lr = (pl.col("adj_close") / pl.col("adj_close").shift(1)).log()
+        if isinstance(r, RankingM128) and r.score_risk == "downside":  # M128
+            vol = (lr.clip(upper_bound=0.0) ** 2).rolling_mean(span, min_samples=span).sqrt().shift(r.skip_sessions)
+        else:
+            vol = lr.rolling_std(span, min_samples=span).shift(r.skip_sessions)
         cols.append(vol.over("symbol").alias("vol"))
     second = r.second_lookback_sessions if isinstance(r, RankingM8) else None
     if second is not None:

@@ -1092,3 +1092,23 @@ class ParamsM127(ParamsM126):
                                                       or self.ranking.second_lookback_sessions is not None):
             raise ValueError("score_tilt needs the plain score ranking")
         return self
+
+
+# M128 option (docs/research/m128.md).
+
+
+class RankingM128(RankingM55):
+    # Risk in the return_over_vol score. stdev: standard deviation of daily log returns (as before). downside: downside
+    # deviation, sqrt(mean(min(r, 0)^2)) over the same `lookback - skip` rows (Sortino-style, target 0).
+    score_risk: Literal["stdev", "downside"]
+
+    @model_validator(mode="after")
+    def _m128(self) -> RankingM128:
+        if self.score_risk == "downside" and (self.score != "return_over_vol" or self.order != "score"
+                                              or self.second_lookback_sessions is not None):
+            raise ValueError("score_risk downside needs score return_over_vol, order score and no second lookback")
+        return self
+
+
+class ParamsM128(ParamsM127):
+    ranking: RankingM128
