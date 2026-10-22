@@ -272,3 +272,13 @@ Variants: unchanged (~1,014).
 Next queue: (1) after the 2026-10-30 evening job, compare the M106 paper book's first decision with research (needs a
 dataset through 2026-10-30); (2) live prep: unit files for the tranche drafts (written, not installed) if the user says yes;
 (3) new data families only for signals (MF holdings 2019+, shareholding pattern).
+
+## 2026-10-23, cycle 19: M136 dataset refresh (data quality)
+
+Fetched bhavcopy and delivery for 2026-09-29..10-22 and the 2026 corporate actions. Built `nse_research@2026-10-23`
+(all checks pass). `m136_ref` (M106 on it, 2010-23) equals `m120_ref`: same 1,272 trades, same 1.500, equity within
+float noise (docs/research/m136.md). Also this cycle: templated unit drafts `deploy/mb-paper-tranche@.service/.timer`
+for the M135 tranche books (not installed). Variants: unchanged (~1,014).
+Next queue: (1) after the 2026-10-30 evening job, fetch 10-23..10-30, build a dataset, and compare the M106 paper book's
+first decision (`~/projects/multibagger-v2/data/paper/momentum_b_top25_gold25_jr_gap/days/2026-10-30.json`) with
+`targets()` of `m136_ref` on that dataset; (2) the user's call on the tranche drafts.
