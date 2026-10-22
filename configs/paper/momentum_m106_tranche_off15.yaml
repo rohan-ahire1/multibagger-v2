@@ -1,0 +1,22 @@
+# DRAFT, not deployed (docs/research/m135.md): one of four tranches of M106 (pin momentum/m106_g25_jr_gap), a quarter of
+# the capital each, deciding 0 / 5 / 10 / 15 sessions before each month-end and never rebalanced against each other.
+# This one decides 15 sessions before the month-end. Together they remove the month-end timing luck (M117: tranche
+# blend 1.34 Calmar 2010-23 vs 1.50 for the month-end draw, offsets 0..19 mean 1.22). Deploying needs the user's OK.
+name: momentum_m106_tranche_off15
+strategy_config: strategies/momentum/configs/m135_m106_off15.yaml
+strategy_config_hash: aad031d2266d6cf9c2530a585d8cff39bd7064557ef456c4497b9d67436a2bdb
+data_config: configs/data/nse_daily_delivery.yaml
+start: 2026-11-02
+initial_capital: 250000
+keep_datasets: 3
+max_missing_sessions: 1
+replay_max_equity_gap_pct: 2.0
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

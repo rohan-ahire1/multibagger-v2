@@ -19,6 +19,14 @@ share moved to GOLDBEES at a month-end when JUNIORBEES closes below its 200-day 
 `configs/data/nse_daily_delivery.yaml`, so its first run downloads the delivery files back to 2023. Units
 `deploy/mb-paper-jr.*`, 19:55 and 23:25 IST, same lock.
 
+## Tranche drafts (M135, not deployed)
+
+The book also takes `schedule.decision_offset_sessions` (M135): it decides at the close of the session with N trading
+days left in the month (NSE holiday calendar; the data overrules it once it reaches the next month, with a note), and
+the replay takes the open month's decision as the book made it. `configs/paper/momentum_m106_tranche_off{0,5,10,15}.yaml`
+are drafts of M106 in four quarter-capital tranches (`docs/research/m135.md`). They need the user's OK and one unit per
+book before they run.
+
 ## Stocks only (changed before the start)
 
 The first books, `momentum_voladj.yaml` and `momentum_top40.yaml`, were retired on 2026-09-29 before their first session.
