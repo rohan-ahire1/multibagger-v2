@@ -24,14 +24,18 @@ def month_ends(panel: pl.DataFrame, start: date, end: date) -> list[date]:
     return days.group_by(month, maintain_order=True).agg(pl.col("date").max())["date"].to_list()
 
 
-def decision_dates(panel: pl.DataFrame, start: date, end: date, offset_sessions: int) -> list[date]:
-    """The session `offset_sessions` before each month's last session in [start, end]; a month with fewer is skipped."""
+def decision_dates(panel: pl.DataFrame, start: date, end: date, offset_sessions: int, open_end: bool = False) -> list[date]:
+    """The session `offset_sessions` before each month's last session in [start, end]; a month with fewer is skipped.
+
+    `open_end` (M135, paper): the last month is still open, so its last known session is its decision day (the paper
+    book has already checked on the calendar that it is `offset_sessions` before the month's last session)."""
     if offset_sessions == 0:
         return month_ends(panel, start, end)
     days = panel.filter(pl.col("date").is_between(start, end)).select("date").unique().sort("date")
     month = pl.col("date").dt.strftime("%Y-%m").alias("month")
     per_month = days.group_by(month, maintain_order=True).agg(pl.col("date"))["date"].to_list()
-    return [m[-1 - offset_sessions] for m in per_month if len(m) > offset_sessions]
+    out = [m[-1 - offset_sessions] for m in (per_month[:-1] if open_end else per_month) if len(m) > offset_sessions]
+    return out + [per_month[-1][-1]] if open_end and per_month else out
 
 
 def _score(r: Ranking, lookback: int) -> pl.Expr:
@@ -105,14 +109,16 @@ def accelerations(panel: pl.DataFrame, lookback: int, skip: int, dates: list[dat
 
 def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
            top_n: int | None = None, offset_sessions: int = 0, min_momentum: float | None = None,
-           fund_symbols: frozenset[str] | None = None, every_sessions: tuple[int, int] | None = None) -> dict[date, list[str]]:
+           fund_symbols: frozenset[str] | None = None, every_sessions: tuple[int, int] | None = None,
+           open_end: bool = False) -> dict[date, list[str]]:
     """For each month-end in [start, end], the eligible symbols best first (ties by symbol).
 
     `top_n` is needed only by the M10 frog-in-the-pan option; `offset_sessions` moves the decision date (M11);
     `min_momentum` drops names whose lookback-to-skip return is not above it (M12). `fund_symbols` (M35) are the
     symbols of fund units for `fund_units_by_symbol`; by default those with a fund ISIN in `panel`, which misses every
     fund when the panel ends before mid-2011 (no ISINs in the older bhavcopies). `every_sessions` (M57) = (every, phase):
-    decide on the sessions of [start, end] with index = phase mod every instead of at month-ends.
+    decide on the sessions of [start, end] with index = phase mod every instead of at month-ends. `open_end` as in
+    `decision_dates`.
     """
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
     part = r.return_part if isinstance(r, RankingM55) else "total"
@@ -218,7 +224,7 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
         eligible = eligible & ~pl.col("symbol").is_in(pl.Series(funds, dtype=pl.String).implode())
     out: dict[date, list[str]] = {}
     if every_sessions is None:
-        dates = decision_dates(f, start, end, offset_sessions)
+        dates = decision_dates(f, start, end, offset_sessions, open_end)
     else:
         every, phase = every_sessions
         dates = f.select("date").unique().sort("date")["date"].to_list()[phase::every]
@@ -449,18 +455,20 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
             insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
             deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None,
-            industries: pl.DataFrame | None = None, pledge_events: pl.DataFrame | None = None) -> dict[date, Target]:
+            industries: pl.DataFrame | None = None, pledge_events: pl.DataFrame | None = None,
+            open_end: bool = False) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
     `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set, `market_values` (M118, from the matching
     `mb.data.market.load_*`) when `p.regime.market_signal` is set, `pledge_events` (M134, from `nse_pledges.load`) when
-    `p.pledges` is set."""
+    `p.pledges` is set. `open_end` (M135, paper with a decision offset) as in `decision_dates`."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
                    m11.schedule.decision_offset_sessions if m11 else 0, min_mom, fund_symbols,
                    (m11.schedule.every_sessions, m11.schedule.phase_session)
-                   if m11 and isinstance(m11.schedule, ScheduleM57) and m11.schedule.every_sessions is not None else None)
+                   if m11 and isinstance(m11.schedule, ScheduleM57) and m11.schedule.every_sessions is not None else None,
+                   open_end)
     if isinstance(p, ParamsM46):  # M46: only every n-th month decides
         ranks = {d: o for d, o in ranks.items() if d.month % p.schedule.every_months == p.schedule.phase_month}
     if isinstance(p, ParamsM99) and p.regime.breadth_min_frac is not None:

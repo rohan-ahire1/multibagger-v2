@@ -68,6 +68,16 @@ def is_month_end(d: date, holidays: set[date]) -> bool:
     return True
 
 
+def sessions_left_in_month(d: date, holidays: set[date]) -> int:
+    """Trading days after `d` in its month (M135: a book with decision offset N decides when this equals N)."""
+    _covered(d, holidays)
+    n, nxt = 0, d + timedelta(days=1)
+    while nxt.month == d.month:
+        n += is_trading_day(nxt, holidays)
+        nxt += timedelta(days=1)
+    return n
+
+
 def trading_days_between(after: date, through: date, holidays: set[date]) -> list[date]:
     """Trading days in (after, through]."""
     _covered(through, holidays)

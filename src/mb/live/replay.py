@@ -1,6 +1,6 @@
 """Replay: the backtest over the paper period on today's dataset, compared with what the paper book did.
 
-The picks at every month-end must match exactly (and the weights, for a book that records them). Equity will differ a little (whole shares, orders sized off the close,
+The picks at every decision (month-end, or N sessions before it, M135) must match exactly (and the weights, for a book that records them). Equity will differ a little (whole shares, orders sized off the close,
 fills of the rounded share counts), and the gap is reported and alerted on above the configured limit.
 """
 from __future__ import annotations
@@ -28,6 +28,13 @@ def replay(cfg: PaperConfig, strat: Resolved, view: DataView, days: list[dict[st
     cut = view.panel.filter(pl.col("date") <= as_of)
     sessions = sorted(cut.filter(pl.col("date") >= cfg.start)["date"].unique().to_list())
     tg = targets(cut, p, cfg.start, as_of)
+    # The backtest treats the last session as a month-end, and with an offset (M135) picks a day N sessions before it:
+    # the last month is still open, so its decision is the book's own day, if the book made one, as the book saw it.
+    made = [date.fromisoformat(d["session"]) for d in days if d["decision"]]
+    tg = {d: t for d, t in tg.items() if (d.year, d.month) != (as_of.year, as_of.month)}
+    for d in (d for d in made if (d.year, d.month) == (as_of.year, as_of.month)):
+        tg[d] = targets(cut.filter(pl.col("date") <= d), p, cfg.start, d, open_end=True)[d]
+    tg = dict(sorted(tg.items()))
     bars = cut.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
     sim = simulate_targets(tg, bars, sessions, strat.market, cfg.initial_capital)
 
@@ -36,8 +43,7 @@ def replay(cfg: PaperConfig, strat: Resolved, view: DataView, days: list[dict[st
                                                         d["decision"]["gross"]) for d in days if d["decision"]}
     weights = {(dt := date.fromisoformat(d["session"])): {view.renamed(k, dt): w for k, w in d["decision"]["weights"].items()}
                for d in days if d["decision"] and "weights" in d["decision"]}
-    # The backtest treats the last session as a month-end; that is only a decision if the book made one there.
-    bt = {d: (sorted(t.weights), t.gross) for d, t in tg.items() if d != as_of or d in paper}
+    bt = {d: (sorted(t.weights), t.gross) for d, t in tg.items()}
     mismatches = []
     for d in sorted(set(paper) | set(bt)):
         a, b = paper.get(d), bt.get(d)

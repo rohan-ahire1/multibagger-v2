@@ -36,12 +36,12 @@ def test_m10_configs_keep_their_model_and_m11_configs_route_to_m11():
     assert type(load_strategy_config(ROOT / "strategies/momentum/configs/m11_control_b1.yaml", ROOT).params) is ParamsM11
 
 
-def test_paper_trading_refuses_offset_and_stop_but_takes_inverse_vol():
+def test_paper_trading_refuses_the_stop_but_takes_inverse_vol_and_an_offset():
     check_supported(_m11())
     check_supported(_m11(portfolio={"weighting": "inverse_vol"}))
-    for k, v in (("schedule", {"decision_offset_sessions": 5}), ("exits", {"stop_loss_frac": 0.1})):
-        with pytest.raises(ValueError, match="M11"):
-            check_supported(_m11(**{k: v}))
+    check_supported(_m11(schedule={"decision_offset_sessions": 5}))  # M135
+    with pytest.raises(ValueError, match="M11"):
+        check_supported(_m11(exits={"stop_loss_frac": 0.1}))
 
 
 def test_paper_history_covers_the_inverse_vol_window():

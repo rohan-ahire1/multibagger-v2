@@ -6,7 +6,8 @@ Each session after the book's last one is processed in order:
    what the adjusted series the backtest trades on assumes;
 2. pending orders fill at the open, sells first, then buys, all buys scaled down together if cash is short;
 3. positions are marked at the close;
-4. at a month-end close the strategy's target becomes whole-share orders for the next open, sized off that close.
+4. at a decision close (the month-end, or N sessions before it with `decision_offset_sessions`, M135) the strategy's
+   target becomes whole-share orders for the next open, sized off that close.
 
 A session with a problem (an unexplained price jump on a held or picked name) is not committed: the book stays at the
 session before it, and the next run retries once the data is fixed.
@@ -107,9 +108,7 @@ def check_supported(p: Params) -> None:
         on += [k for k, v in (("ranking.high_window_sessions", p.ranking.high_window_sessions),
                               ("ranking.residual_beta_sessions", p.ranking.residual_beta_sessions),
                               ("ranking.frog_candidates_per_slot", p.ranking.frog_candidates_per_slot)) if v is not None]
-    if isinstance(p, ParamsM11):
-        if p.schedule.decision_offset_sessions:
-            on.append("schedule.decision_offset_sessions")
+    if isinstance(p, ParamsM11):  # M135: schedule.decision_offset_sessions is supported
         if p.exits.stop_loss_frac is not None:
             on.append("exits.stop_loss_frac")
     if isinstance(p, ParamsM12):
@@ -405,8 +404,13 @@ def _orders(book: Book, s: date, picks: dict[str, float], gross: float, bars: di
     return out
 
 
+def offset(p: Params) -> int:
+    """Sessions before the month's last session the book decides (M11 schedule; 0 = the month-end)."""
+    return p.schedule.decision_offset_sessions if isinstance(p, ParamsM11) else 0
+
+
 def _decide(cut: pl.DataFrame, p: Params, start: date, s: date) -> tuple[dict[str, float], float]:
-    t = targets(cut, p, start, s)[s]
+    t = targets(cut, p, start, s, open_end=True)[s]
     return t.weights, t.gross
 
 
@@ -444,12 +448,14 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
     assert isinstance(p, Params)
     check_supported(p)
     costs = Costs.of(strat)
+    off = offset(p)
     all_days = sorted(view.panel["date"].unique().to_list())
     todo = [d for d in all_days if d >= cfg.start and (book.as_of is None or d > book.as_of)]
     if not todo:
         return book, [], []
     bars_by_day = _session_bars(view, todo)
     nxt = {d: n for d, n in zip(all_days, all_days[1:])}
+    at = {d: i for i, d in enumerate(all_days)}
     records: list[dict[str, Any]] = []
     all_notes: list[str] = []
     for s in todo:
@@ -470,12 +476,22 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
         if by_data is not None and by_data != by_cal:
             notes.append(f"{s}: the calendar says month-end={by_cal} but the data says {by_data}; following the data")
         month_end = by_cal if by_data is None else by_data
+        decides = month_end
+        if off:  # M135: decide when `off` trading days of the month are left; the data knows only once it reaches next month
+            cal_k = calendar.sessions_left_in_month(s, holidays) == off
+            after = all_days[at[s] + 1:at[s] + off + 2]
+            same = sum(d.month == s.month for d in after)
+            data_k = same == off if same < len(after) or len(after) == off + 1 else None
+            if data_k is not None and data_k != cal_k:
+                notes.append(f"{s}: the calendar says decision day (offset {off})={cal_k} but the data says {data_k}; "
+                             "following the data")
+            decides = cal_k if data_k is None else data_k
 
         decision = None
-        if month_end and not blocks:
+        if decides and not blocks:
             cut = view.panel.filter(pl.col("date") <= s)
             picks, gross = _decide(cut, p, cfg.start, s)
-            i = all_days.index(s)
+            i = at[s]
             lo = all_days[max(0, i - p.ranking.lookback_sessions)]
             blocks += _jump_blocks(view, set(picks), lo, s)
             if not blocks:
@@ -494,7 +510,8 @@ def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holid
 
         work.as_of = s
         rec = {"session": s.isoformat(), "dataset": view.ref, "panel_sha256": view.panel_sha256,
-               "strategy_config_hash": strat.hash(), "month_end": month_end, "corporate_actions": ca, "fills": fills,
+               "strategy_config_hash": strat.hash(), "month_end": month_end,
+               **({"decision_day": decides} if off else {}), "corporate_actions": ca, "fills": fills,
                "closed": closed, "cash": work.cash, "equity": work.equity(),
                "positions": [{"symbol": sym, "shares": pos.shares, "close": pos.last_close,
                               "value": pos.shares * pos.last_close} for sym, pos in sorted(work.positions.items())],
