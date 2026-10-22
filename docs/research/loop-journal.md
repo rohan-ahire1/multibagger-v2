@@ -141,3 +141,15 @@ moments). Result: fail at the pre-screen (docs/research/m128.md): 1.467 vs 1.500
 wins 10; f2, f3 lost; 0.3-0.5 pts less CAGR everywhere. Variants: ~1,006.
 Next queue: (1) risk-off concentration (top 12 at full weight under risk-off instead of 25 at half); (2) realism:
 dataset refresh after the first paper decision (2026-10-30).
+
+## 2026-10-23, cycle 11: M129 momentum acceleration
+
+Research: risk-off concentration (no evidence; Taiwan fund study says diversify in bears), aggregate illiquidity state
+(Avramov, Cheng & Hameed 2016 JFQA; Indian high-illiquidity months are bottoms before rebounds), weekly regime checks
+(56 vs 26 flips, whipsaws, no earlier 2020/2022 exits) and "physical momentum" (arXiv 2302.13245, NSE 500, = the vol
+score) all dropped at the information stage (not counted). Picked: acceleration (Ardila, Forró & Sornette 2015; Chen &
+Yu, US). Result: fail at the pre-screen (docs/research/m129.md): 1.625 vs 1.500 at offset 0, loses offsets 5/10/15
+and f1 (1.41 vs 2.26); -2 to -2.7 pts CAGR everywhere for 1-2 pts less drawdown. Variants: ~1,007.
+Pattern holds: ranking changes (M127, M128, M129) trade CAGR for drawdown or win only at month-end.
+Next queue: ideas are thin; move to LOOP step 10 work: (1) M106 realism on fills at today's capital (open-auction
+liquidity of the small caps it buys); (2) after 2026-10-30, compare the first live decision with research.
