@@ -86,3 +86,14 @@ Next queue: (1) the M110 taxhold rule was a hair from passing in 2010-23 and sli
 closed. (2) M106 robustness on the newest data: extend the dataset (bhavcopy + delivery since 2026-10-14) once the
 paper book has a few months; (3) look for new data families: FII/DII holding changes from the shareholding XBRL
 (quarterly, from 2015) - check evidence first.
+
+## 2026-10-23, cycle 7: M126 moving-average ensemble
+
+Check first: market costs (configs/market/nse_cash.yaml) match today's delivery charges within 0.00003%; no change.
+M106's worst drawdown is the slow 2022 bear (20.1%), then March 2020 (17.7%).
+Idea: grade the Next 50 filter over 150/200/250 (or 100-300) SMAs (trend ensembles). Result: fail
+(docs/research/m126.md): 1.654 at offset 0 but flat/worse at offsets 5/10/15 and loses f1. The M109 SMA nudges
+(160/240 > 200) were month-end timing luck. Variants: ~1,004.
+Next queue: offset-0 results keep misleading (M120, M123, M126): pre-screen future ideas at all four offsets first
+and skip the after-tax/bootstrap work when they split. Ideas left: FII/DII holding changes (heavy XBRL fetch; check
+evidence), realism on the newest data once the paper book has history.
