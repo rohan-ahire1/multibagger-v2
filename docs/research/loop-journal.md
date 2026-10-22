@@ -129,3 +129,15 @@ config@run pair), engine `Target.resize_band`.
 Queue for the next session: (1) after 2026-11-30, compare the paper book's first two decisions with research;
 (2) promoter-holding level from the shareholding master (cheap, weak evidence); (3) tranche support for paper (would
 remove the ±0.2 Calmar month-end luck; needs the user's OK to deploy, research-side code only).
+
+## 2026-10-23, cycle 10: M128 downside-deviation score
+
+Research: Indian momentum (Raju & Chandrasekaran 2019; Pelluri 2025, SSRN 5116091; Vijaykumar 2020) adds nothing new
+to M106; BacktestIndia 2026 blog posts: low "scaled turnover" (traded value / market cap) momentum names beat high ones
+(19.4% vs 8.5% CAGR, Nifty 200 Momentum 30 split, not peer-reviewed). Dropped: shares outstanding history exists only
+for index members (NSE PR archive `ffix*.csv`), not M106's small caps, and delivery share (M40) already covers churn.
+Picked: rank on return / downside deviation (Rachev et al. 2007 JBF; Leon, Navarro & Nieto 2016; AEA 2019 partial
+moments). Result: fail at the pre-screen (docs/research/m128.md): 1.467 vs 1.500 at offset 0, loses offsets 5 and 15,
+wins 10; f2, f3 lost; 0.3-0.5 pts less CAGR everywhere. Variants: ~1,006.
+Next queue: (1) risk-off concentration (top 12 at full weight under risk-off instead of 25 at half); (2) realism:
+dataset refresh after the first paper decision (2026-10-30).
