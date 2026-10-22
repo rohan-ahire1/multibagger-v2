@@ -1038,3 +1038,27 @@ class ParamsM125(ParamsM124):
         if self.industry_filter is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("industry_filter needs max_per_sector null")
         return self
+
+
+# M126 option (docs/research/m126.md).
+
+
+class RegimeM126(RegimeM122):
+    # Empty: one moving average. Otherwise each listed length is a further signal on benchmark_symbol, graded with the
+    # others as in M97: with a fraction f of all signals risk-on, gross is f + (1 - f) * risk_off_gross.
+    extra_sma_sessions: list[int]
+
+    @model_validator(mode="after")
+    def _m126(self) -> RegimeM126:
+        if self.extra_sma_sessions:
+            if not self.enabled:
+                raise ValueError("extra_sma_sessions needs the regime enabled")
+            if len(set([self.sma_sessions, *self.extra_sma_sessions])) != 1 + len(self.extra_sma_sessions):
+                raise ValueError("moving-average lengths must be distinct")
+            if min(self.extra_sma_sessions) < 2:
+                raise ValueError("moving-average lengths must be at least 2")
+        return self
+
+
+class ParamsM126(ParamsM125):
+    regime: RegimeM126

@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -377,6 +377,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         regime = {d: on and up[d] for d, on in regime.items()}
     extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
     signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
+    if isinstance(p, ParamsM126):  # M126: further moving-average lengths on the same benchmark
+        signals += [risk_on(panel, p.regime.benchmark_symbol, n, list(ranks)) for n in p.regime.extra_sma_sessions]
     on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on
     m8 = p if isinstance(p, ParamsM8) else None
     cap = m8.portfolio.max_per_sector if m8 else None
