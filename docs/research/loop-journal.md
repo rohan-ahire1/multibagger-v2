@@ -60,3 +60,15 @@ Pattern after four cycles (M120-M123): every buy filter on M106 moves Calmar wit
 band; none moves all four offsets and all folds. The buy-side filter family on this book looks exhausted.
 Next: switch to robustness/realism of M106 (LOOP step 10): (1) re-check M106's numbers on a dataset extended to the
 newest bhavcopy (live window since the locked final); (2) a capacity / impact check at today's paper capital.
+
+## 2026-10-23, cycle 5: M124 no-trade band for resizing
+
+Idea: leave held names alone while within 20% / 50% of their inverse-vol goal (Leland 1999; Donohue & Yip 2003;
+Novy-Marx & Velikov 2016; Constantinides 1983 for tax). Result: fail (docs/research/m124.md): band20 1.524 / 1.126
+after tax vs 1.500 / 1.102, but loses offset 5 (by 0.003), f1, f2; band50 worse. Tax saved is negligible: M106's tax
+comes from exits, not trims. Variants: ~1,000.
+Session summary (M120-M124): five ideas, all fail the bar; the best near-misses are M121 lr10 (all offsets, fails
+f1/f2) and M124 band20. M106 stays. Next queue: (1) a point-in-time industry map (needed for industry momentum: check
+whether NSE's quote API or old bhavcopy-era "industry" files give history); (2) robustness of M106 on newer data;
+(3) tax: since exits carry the tax, a rule that defers exits of winners near 12 months (M110 taxhold) was a hair from
+passing; any revisit needs a new reason.
