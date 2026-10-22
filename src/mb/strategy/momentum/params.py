@@ -1160,3 +1160,22 @@ class PortfolioM131(PortfolioM127):
 
 class ParamsM131(ParamsM129):
     portfolio: PortfolioM131
+
+
+# M132 option (docs/research/m132.md).
+
+
+class ExitsM132(ExitsM82):
+    # True: a held pick (not a fixed or risk-off fund) whose rows on a session between decisions are all outside
+    # `universe.allowed_series` (moved to trade-to-trade, BE / BZ) is sold at the next open; the rest are left as they are.
+    series_exit: bool
+
+
+class ParamsM132(ParamsM131):
+    exits: ExitsM132
+
+    @model_validator(mode="after")
+    def _m132(self) -> ParamsM132:
+        if self.exits.series_exit and (self.exits.stop_loss_frac is not None or self.exits.book_stop_frac is not None):
+            raise ValueError("series_exit is not combined with stops")
+        return self

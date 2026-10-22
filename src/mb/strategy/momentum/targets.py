@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -599,6 +599,9 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         out = {d: t if on[d] == 1.0 else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
     if isinstance(p, ParamsM124) and p.portfolio.resize_band is not None:
         out = {d: dataclasses.replace(t, resize_band=p.portfolio.resize_band) for d, t in out.items()}
+    if isinstance(p, ParamsM132) and p.exits.series_exit and out:  # M132: sell picks moved to trade-to-trade
+        skip = set(p.portfolio.fixed_weights) | ({p.regime.risk_off_symbol} if p.regime.risk_off_symbol else set())
+        out = series_exits(panel, out, p.universe.allowed_series, skip, end)
     return out
 
 
@@ -724,6 +727,32 @@ def book_stops(panel: pl.DataFrame, out: dict[date, Target], frac: float, end: d
         hit = np.flatnonzero(path <= (1.0 - frac) * peak)
         if hit.size and i0 + 1 + hit[0] < stop:
             got[days[i0 + 1 + hit[0]]] = Target({}, t.gross, frozenset())
+    return dict(sorted(got.items()))
+
+
+def series_exits(panel: pl.DataFrame, out: dict[date, Target], allowed: list[str], skip: set[str],
+                 end: date) -> dict[date, Target]:
+    """M132: add a target at each session strictly between two decisions (or after the last, up to `end`) on which a
+    pick of the earlier decision (not in `skip`) first has rows only outside `allowed`. It drops every pick flagged so
+    far since that decision and leaves the others as they are (keep_size); the proceeds stay in cash."""
+    dates = sorted(out)
+    names = sorted({s for t in out.values() for s in t.weights} - skip)
+    off = (panel.filter(pl.col("symbol").is_in(names) & pl.col("date").is_between(dates[0], end))
+           .group_by("date", "symbol").agg(pl.col("series").is_in(allowed).any().alias("ok"))
+           .filter(~pl.col("ok")).sort("date"))
+    first: dict[str, list[date]] = {}
+    for d, sym in off.select("date", "symbol").iter_rows():
+        first.setdefault(sym, []).append(d)
+    got = dict(out)
+    for k, d in enumerate(dates):
+        t = out[d]
+        stop = dates[k + 1] if k + 1 < len(dates) else end
+        hits = [(next((x for x in first.get(s, []) if d < x < stop), None), s) for s in t.weights if s not in skip]
+        dropped: set[str] = set()
+        for x, sym in sorted((x, s) for x, s in hits if x is not None):
+            dropped.add(sym)
+            w = {n: v for n, v in t.weights.items() if n not in dropped}
+            got[x] = Target(w, t.gross, frozenset(w))
     return dict(sorted(got.items()))
 
 
