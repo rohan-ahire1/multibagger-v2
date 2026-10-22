@@ -5,6 +5,7 @@ decision date, and the engine trades at the next session's open.
 """
 from __future__ import annotations
 
+import dataclasses
 import math
 from datetime import date
 
@@ -13,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -468,6 +469,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
             raise ValueError("risk_off_symbol and book_stop_frac are exclusive")
         out = {d: t if on[d] == 1.0 else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
+    if isinstance(p, ParamsM124) and p.portfolio.resize_band is not None:
+        out = {d: dataclasses.replace(t, resize_band=p.portfolio.resize_band) for d, t in out.items()}
     return out
 
 

@@ -40,6 +40,8 @@ class Target:
     weights: dict[str, float]  # relative weights, normalised by their sum
     gross: float               # fraction of equity to invest; the rest stays in cash
     keep_size: frozenset[str] = frozenset()  # wanted names already held are left as they are, not resized to their goal
+    # M124: a wanted name already held is left as it is while its value is within this fraction of its goal (relative)
+    resize_band: float | None = None
 
 
 @dataclass
@@ -131,6 +133,10 @@ def simulate_targets(targets: dict[date, Target], bars: pl.DataFrame, days: list
                 goal[col[s]] = equity_open * pending.gross * w / total if total > 0 else 0.0
                 if s in pending.keep_size and shares[col[s]]:
                     goal[col[s]] = shares[col[s]] * px[col[s]]
+                elif pending.resize_band is not None and shares[col[s]] and goal[col[s]] > 0.0:
+                    held = shares[col[s]] * px[col[s]]
+                    if abs(held / goal[col[s]] - 1.0) <= pending.resize_band:
+                        goal[col[s]] = held
             for j in range(len(names)):  # sells first
                 cur = shares[j] * px[j] if shares[j] else 0.0
                 g = goal[j] if want[j] else 0.0

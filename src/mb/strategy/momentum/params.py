@@ -984,3 +984,22 @@ class ParamsM123(ParamsM122):
         if self.short_reversal is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("short_reversal needs max_per_sector null")
         return self
+
+
+# M124 option (docs/research/m124.md).
+
+
+class PortfolioM124(PortfolioM110):
+    # Null: every held name is resized to its goal at each decision (M106). Set: a held name whose value is within this
+    # fraction of its goal (|value / goal - 1| <= resize_band) is left as it is (a no-trade band).
+    resize_band: float | None
+
+    @model_validator(mode="after")
+    def _m124(self) -> PortfolioM124:
+        if self.resize_band is not None and (not 0.0 < self.resize_band < 1.0 or not self.resize_held):
+            raise ValueError("resize_band must be in (0, 1) and needs resize_held true")
+        return self
+
+
+class ParamsM124(ParamsM123):
+    portfolio: PortfolioM124
