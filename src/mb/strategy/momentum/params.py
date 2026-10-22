@@ -866,3 +866,39 @@ class RegimeM118(RegimeM117):
 
 class ParamsM118(ParamsM117):
     regime: RegimeM118
+
+
+# M120 option (docs/research/m120.md).
+
+
+class LimitHits(Strict):
+    # An up-limit hit is a session that closes at its high with a close-to-close move (adj_close) within
+    # [band - below, band + above] of one of `bands` (NSE price bands). A name not held is not bought when it has more
+    # than max_hits such sessions in the last `sessions` sessions up to the decision.
+    bands: list[float]
+    below: float
+    above: float
+    sessions: int
+    max_hits: int
+
+    @model_validator(mode="after")
+    def _m120(self) -> LimitHits:
+        if not self.bands or not all(0.0 < b < 1.0 for b in self.bands):
+            raise ValueError("bands must be non-empty fractions in (0, 1)")
+        if not 0.0 <= self.below < min(self.bands) or self.above < 0.0:
+            raise ValueError("below must be in [0, min band) and above non-negative")
+        if self.sessions < 1 or self.max_hits < 0:
+            raise ValueError("sessions must be at least 1 and max_hits non-negative")
+        return self
+
+
+class ParamsM120(ParamsM118):
+    limit_hits: LimitHits | None
+
+    @model_validator(mode="after")
+    def _m120(self) -> ParamsM120:
+        if self.limit_hits is not None and (self.insider is not None or self.results is not None or self.deals is not None):
+            raise ValueError("limit_hits, deals, results and insider are exclusive")
+        if self.limit_hits is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("limit_hits needs max_per_sector null")
+        return self

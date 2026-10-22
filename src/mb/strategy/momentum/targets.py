@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, Insider, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, Insider, LimitHits, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -407,6 +407,11 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             raise ValueError("deals rule needs deal_trades")
         net = insider.net_by_decision(deal_trades, list(ranks), dl.lookback_days)
         ins = Insider(raw_dir="", categories=[], lookback_days=dl.lookback_days, rule=dl.rule, rank_max=dl.rank_max)
+    lh = p.limit_hits if isinstance(p, ParamsM120) else None
+    if lh is not None:  # M120: the nosell rule, on up-limit hits above max_hits
+        hits = limit_hits(panel, lh, list(ranks))
+        net = {d: {s: -1.0 for s, n in c.items() if n > lh.max_hits} for d, c in hits.items()}
+        ins = Insider(raw_dir="", categories=[], lookback_days=lh.sessions, rule="nosell", rank_max=None)
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]
@@ -451,6 +456,21 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
             raise ValueError("risk_off_symbol and book_stop_frac are exclusive")
         out = {d: t if on[d] == 1.0 else with_risk_off(t, p.regime.risk_off_symbol) for d, t in out.items()}
+    return out
+
+
+def limit_hits(panel: pl.DataFrame, lh: LimitHits, dates: list[date]) -> dict[date, dict[str, int]]:
+    """M120: per decision date, each symbol's count of up-limit hits (see `LimitHits`) in the last `lh.sessions` sessions."""
+    r = pl.col("adj_close") / pl.col("adj_close").shift(1) - 1.0
+    near = pl.any_horizontal([r.is_between(b - lh.below, b + lh.above) for b in lh.bands])
+    hit = ((pl.col("close") == pl.col("high")) & near).fill_null(False).cast(pl.Int32)
+    f = (panel.select("date", "symbol", "close", "high", "adj_close").sort("symbol", "date")
+         .with_columns(hit.over("symbol").alias("_hit"))
+         .with_columns(pl.col("_hit").rolling_sum(lh.sessions, min_samples=1).over("symbol").alias("hits"))
+         .filter(pl.col("date").is_in(dates)))
+    out: dict[date, dict[str, int]] = {d: {} for d in dates}
+    for d, s, n in f.select("date", "symbol", "hits").iter_rows():
+        out[d][s] = n
     return out
 
 
