@@ -1062,3 +1062,33 @@ class RegimeM126(RegimeM122):
 
 class ParamsM126(ParamsM125):
     regime: RegimeM126
+
+
+# M127 option (docs/research/m127.md).
+
+
+class PortfolioM127(PortfolioM124):
+    # Null: weights as `weighting` says (M106: inverse volatility). "msci": each pick's weight is further multiplied by
+    # 1 + Z (Z > 0) or 1 / (1 - Z) (Z <= 0), Z the z-score of the ranking score among the decision's ranked names,
+    # winsorised at +-score_tilt_clip (the MSCI Momentum / Nifty 200 Momentum 30 normalised score).
+    score_tilt: Literal["msci"] | None
+    score_tilt_clip: float | None
+
+    @model_validator(mode="after")
+    def _m127(self) -> PortfolioM127:
+        if (self.score_tilt is None) != (self.score_tilt_clip is None):
+            raise ValueError("score_tilt and score_tilt_clip are both null or both set")
+        if self.score_tilt_clip is not None and not self.score_tilt_clip > 0.0:
+            raise ValueError("score_tilt_clip must be positive")
+        return self
+
+
+class ParamsM127(ParamsM126):
+    portfolio: PortfolioM127
+
+    @model_validator(mode="after")
+    def _m127(self) -> ParamsM127:
+        if self.portfolio.score_tilt is not None and (self.ranking.order != "score" or self.ranking.return_part != "total"
+                                                      or self.ranking.second_lookback_sessions is not None):
+            raise ValueError("score_tilt needs the plain score ranking")
+        return self

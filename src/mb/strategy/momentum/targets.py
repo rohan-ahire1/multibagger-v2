@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -314,6 +314,25 @@ def inverse_vol_weights(panel: pl.DataFrame, sessions: int, picks: dict[date, li
     return out
 
 
+def score_tilts(panel: pl.DataFrame, r: Ranking, ranks: dict[date, list[str]], clip: float) -> dict[date, dict[str, float]]:
+    """M127: per decision and ranked name, 1 + Z (Z > 0) or 1 / (1 - Z), Z the z-score (population) of the ranking score
+    among the decision's ranked names, winsorised at +-clip. The score is `ranked`'s plain one."""
+    span = r.lookback_sessions - r.skip_sessions
+    mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
+    if r.score == "return_over_vol":
+        vol = (pl.col("adj_close") / pl.col("adj_close").shift(1)).log().rolling_std(span, min_samples=span).shift(r.skip_sessions)
+        mom = mom / vol
+    f = (panel.select("date", "symbol", "adj_close").sort("symbol", "date").with_columns(mom.over("symbol").alias("sc"))
+         .filter(pl.col("date").is_in(list(ranks))))
+    got = {(d, s): v for d, s, v in f.select("date", "symbol", "sc").iter_rows()}
+    out: dict[date, dict[str, float]] = {}
+    for d, order in ranks.items():
+        x = np.array([got[(d, s)] for s in order], dtype=float)
+        z = np.clip((x - x.mean()) / x.std(), -clip, clip) if len(x) > 1 and x.std() > 0 else np.zeros(len(x))
+        out[d] = {s: float(1.0 + v if v > 0 else 1.0 / (1.0 - v)) for s, v in zip(order, z)}
+    return out
+
+
 def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sectors: dict[str, str]) -> list[str]:
     """Kept names first, then new names in rank order; with a cap, a new name whose industry is full is skipped."""
     pick = list(keep)
@@ -467,6 +486,10 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if m11 and m11.portfolio.weighting == "inverse_vol":
         w = inverse_vol_weights(panel, m11.portfolio.inverse_vol_sessions, {d: list(t.weights) for d, t in out.items()})
         out = {d: Target(w[d], t.gross, t.keep_size) for d, t in out.items()}
+    if isinstance(p, ParamsM127) and p.portfolio.score_tilt is not None:  # M127: MSCI-style score tilt
+        assert p.portfolio.score_tilt_clip is not None
+        k = score_tilts(panel, p.ranking, ranks, p.portfolio.score_tilt_clip)
+        out = {d: Target({s: w * k[d][s] for s, w in t.weights.items()}, t.gross, t.keep_size) for d, t in out.items()}
     if isinstance(p, ParamsM21) and p.exits.book_stop_frac is not None:
         out = book_stops(panel, out, p.exits.book_stop_frac, end)
     if isinstance(p, ParamsM19) and p.portfolio.fixed_weights:
