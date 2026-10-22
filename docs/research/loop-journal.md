@@ -108,3 +108,24 @@ at four offsets saved the rest. Variants: ~1,005.
 Next queue: ideas on this book are thin. Remaining: (1) risk-off concentration: under risk-off hold the top 12 at full
 weight instead of 25 at half (untried form); (2) promoter-holding level from the shareholding master (cheap fetch,
 weak evidence); (3) data/realism work.
+
+## 2026-10-23, cycle 9: dispersion timing dropped before pre-registration; session summary
+
+Checked: the M106 paper book (multibagger-v2, data/paper/momentum_b_top25_gold25_jr_gap) runs its daily jobs with no
+problems; its first decision is the 2026-10-30 month-end, so there are no live fills to compare yet.
+Idea: risk-off also when 3-month cross-sectional return dispersion is in the top 20% of 5 years (Stivers & Sun 2010
+JFQA). Dropped at the information stage (no backtest, not counted): the extra risk-off months are 2014-05..2015-10 and
+2020-07..2022-01, India's small-cap booms where this book earned most; in India high dispersion marks booms, not
+momentum stress.
+
+Session 2026-10-22/23 (M120-M127): 8 ideas pre-registered and tested, 0 passed; variants ~1,005. M106 unchanged and
+still the best book on the bar. Lessons:
+1. Month-end (offset 0) results mislead often (M120, M123, M126, M127): pre-screen every candidate at all four offsets.
+2. Buy filters (limit hits, long/short reversal, industry, reversal) move Calmar inside the ±0.05-0.2 decision-day band.
+3. The near-misses (M121 lr10, M125 sec) both cut drawdown ~0.5-1 pt and pay ~1 pt CAGR in 2010-17; bootstrap 37-63%.
+4. Tax: most tax comes from exits, not monthly trims (M124).
+New tools: `mb data fetch industry` (NSE four-level classes), `notebooks/m120_limits.py report|bootstrap` (any
+config@run pair), engine `Target.resize_band`.
+Queue for the next session: (1) after 2026-11-30, compare the paper book's first two decisions with research;
+(2) promoter-holding level from the shareholding master (cheap, weak evidence); (3) tranche support for paper (would
+remove the ±0.2 Calmar month-end luck; needs the user's OK to deploy, research-side code only).
