@@ -97,6 +97,7 @@ its own `mNN.md`; this file only summarises.
 | 127 | Inverse-vol weights tilted by the MSCI / Nifty Momentum normalised score (1+Z, clip 3) | 1.413 (31.0% CAGR, 21.9% DD) vs 1.500 | offsets 5/10/15 higher (1.10 / 1.33 / 1.45); +0.7–1.2 pts CAGR at every offset | fails offset 0, f2, f3 (more 2022 drawdown) |
 | 128 | Rank on return over downside deviation instead of stdev (Rachev et al. 2007 JBF; Leon, Navarro & Nieto 2016) | 1.467 (29.8% CAGR, 20.3% DD) vs 1.500 | offsets 5/15 lose, 10 wins (1.307 vs 1.273) | fails pre-screen; stdev score is better |
 | 129 | Rank on a 50/50 blend of score and acceleration (quadratic-fit curvature) percentile ranks (Ardila, Forró & Sornette 2015; Chen & Yu) | 1.625 (27.9% CAGR, 17.2% DD) at offset 0 | offsets 5/10/15 lose; f1 1.41 vs 2.26 | fails pre-screen; −2 pts CAGR everywhere |
+| 130 | Fill-timing sensitivity of M106: next close, (O+H+L+C)/4, one session late (information) | close 1.441, typical 1.451, late 1.412 vs open 1.500 (offset 0) | CAGR −0.4 / −0.5 / −0.6 pts (four-offset mean); edge holds in every mode | information: use pre-open (AMO) orders live |
 
 What the evidence says so far:
 

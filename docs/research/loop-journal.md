@@ -153,3 +153,16 @@ and f1 (1.41 vs 2.26); -2 to -2.7 pts CAGR everywhere for 1-2 pts less drawdown.
 Pattern holds: ranking changes (M127, M128, M129) trade CAGR for drawdown or win only at month-end.
 Next queue: ideas are thin; move to LOOP step 10 work: (1) M106 realism on fills at today's capital (open-auction
 liquidity of the small caps it buys); (2) after 2026-10-30, compare the first live decision with research.
+
+## 2026-10-23, cycle 12: M130 fill timing (realism, information)
+
+Research first: Beckmeyer & Wiedemann 2025 JBF ("All days are not created equal": learned weights on past daily
+returns; earnings-day, market-jump and large-move returns carry the most information): the earnings-day part is the
+dead M114 family in India, and learned weights are an Optuna-style fit; not tried. Bro 2026 SSRN (momentum =
+liquidity improvement): no long-only rule to test.
+Then LOOP step 10: `notebooks/m130_fill_timing.py` re-simulates M106 with fills at the next close, the next
+(O+H+L+C)/4, or one session late. Open reproduces the records. Mean CAGR cost over the four offsets: close −0.49, typical
+−0.37, late −0.62 pts; Calmar stays above 1.0 everywhere (docs/research/m130.md). Live (M7): use pre-open AMO orders;
+a missed fill should go at the next open. Variants for adoption: unchanged (~1,007).
+Next queue: (1) the first live decision on 2026-10-30: compare the paper book's orders with a research run; (2) a
+corporate-action audit of 2024-26 for M106's held names (data quality, no returns).
