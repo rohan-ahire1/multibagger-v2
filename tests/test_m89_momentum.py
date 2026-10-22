@@ -13,6 +13,9 @@ from mb.strategy.momentum.params import ParamsM89, RegimeM89
 from mb.strategy.momentum.targets import with_risk_off
 
 ROOT = Path(__file__).resolve().parents[1]
+# These runs read dataset nse_research@2026-10-02b, which not every machine has.
+needs_02b = pytest.mark.skipif(not (ROOT / "data/datasets/nse_research/2026-10-02b/panel.parquet").exists(),
+                               reason="dataset nse_research@2026-10-02b not on this machine")
 
 
 def test_the_uninvested_share_buys_the_symbol():
@@ -35,6 +38,7 @@ def test_the_option_is_validated_and_routed_and_paper_refuses_only_the_stop():
     assert "regime.risk_off_symbol" not in str(e.value)
 
 
+@needs_02b
 def test_without_the_symbol_the_m88_run_is_unchanged():
     from dataclasses import replace
 

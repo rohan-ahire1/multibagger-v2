@@ -14,6 +14,9 @@ from mb.strategy.momentum.run import simulate
 
 ROOT = Path(__file__).resolve().parents[1]
 CFG = ROOT / "strategies/momentum/configs"
+# These runs read dataset nse_research@2026-10-02b, which not every machine has.
+needs_02b = pytest.mark.skipif(not (ROOT / "data/datasets/nse_research/2026-10-02b/panel.parquet").exists(),
+                               reason="dataset nse_research@2026-10-02b not on this machine")
 
 
 def test_the_option_is_validated_routed_and_refused_by_paper():
@@ -28,6 +31,7 @@ def test_the_option_is_validated_routed_and_refused_by_paper():
         check_supported(cfg.params)
 
 
+@needs_02b
 def test_without_extra_benchmarks_the_m89_run_is_unchanged():
     a = simulate(load_strategy_config(CFG / "m89_g0s10_r50g_b2.yaml", ROOT), ROOT)
     d = load_strategy_config(CFG / "m97_r50g_nj_b2.yaml", ROOT)
@@ -36,6 +40,7 @@ def test_without_extra_benchmarks_the_m89_run_is_unchanged():
     assert a.equity["equity"].to_list() == b.equity["equity"].to_list()
 
 
+@needs_02b
 def test_graded_gross_lies_between_the_single_benchmark_books():
     """On each date the graded book's gold share is 0, 0.25 or 0.5, so its run differs from both one-benchmark runs."""
     g = simulate(load_strategy_config(CFG / "m97_r50g_nj_b2.yaml", ROOT), ROOT).equity["equity"].to_list()
