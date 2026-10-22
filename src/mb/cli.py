@@ -190,6 +190,23 @@ def fetch_corporate_actions(
         raise _fail(f"windows starting {', '.join(map(str, failed))} failed and kept their previous data")
 
 
+@fetch_app.command("industry")
+def fetch_industry(
+    industry_config: Annotated[Path, typer.Argument(help="Industry source YAML (configs/data/nse_industry.yaml).")],
+    root: Root = _ROOT,
+) -> None:
+    """Snapshot NSE's industry classification for today's listed symbols (one immutable file per day)."""
+    from mb.config.loader import load_industry_config
+    from mb.sources import nse_industry
+
+    try:
+        cfg = load_industry_config(industry_config)
+        out, failed = nse_industry.fetch(cfg, root, date.today())
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"wrote {out}; failed {len(failed)}: {failed[:20]}")
+
+
 @data_app.command("build")
 def data_build(
     data_config: DataCfg,

@@ -1,0 +1,8 @@
+# M125 (docs/research/m125.md): NSE industry classification snapshot for today's listed symbols.
+raw_dir: data/raw/nse_industry
+listing_url: https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv
+quote_url: https://www.nseindia.com/api/NextApi/apiClient/GetQuoteApi
+home_url: https://www.nseindia.com/
+timeout_s: 20
+max_retries: 3
+request_sleep_s: 0.7

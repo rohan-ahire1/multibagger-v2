@@ -256,3 +256,15 @@ class PaperConfig(Strict):
         if v < 1:
             raise ValueError("keep_datasets must be at least 1")
         return v
+
+
+class IndustrySource(Strict):
+    # M125: NSE's four-level industry classification (macro / sector / industry / basic industry) for the symbols listed
+    # today (`sources/nse_industry.py`). One snapshot file per fetch date; history is not available from NSE.
+    raw_dir: str
+    listing_url: str          # NSE's current equity list (CSV with a SYMBOL column)
+    quote_url: str            # the quote API; returns secInfo with the classification
+    home_url: str             # visited first for cookies
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
