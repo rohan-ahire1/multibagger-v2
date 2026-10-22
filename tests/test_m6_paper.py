@@ -115,6 +115,30 @@ def test_paper_book_matches_the_backtest_replay(tmp_path):
     assert recs2 == [] and again.to_json() == book.to_json()
 
 
+def test_replay_takes_out_demerger_cash_the_backtest_reinvests(tmp_path):
+    """A held name demerges 90% of its value (cash in the paper book) and the stub then rallies: the raw gap is
+    the backtest's reinvested stub, and the checked gap is not."""
+    days = _days(date(2023, 6, 1), 200)
+    ex = next(d for d in days if d >= date(2023, 9, 12))
+    panel = _panel(days, {"AAA": 0.004, "BBB": 0.002, "CCC": -0.001, "DDD": 0.003, "EEE": 0.0})
+    k = pl.when(pl.col("date") >= ex).then(1.05 ** pl.min_horizontal((pl.col("date") - ex).dt.total_days(), 14))
+    stub = pl.col("symbol") == "AAA"
+    panel = panel.with_columns(
+        pl.when(stub & (pl.col("date") >= ex)).then(pl.col("open") * 0.1 * k).otherwise(pl.col("open")).alias("open"),
+        pl.when(stub & (pl.col("date") >= ex)).then(pl.col("close") * 0.1 * k).otherwise(pl.col("close")).alias("close"),
+        pl.when(stub & (pl.col("date") < ex)).then(0.1).otherwise(1.0).alias("adj_factor"),
+    ).with_columns((pl.col("open") * pl.col("adj_factor")).alias("adj_open"),
+                   (pl.col("close") * pl.col("adj_factor")).alias("adj_close"))
+    view = _view(panel)
+    cfg, strat = _paper_cfg(date(2023, 8, 1)), _strat(True, portfolio={"top_n": 2, "hold_rank_max": 2})
+    store = Store(tmp_path, cfg.name)
+    advance(Book(None, cfg.initial_capital), cfg, strat, view, _hol(days), store)
+    assert any(c["kind"] == "cash_adjustment" and c["symbol"] == "AAA" for d in store.days() for c in d["corporate_actions"])
+    rep = replay(cfg, strat, view, store.days())
+    assert rep["decision_mismatches"] == []
+    assert abs(rep["raw_equity_gap_pct"]) > 5 and abs(rep["equity_gap_pct"]) < 0.5 and rep["ok"]
+
+
 def test_split_multiplies_shares_and_pending_orders_and_a_dividend_is_cash():
     days = _days(date(2024, 3, 4), 3)
     ex = days[1]
