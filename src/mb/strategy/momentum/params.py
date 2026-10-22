@@ -1179,3 +1179,37 @@ class ParamsM132(ParamsM131):
         if self.exits.series_exit and (self.exits.stop_loss_frac is not None or self.exits.book_stop_frac is not None):
             raise ValueError("series_exit is not combined with stops")
         return self
+
+
+# M134 option (docs/research/m134.md).
+
+
+class Pledges(Strict):
+    # SAST Reg 31 encumbrance events by promoters (`mb data fetch pledges`). A name with at least one event whose kind is
+    # in `kinds` and whose size is at least `min_pct` % of the company's shares, broadcast in the `lookback_days` calendar
+    # days before a decision, is not bought; with `drop_held` it is also not kept if already held.
+    raw_dir: str
+    kinds: list[str]              # lower-case eventDetailsType values, e.g. creation, invocation
+    min_pct: float
+    lookback_days: int
+    drop_held: bool
+
+    @model_validator(mode="after")
+    def _m134(self) -> Pledges:
+        if not self.kinds or self.lookback_days <= 0 or self.min_pct < 0.0:
+            raise ValueError("need kinds, lookback_days > 0 and min_pct >= 0")
+        return self
+
+
+class ParamsM134(ParamsM132):
+    pledges: Pledges | None
+
+    @model_validator(mode="after")
+    def _m134(self) -> ParamsM134:
+        others = (self.short_reversal, self.long_reversal, self.limit_hits, self.insider, self.results, self.deals,
+                  self.industry_filter)
+        if self.pledges is not None and any(o is not None for o in others):
+            raise ValueError("pledges and the other buy rules are exclusive")
+        if self.pledges is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("pledges needs max_per_sector null")
+        return self

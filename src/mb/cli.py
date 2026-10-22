@@ -207,6 +207,27 @@ def fetch_industry(
     typer.echo(f"wrote {out}; failed {len(failed)}: {failed[:20]}")
 
 
+@fetch_app.command("pledges")
+def fetch_pledges(
+    pledge_config: Annotated[Path, typer.Argument(help="Pledge source YAML (configs/data/nse_pledges.yaml).")],
+    first: Annotated[str, typer.Option("--from", help="First month, YYYY-MM.")],
+    last: Annotated[str, typer.Option("--to", help="Last month, YYYY-MM.")],
+    root: Root = _ROOT,
+) -> None:
+    """Fetch NSE's SAST Reg 31 pledge events, one immutable file per ended month (existing months are skipped)."""
+    from mb.config.loader import load_pledge_config
+    from mb.sources import nse_pledges
+
+    try:
+        cfg = load_pledge_config(pledge_config)
+        written, skipped, failed = nse_pledges.fetch(cfg, root, first, last, date.today())
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"wrote {len(written)} months, skipped {len(skipped)}")
+    if failed:
+        raise _fail(f"months failed: {', '.join(failed)}")
+
+
 @data_app.command("build")
 def data_build(
     data_config: DataCfg,

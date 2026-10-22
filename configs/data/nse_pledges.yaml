@@ -1,0 +1,8 @@
+# M134 (docs/research/m134.md): SEBI SAST Reg 31 encumbrance events (promoter pledge creation / release / invocation).
+raw_dir: data/raw/nse_pledges
+api_url: https://www.nseindia.com/api/corporate-pledgedata-sast3132
+home_url: https://www.nseindia.com/
+referer_url: https://www.nseindia.com/companies-listing/corporate-filings-pledged-data
+timeout_s: 30
+max_retries: 3
+request_sleep_s: 1.0

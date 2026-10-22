@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -449,11 +449,12 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
             insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
             deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None,
-            industries: pl.DataFrame | None = None) -> dict[date, Target]:
+            industries: pl.DataFrame | None = None, pledge_events: pl.DataFrame | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
     `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set, `market_values` (M118, from the matching
-    `mb.data.market.load_*`) when `p.regime.market_signal` is set."""
+    `mb.data.market.load_*`) when `p.regime.market_signal` is set, `pledge_events` (M134, from `nse_pledges.load`) when
+    `p.pledges` is set."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
@@ -544,6 +545,12 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if sr is not None:  # M123: the nosell rule, on the top drop_frac of recent returns among the ranked names
         net = top_returns(panel, sr.sessions, 0, sr.drop_frac, ranks)
         ins = Insider(raw_dir="", categories=[], lookback_days=sr.sessions, rule="nosell", rank_max=None)
+    pg = p.pledges if isinstance(p, ParamsM134) else None
+    if pg is not None:  # M134: the nosell rule, on promoters' pledge events
+        if pledge_events is None:
+            raise ValueError("pledges rule needs pledge_events")
+        net = pledge_flags(pledge_events, pg, list(ranks))
+        ins = Insider(raw_dir="", categories=[], lookback_days=pg.lookback_days, rule="nosell", rank_max=None)
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]
@@ -553,6 +560,8 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             keep += [s for s in held if s not in keep and s in pos and pos[s] < tax.tax_hold_rank_max
                      and tax.tax_hold_from_days <= (d - since[s][0]).days < tax.tax_hold_until_days
                      and closes[(d, s)] > since[s][1]]
+        if pg is not None and pg.drop_held and d in net:  # M134: held names with an event are not kept
+            keep = [s for s in keep if net[d].get(s, 0.0) >= 0.0]
         if ins is not None and d in net:
             new = [s for s in order if s not in set(keep)]
             if ins.rule == "nosell":
@@ -866,3 +875,12 @@ def with_book_scale(t: Target, k: float, fixed: set[str]) -> Target:
     w = {s: v for s, v in w.items() if v > 0.0}
     new = sum(w.values())
     return Target(w, t.gross * new / total, frozenset()) if new > 0.0 and total > 0.0 else Target({}, 0.0, frozenset())
+
+
+def pledge_flags(events: pl.DataFrame, pg: Pledges, dates: list[date]) -> dict[date, dict[str, float]]:
+    """M134: per decision, minus the count of the symbol's matching pledge events (kind in pg.kinds, size >= pg.min_pct;
+    a missing size counts as 0) usable at the decision and broadcast in the last pg.lookback_days calendar days.
+    Decisions before the events cover a full window get no entry (the rule is off)."""
+    ev = (events.filter(pl.col("kind").is_in(pg.kinds) & (pl.col("pct").fill_null(0.0) >= pg.min_pct))
+          .select("symbol", "avail", pl.lit(-1.0).alias("value")))
+    return insider.net_by_decision(ev, dates, pg.lookback_days)

@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from mb.config.models import (BaselinesConfig, DataConfig, DataConfigM14, DataConfigM40, HarvestConfig, IndustrySource, MarketConfig,
+from mb.config.models import (BaselinesConfig, DataConfig, DataConfigM14, DataConfigM40, HarvestConfig, IndustrySource, PledgeSource, MarketConfig,
                               PaperConfig, StrategyConfig, TaxConfig)
 
 
@@ -119,6 +119,10 @@ def load_tax_config(path: Path) -> TaxConfig:
 
 def load_industry_config(path: Path) -> IndustrySource:
     return _validate(IndustrySource, _read_yaml(path), str(path))
+
+
+def load_pledge_config(path: Path) -> PledgeSource:
+    return _validate(PledgeSource, _read_yaml(path), str(path))
 
 
 def load_harvest_config(path: Path) -> HarvestConfig:

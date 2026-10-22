@@ -258,6 +258,18 @@ class PaperConfig(Strict):
         return v
 
 
+class PledgeSource(Strict):
+    # M134: SEBI SAST Regulation 31 encumbrance events (pledge creation / release / invocation by promoters) from NSE's
+    # corporate-filings API (`sources/nse_pledges.py`). One file per calendar month of broadcasts; history from 2014.
+    raw_dir: str
+    api_url: str              # corporate-pledgedata-sast3132, queried per month with from_date / to_date
+    home_url: str             # visited first for cookies
+    referer_url: str          # the pledged-data page; the API refuses requests without it
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
+
+
 class IndustrySource(Strict):
     # M125: NSE's four-level industry classification (macro / sector / industry / basic industry) for the symbols listed
     # today (`sources/nse_industry.py`). One snapshot file per fetch date; history is not available from NSE.
