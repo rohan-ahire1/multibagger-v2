@@ -99,6 +99,7 @@ its own `mNN.md`; this file only summarises.
 | 129 | Rank on a 50/50 blend of score and acceleration (quadratic-fit curvature) percentile ranks (Ardila, Forró & Sornette 2015; Chen & Yu) | 1.625 (27.9% CAGR, 17.2% DD) at offset 0 | offsets 5/10/15 lose; f1 1.41 vs 2.26 | fails pre-screen; −2 pts CAGR everywhere |
 | 130 | Fill-timing sensitivity of M106: next close, (O+H+L+C)/4, one session late (information) | close 1.441, typical 1.451, late 1.412 vs open 1.500 (offset 0) | CAGR −0.4 / −0.5 / −0.6 pts (four-offset mean); edge holds in every mode | information: use pre-open (AMO) orders live |
 | 131 | Equal-risk-contribution weights among the picks, sample / half-shrunk correlations (Maillard, Roncalli & Teiletche 2010; López de Prado 2016) | erc 1.357, erc50 1.441 vs 1.500 at offset 0 | offsets 5/10 win, 0/15 lose; f3 lost | fails pre-screen; inverse vol is enough |
+| 132 | Sell picks moved to trade-to-trade (BE/BZ) at the next open (Parmar & Chaturvedula 2017; outcome peeked, disclosed) | 1.680 (30.6% CAGR, 18.2% DD) at offset 0 | offset 5 wins, 10 / 15 lose (1.271, 1.378); f1, f2 by < 0.01 | fails pre-screen; four-offset mean 1.353 vs 1.316 |
 
 What the evidence says so far:
 

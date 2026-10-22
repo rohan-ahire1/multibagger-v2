@@ -175,3 +175,17 @@ offset 0 1.357 / 1.441 vs 1.500; offsets 5 and 10 win, 15 ties or loses; f3 lost
 (inverse vol, M124 bands, M127 score tilt, M131 ERC) is done. Variants: ~1,009.
 Next queue: (1) the first live decision on 2026-10-30: compare the paper book with research (after the 2026-10-30
 evening job); (2) data quality for 2024-26 (corporate actions on held names, no returns).
+
+## 2026-10-23, cycle 14: M132 trade-to-trade exit
+
+Checks first: tax model already treats GOLDBEES at slab rates; paper fills on missing opens match the backtest; the
+dataset checks and run gate cover unexplained jumps, so no separate 2024-26 audit (would repeat them).
+Idea: 55 M106 holdings moved from EQ to BE between decisions in 2010-23 and fell 4% on average before the month-end
+exit (info count, disclosed in the pre-registration); Parmar & Chaturvedula 2017 find negative abnormal returns after
+trade-for-trade shifts. Rule: sell at the next open after the move. Result: fail at the pre-screen
+(docs/research/m132.md): offset 0 1.680 vs 1.500 (DD 18.2%), offset 5 1.084 vs 1.080, but offsets 10 / 15 lose
+(1.271 / 1.378) and f1/f2 by < 0.01. Variants: ~1,010.
+Note for M7 (live): even without adoption, a held stock moved to trade-to-trade needs care live (delivery only,
+narrow band); flag it in the daily ticket. Not changed in the running paper book (LOOP rule).
+Next queue: (1) 2026-10-30 first live decision vs research; (2) ideas are thin; next research pass should look at
+new data families only (shareholding pattern quarterly history is the one cheap source left).
