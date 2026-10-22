@@ -40,3 +40,13 @@ Result: fail (docs/research/m121.md). lr10 wins all four offsets, 25 bps and aft
 Variants: ~994.
 Next queue: (1) Cooper-Gutierrez-Hameed market state: JUNIORBEES 36-month return < 0 as a second risk-off condition;
 (2) realism / robustness of M106 (live fills vs backtest, cost sensitivity on the newest data).
+
+## 2026-10-23, cycle 3: M122 market state
+
+Idea: also risk-off when JUNIORBEES's 36-month (Cooper, Gutierrez & Hameed 2004) or 24-month (Daniel & Moskowitz 2016)
+return is negative. Result: fail (docs/research/m122.md): st36 1.440, st24 1.430 vs 1.500 at offset 0; both lose f1,
+f3, 25 bps. st24's wins at offsets 5/10 are timing luck before March 2020. Regime family: the 200-day rule on the
+Next 50 is not improved by slower states either. Variants: ~996.
+Next: (1) short-term reversal guard at entry: skip new buys whose last ~2 weeks' return is in the top 10% of the ranked
+names (Jegadeesh 1990; Lehmann 1990; Chui, Ranganathan, Rohit & Veeraraghavan 2023 PBFJ: short-term reversals in
+illiquid Indian stocks); (2) realism / robustness of M106.
