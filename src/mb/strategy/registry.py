@@ -28,7 +28,7 @@ def _momentum() -> tuple[Any, Callable[[Resolved, Path], RunResult]]:
     from mb.strategy.momentum import run
 
     # A config validates as exactly one of these (unknown keys fail), so pre-M8 configs keep their hash.
-    return run.Params | run.ParamsM8 | run.ParamsM10 | run.ParamsM11 | run.ParamsM12 | run.ParamsM13 | run.ParamsM19 | run.ParamsM21 | run.ParamsM22 | run.ParamsM27 | run.ParamsM29 | run.ParamsM32 | run.ParamsM40 | run.ParamsM44 | run.ParamsM46 | run.ParamsM53 | run.ParamsM55 | run.ParamsM57 | run.ParamsM75 | run.ParamsM76 | run.ParamsM79 | run.ParamsM81 | run.ParamsM82 | run.ParamsM89 | run.ParamsM97 | run.ParamsM99 | run.ParamsM103 | run.ParamsM110 | run.ParamsM111 | run.ParamsM114 | run.ParamsM116 | run.ParamsM117 | run.ParamsM118 | run.ParamsM120 | run.ParamsM121, run.run
+    return run.Params | run.ParamsM8 | run.ParamsM10 | run.ParamsM11 | run.ParamsM12 | run.ParamsM13 | run.ParamsM19 | run.ParamsM21 | run.ParamsM22 | run.ParamsM27 | run.ParamsM29 | run.ParamsM32 | run.ParamsM40 | run.ParamsM44 | run.ParamsM46 | run.ParamsM53 | run.ParamsM55 | run.ParamsM57 | run.ParamsM75 | run.ParamsM76 | run.ParamsM79 | run.ParamsM81 | run.ParamsM82 | run.ParamsM89 | run.ParamsM97 | run.ParamsM99 | run.ParamsM103 | run.ParamsM110 | run.ParamsM111 | run.ParamsM114 | run.ParamsM116 | run.ParamsM117 | run.ParamsM118 | run.ParamsM120 | run.ParamsM121 | run.ParamsM122, run.run
 
 
 def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:

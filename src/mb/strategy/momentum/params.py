@@ -935,3 +935,22 @@ class ParamsM121(ParamsM120):
         if self.long_reversal is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("long_reversal needs max_per_sector null")
         return self
+
+
+# M122 option (docs/research/m122.md).
+
+
+class RegimeM122(RegimeM118):
+    # Null: off. Set: a decision is also risk-off when the benchmark's adj_close is below its value state_sessions
+    # sessions earlier (Cooper, Gutierrez & Hameed 2004 market state; Daniel & Moskowitz 2016 bear indicator).
+    state_sessions: int | None
+
+    @model_validator(mode="after")
+    def _m122(self) -> RegimeM122:
+        if self.state_sessions is not None and (not self.enabled or self.state_sessions < 1):
+            raise ValueError("state_sessions needs the regime enabled and must be at least 1")
+        return self
+
+
+class ParamsM122(ParamsM121):
+    regime: RegimeM122

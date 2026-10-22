@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -369,6 +369,10 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             assert ms.window_sessions is not None and ms.min_pct is not None
             flag = market.ranked_on(market_values, list(ranks), ms.window_sessions, ms.min_pct)
         regime = {d: on and flag[d] for d, on in regime.items()}
+    st = p.regime.state_sessions if isinstance(p, ParamsM122) else None
+    if st is not None:  # M122: risk-off also when the benchmark is below its level st sessions ago
+        up = market_state_up(panel, p.regime.benchmark_symbol, st, list(ranks))
+        regime = {d: on and up[d] for d, on in regime.items()}
     extra = p.regime.extra_benchmark_symbols if isinstance(p, ParamsM97) else []
     signals = [regime] + [risk_on(panel, b, p.regime.sma_sessions, list(ranks)) for b in extra]
     on = {d: sum(r[d] for r in signals) / len(signals) for d in regime}  # M97: share of benchmarks risk-on
@@ -489,6 +493,18 @@ def long_winners(panel: pl.DataFrame, lr: LongReversal, ranks: dict[date, list[s
         g = g.filter(pl.col("symbol").is_in(ranks[d])).sort("lt", "symbol", descending=[True, False])
         out[d] = {s: -1.0 for s in g.head(math.ceil(lr.drop_frac * g.height))["symbol"].to_list()}
     return {d: out.get(d, {}) for d in ranks}
+
+
+def market_state_up(panel: pl.DataFrame, symbol: str, sessions: int, dates: list[date]) -> dict[date, bool]:
+    """M122: True where `symbol`'s adjusted close is at or above its value `sessions` of its sessions earlier. Missing
+    data is an error."""
+    b = (panel.filter(pl.col("symbol") == symbol).sort("date")
+         .with_columns(pl.col("adj_close").shift(sessions).alias("then")).filter(pl.col("date").is_in(dates)))
+    got = {d: c >= t for d, c, t in b.select("date", "adj_close", "then").iter_rows() if t is not None}
+    missing = [d for d in dates if d not in got]
+    if missing:
+        raise ValueError(f"market state {symbol} has no close {sessions} sessions back on {missing[:3]}")
+    return got
 
 
 def seasonal_off(regime: dict[date, bool], months: list[int]) -> dict[date, bool]:
