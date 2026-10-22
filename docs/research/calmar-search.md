@@ -90,6 +90,7 @@ its own `mNN.md`; this file only summarises.
 | 120 | No new buys of stocks with more than 20 / 10 upper-circuit closes in a year (Yao et al. 2021; Wang & Lien 2022; Indian practitioner rule) | lh20 1.513 (26.7% CAGR, 17.7% DD) vs M106 1.500 | loses offsets 5/10/15 by 0.10–0.19, f1, f3 | fails; circuit names were 2020–22 winners, costs ~3.5 pts CAGR |
 | 121 | No new buys in the top 10% / 20% of month 13-36 returns (De Bondt & Thaler 1985; Jegadeesh & Titman 2001; Dhankar & Maheshwari, NSE) | lr10 1.535 (30.0% CAGR, 19.6% DD); after tax 1.125 vs 1.102 | lr10 wins 4/4 offsets and 25 bps by 0.005–0.036; bootstrap 63% | fails f1 (2.126 vs 2.259), f2 (2.189 vs 2.200); edge too small to tell from noise |
 | 122 | Also risk-off when JUNIORBEES's 36- / 24-month return is negative (Cooper, Gutierrez & Hameed 2004; Daniel & Moskowitz 2016) | st36 1.440, st24 1.430 vs 1.500 | st24 wins offsets 5, 10 only (timing luck before March 2020) | fails offset 0, f1, f3, 25 bps; costs 1.2–1.4 pts CAGR |
+| 123 | No new buys in the top 10% / 20% of last-month returns (Jegadeesh 1990; Indian large-move reversals, 2000–19) | sr20 1.540 (29.7% CAGR, 19.3% DD) at offset 0 | sr20 loses offsets 5/10/15, f1; sr10 loses offset 0 | fails; signs flip by offset (timing luck) |
 
 What the evidence says so far:
 

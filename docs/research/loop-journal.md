@@ -50,3 +50,13 @@ Next 50 is not improved by slower states either. Variants: ~996.
 Next: (1) short-term reversal guard at entry: skip new buys whose last ~2 weeks' return is in the top 10% of the ranked
 names (Jegadeesh 1990; Lehmann 1990; Chui, Ranganathan, Rohit & Veeraraghavan 2023 PBFJ: short-term reversals in
 illiquid Indian stocks); (2) realism / robustness of M106.
+
+## 2026-10-23, cycle 4: M123 short-term reversal guard
+
+Idea: skip new buys in the top 10% / 20% of last-21-session returns (Jegadeesh 1990; Lehmann 1990; Indian large
+one-month moves reverse, Economic Thought 2022). Result: fail (docs/research/m123.md): sr20 1.540 vs 1.500 at offset 0
+but loses offsets 5/10/15 and f1; sr10 loses offset 0. Signs flip by decision day. Variants: ~998.
+Pattern after four cycles (M120-M123): every buy filter on M106 moves Calmar within the ±0.05-0.2 decision-day noise
+band; none moves all four offsets and all folds. The buy-side filter family on this book looks exhausted.
+Next: switch to robustness/realism of M106 (LOOP step 10): (1) re-check M106's numbers on a dataset extended to the
+newest bhavcopy (live window since the locked final); (2) a capacity / impact check at today's paper capital.
