@@ -213,3 +213,18 @@ new data (shareholding history from 2015, MF flows from 2019 - both weak and sho
 start with the 2026-10-30 paper decision vs research.
 New tools: `notebooks/prescreen.py`, `notebooks/m130_fill_timing.py`; engine-side options `RankingM128/M129`,
 `PortfolioM131`, `ExitsM132` (all off by default in earlier configs; suite 315 passed, 9 skipped before M132).
+
+## 2026-10-23, cycle 16: M134 promoter pledge events
+
+Research: Indian pledging studies (BSE 500 2011-20 crash risk; Financial Management 2021, 1,452 firms; 2009-23
+downside risk; NSE family firms 2009-19) all find pledging raises crash risk and lowers later returns. No study tests
+it on momentum winners. NSE's current pledge snapshot API has no history, but the SAST Reg 31 event API
+(`corporate-pledgedata-sast3132`) does, back to 2014. New: `mb data fetch pledges` (40,482 events 2014-2026-09 in
+`data/raw/nse_pledges/`). Idea: skip buys, or also drop holdings, with a pledge creation or invocation in the last
+180 days (8% of M106's 2015-23 buys). Result: fail at the pre-screen (docs/research/m134.md). pl180 scored 1.355 and
+pl180h 1.416, vs 1.500. Both lose all four offsets and f2/f3, at −0.6 to −1.2 pts CAGR. Variants: ~1,014.
+Pattern: governance and crash-risk screens (insider sells M111, deals M116, pledges M134) remove momentum winners that
+then keep winning. Event-based filters on M106 have now failed four times.
+Next queue: (1) after the 2026-10-30 close, compare the paper book's first decision with a research run; (2) live
+prep (M7): flag pledge invocations and moves to trade-to-trade on held names in the daily ticket (information only, not
+a rule change).

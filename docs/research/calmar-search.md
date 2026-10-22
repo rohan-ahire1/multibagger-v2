@@ -101,6 +101,7 @@ its own `mNN.md`; this file only summarises.
 | 131 | Equal-risk-contribution weights among the picks, sample / half-shrunk correlations (Maillard, Roncalli & Teiletche 2010; López de Prado 2016) | erc 1.357, erc50 1.441 vs 1.500 at offset 0 | offsets 5/10 win, 0/15 lose; f3 lost | fails pre-screen; inverse vol is enough |
 | 132 | Sell picks moved to trade-to-trade (BE/BZ) at the next open (Parmar & Chaturvedula 2017; outcome peeked, disclosed) | 1.680 (30.6% CAGR, 18.2% DD) at offset 0 | offset 5 wins, 10 / 15 lose (1.271, 1.378); f1, f2 by < 0.01 | fails pre-screen; four-offset mean 1.353 vs 1.316 |
 | 133 | Price floor ₹25 / ₹100 instead of ₹50 (never varied; Birru & Wang 2016 nominal price illusion) | p25 1.492, p100 1.483 vs 1.500 | p25 wins offsets 5/10/15 (mean 1.345 vs 1.316), loses f2 (1.717); p100 −1 to −2.6 pts CAGR | fails; ₹50 is not a knife edge |
+| 134 | No new buys (pl180) / also not kept (pl180h) after a promoter pledge creation or invocation in the last 180 days (Indian pledging crash-risk studies; new `mb data fetch pledges`, SAST Reg 31 from 2014) | pl180 1.355 (28.9% CAGR, 21.4% DD), pl180h 1.416 vs 1.500 | lose all four offsets, f2, f3 (f1 equal: no data before 2014) | fail at the pre-screen; −0.6 to −1.2 pts CAGR everywhere |
 
 What the evidence says so far:
 

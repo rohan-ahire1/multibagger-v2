@@ -60,6 +60,7 @@ uv run mb data build configs/data/nse_research.yaml --version <label>   # new im
 uv run mb data check nse_research@<label>                              # recorded checks + file hashes
 uv run mb data fetch bhavcopy configs/data/nse_research.yaml --from D --to D
 uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-year Y --end-year Y
+uv run mb data fetch pledges configs/data/nse_pledges.yaml --from YYYY-MM --to YYYY-MM   # SAST Reg 31 pledge events (M134)
 uv run mb paper daily configs/paper/momentum_voladj_stocks.yaml [--no-fetch] [--today D]   # the VPS daily job
 uv run mb paper status configs/paper/momentum_voladj_stocks.yaml
 uv run mb vcp check <vcp-config> [--sample 30 --seed 1]  # VCP funnel + breakout charts (no returns) -> reports/vcp-check/
