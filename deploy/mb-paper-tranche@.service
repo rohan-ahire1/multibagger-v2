@@ -1,0 +1,15 @@
+# DRAFT, not installed (docs/research/m135.md): one unit per M106 tranche book, instance = decision offset (0, 5, 10,
+# 15), e.g. mb-paper-tranche@5.service runs configs/paper/momentum_m106_tranche_off5.yaml. Needs the user's OK.
+# Install like mb-paper.service, then: systemctl --user enable --now mb-paper-tranche@{0,5,10,15}.timer
+# All books take the same lock, so they never download or build the shared daily dataset at the same time.
+[Unit]
+Description=multibagger paper trading daily job (momentum_m106_tranche_off%i)
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/multibagger-v2
+# MB_NTFY_TOPIC=<topic>, mode 0600
+EnvironmentFile=%h/.config/multibagger/alerts.env
+ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb paper daily configs/paper/momentum_m106_tranche_off%i.yaml
+Nice=10
+TimeoutStartSec=3600

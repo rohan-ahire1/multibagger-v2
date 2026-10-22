@@ -1,0 +1,12 @@
+# DRAFT, not installed (docs/research/m135.md). Five minutes after mb-paper-jr.timer; the shared lock queues the four
+# instances one after another.
+[Unit]
+Description=multibagger paper trading daily job (momentum_m106_tranche_off%i)
+
+[Timer]
+OnCalendar=Mon..Fri 20:00 Asia/Kolkata
+OnCalendar=Mon..Fri 23:30 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

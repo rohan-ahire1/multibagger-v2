@@ -25,7 +25,7 @@ The book also takes `schedule.decision_offset_sessions` (M135): it decides at th
 days left in the month (NSE holiday calendar; the data overrules it once it reaches the next month, with a note), and
 the replay takes the open month's decision as the book made it. `configs/paper/momentum_m106_tranche_off{0,5,10,15}.yaml`
 are drafts of M106 in four quarter-capital tranches (`docs/research/m135.md`). They need the user's OK and one unit per
-book before they run.
+book before they run: `deploy/mb-paper-tranche@.service` + `.timer` (templated, instance = offset; drafts).
 
 ## Stocks only (changed before the start)
 

@@ -167,7 +167,7 @@ def _decision_push(cfg: PaperConfig, rec: dict, alerter: Alerter) -> None:
     body = (f"Decided at the {rec['session']} close, fills at the next open. Equity Rs {d['equity_at_close']:,.0f}.\n"
             f"Buy {len(buys)}: {', '.join(o['symbol'] for o in buys) or '-'}\n"
             f"Sell {len(sells)}: {', '.join(o['symbol'] for o in sells) or '-'}")
-    alerter.send(f"{cfg.name}: month-end orders", body, "default", ("chart_with_upwards_trend",))
+    alerter.send(f"{cfg.name}: orders for the next open", body, "default", ("chart_with_upwards_trend",))
 
 
 def _heartbeat(cfg: PaperConfig, book: Any, rep: dict | None, last_session: date, alerter: Alerter,
@@ -189,7 +189,7 @@ def status(cfg_path: Path, root: Path) -> str:
     decisions = [d for d in days if d["decision"]]
     lines = [f"{cfg.name}: book as of {book.as_of or 'not started'} (start {cfg.start})",
              f"equity {book.equity():,.2f}  cash {book.cash:,.2f}  return {(book.equity() / cfg.initial_capital - 1) * 100:+.2f}%",
-             f"positions {len(book.positions)}  month-end decisions {len(decisions)}"]
+             f"positions {len(book.positions)}  decisions {len(decisions)}"]
     if book.pending:
         lines.append(f"pending orders from {book.pending['decided']}: {len(book.pending['orders'])}")
     logs = sorted((store.dir / "daily").glob("*.json"))
