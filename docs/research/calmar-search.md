@@ -87,6 +87,7 @@ its own `mNN.md`; this file only summarises.
 | 105 | The Next 50 filter alone on the pin (keep 25% gold, no stop); and with no gold (information) | pin + filter **1.514 (30.2% CAGR, 20.0% DD; 2.259 / 2.085 / 1.735)**; tranches 1.341 | passes at offset 0 and in tranches, 5 and 25 bps; 2007–09 0.668 | simplest passing change: one rule, no stop |
 | 106 | Paper support for the gold switch; draft book "pin + Next 50 filter" with the gap rule | 1.500 (30.1% CAGR, 20.1% DD; 2.259 / 2.200 / 1.683) | paper = research on all 8 decisions Jan–Sep 2026; replay gap −0.28% | **ready to deploy as a draft, on the user's OK** |
 | 107 | **Final (locked 2024-01-01..2026-09-28)** of the adopted book and M95 | adopted 1.314 (20.4% CAGR, 15.5% DD); M95 0.639; 12-1 0.482 | adopted passes; M95's edge did not hold | **adopted book confirmed; M95 dropped as the upgrade path** |
+| 120 | No new buys of stocks with more than 20 / 10 upper-circuit closes in a year (Yao et al. 2021; Wang & Lien 2022; Indian practitioner rule) | lh20 1.513 (26.7% CAGR, 17.7% DD) vs M106 1.500 | loses offsets 5/10/15 by 0.10–0.19, f1, f3 | fails; circuit names were 2020–22 winners, costs ~3.5 pts CAGR |
 
 What the evidence says so far:
 

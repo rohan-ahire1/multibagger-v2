@@ -3,11 +3,13 @@
 Usage:
   uv run python notebooks/m120_limits.py info                      # hit counts of M106's new buys (no returns)
   uv run python notebooks/m120_limits.py report CONFIG@RUN ...     # before/after tax, whole period and folds
+  uv run python notebooks/m120_limits.py bootstrap REF_RUN RUN ...  # M20 stationary bootstrap: RUN's Calmar above REF_RUN's
 """
 import sys
 from collections import Counter
 from pathlib import Path
 
+import numpy as np
 import polars as pl
 
 from mb.config.loader import load_strategy_config, load_tax_config
@@ -69,5 +71,40 @@ def report(pairs: list[str]) -> None:
                   f"after CAGR {n['cagr_pct']:6.2f}% DD {n['max_dd_pct']:5.2f}% Calmar {n['calmar']:.3f}")
 
 
+def bootstrap(ref: str, runs: list[str], block: int = 63, n: int = 5000, seed: int = 20260930, chunk: int = 250) -> None:
+    """M20 settings (as notebooks/m96_bootstrap.py): resample the daily returns of all curves together."""
+    curves = [pl.read_parquet(f'runs/{r}/equity.parquet').select('date', 'equity') for r in [ref] + runs]
+    days = curves[0].select('date')
+    eq = np.column_stack([days.join(c, on='date', how='left')['equity'].to_numpy() for c in curves])
+    assert not np.isnan(eq).any()
+    rets = eq[1:] / eq[:-1] - 1
+    years = (days['date'][-1] - days['date'][0]).days / 365.25
+    T = rets.shape[0]
+
+    def calmar(r: np.ndarray) -> np.ndarray:
+        path = np.concatenate([np.ones_like(r[..., :1, :]), np.cumprod(1 + r, axis=-2)], axis=-2)
+        cagr = path[..., -1, :] ** (1 / years) - 1
+        return cagr / (1 - path / np.maximum.accumulate(path, axis=-2)).max(axis=-2)
+
+    rng = np.random.default_rng(seed)
+    cal = []
+    for _ in range(n // chunk):
+        start = rng.integers(0, T, size=(chunk, T))
+        new = rng.random((chunk, T)) < 1 / block
+        new[:, 0] = True
+        idx = np.empty((chunk, T), dtype=np.int64)
+        idx[:, 0] = start[:, 0]
+        for t in range(1, T):
+            idx[:, t] = np.where(new[:, t], start[:, t], (idx[:, t - 1] + 1) % T)
+        cal.append(calmar(rets[idx]))
+    c = np.concatenate(cal)
+    c0 = calmar(rets)
+    for j, r in enumerate(runs, start=1):
+        d = c[:, j] - c[:, 0]
+        print(f"{r} vs {ref}: actual Calmar {c0[j]:.3f} vs {c0[0]:.3f}; higher in {np.mean(d > 0):.1%} of {len(d)}; "
+              f"diff 5-95% [{np.quantile(d, .05):+.3f}, {np.quantile(d, .95):+.3f}]")
+
+
 if __name__ == '__main__':
-    info() if sys.argv[1] == 'info' else report(sys.argv[2:])
+    {'info': lambda: info(), 'report': lambda: report(sys.argv[2:]),
+     'bootstrap': lambda: bootstrap(sys.argv[2], sys.argv[3:])}[sys.argv[1]]()
