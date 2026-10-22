@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -347,6 +347,64 @@ def inverse_vol_weights(panel: pl.DataFrame, sessions: int, picks: dict[date, li
     return out
 
 
+def erc(cov: np.ndarray, tol: float = 1e-12, max_iter: int = 10_000) -> np.ndarray:
+    """M131: long-only equal-risk-contribution weights (sum 1) by cyclical coordinate descent (Griveau-Billion, Richard &
+    Roncalli 2013): each w_i solves cov_ii w_i^2 + (cov w - cov_ii w_i)_i w_i = 1 / n; the result is normalised."""
+    n = cov.shape[0]
+    w = 1.0 / np.sqrt(np.diag(cov))
+    w /= math.sqrt(float(w @ cov @ w))  # start on the fixed point's scale: w cov w = n x (1 / n)
+    for _ in range(max_iter):
+        old = w.copy()
+        for i in range(n):
+            c = cov[i] @ w - cov[i, i] * w[i]
+            w[i] = (-c + math.sqrt(c * c + 4.0 * cov[i, i] / n)) / (2.0 * cov[i, i])
+        if np.abs(w - old).max() < tol * w.max():
+            return w / w.sum()
+    raise ValueError("ERC did not converge")
+
+
+def erc_weights(panel: pl.DataFrame, sessions: int, shrink: float, picks: dict[date, list[str]]) -> dict[date, dict[str, float]]:
+    """M131: ERC weights of each date's picks from daily log returns over the last `sessions` sessions ending at the date
+    (a day a name did not trade counts as 0), correlations shrunk toward their mean by `shrink`. Too little history is
+    an error (as in `inverse_vol_weights`)."""
+    names = sorted({s for v in picks.values() for s in v})
+    days = panel.select("date").unique().sort("date")["date"].to_list()
+    pos = {d: i for i, d in enumerate(days)}
+    r = (panel.filter(pl.col("symbol").is_in(names)).sort("symbol", "date")
+         .with_columns(_log_ret().over("symbol").alias("r"),
+                       pl.col("date").cum_count().over("symbol").alias("k"))
+         .filter(pl.col("k") > 1))
+    mat = np.zeros((len(days), len(names)))
+    have = np.zeros((len(days), len(names)), dtype=bool)
+    col = {s: j for j, s in enumerate(names)}
+    for d, s, v in r.select("date", "symbol", "r").iter_rows():
+        if v is not None and math.isfinite(v):
+            mat[pos[d], col[s]] = v
+            have[pos[d], col[s]] = True
+    out: dict[date, dict[str, float]] = {}
+    for d, pick in picks.items():
+        i = pos[d]
+        js = [col[s] for s in pick]
+        if i + 1 < sessions:
+            raise ValueError(f"no {sessions}-session window on {d}")
+        win, ok = mat[i + 1 - sessions: i + 1, js], have[i + 1 - sessions: i + 1, js]
+        bad = [s for s, n in zip(pick, ok.sum(axis=0)) if n < sessions // 2]
+        if bad:
+            raise ValueError(f"under half of {sessions} sessions traded for {bad[:3]} on {d}")
+        cov = np.cov(win, rowvar=False)
+        if len(js) < 2:
+            out[d] = {s: 1.0 for s in pick}
+            continue
+        sd = np.sqrt(np.diag(cov))
+        corr = cov / np.outer(sd, sd)
+        mean = (corr.sum() - len(js)) / (len(js) * (len(js) - 1))
+        corr = (1.0 - shrink) * corr + shrink * mean
+        np.fill_diagonal(corr, 1.0)
+        w = erc(corr * np.outer(sd, sd))
+        out[d] = {s: float(x) for s, x in zip(pick, w)}
+    return out
+
+
 def score_tilts(panel: pl.DataFrame, r: Ranking, ranks: dict[date, list[str]], clip: float) -> dict[date, dict[str, float]]:
     """M127: per decision and ranked name, 1 + Z (Z > 0) or 1 / (1 - Z), Z the z-score (population) of the ranking score
     among the decision's ranked names, winsorised at +-clip. The score is `ranked`'s plain one."""
@@ -519,6 +577,11 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if m11 and m11.portfolio.weighting == "inverse_vol":
         w = inverse_vol_weights(panel, m11.portfolio.inverse_vol_sessions, {d: list(t.weights) for d, t in out.items()})
         out = {d: Target(w[d], t.gross, t.keep_size) for d, t in out.items()}
+    if isinstance(p, ParamsM131) and p.portfolio.risk_weighting is not None:  # M131: ERC in place of inverse vol
+        assert p.portfolio.erc_shrink is not None
+        w = erc_weights(panel, p.portfolio.inverse_vol_sessions, p.portfolio.erc_shrink,
+                        {d: list(t.weights) for d, t in out.items() if t.weights})
+        out = {d: Target(w[d], t.gross, t.keep_size) if t.weights else t for d, t in out.items()}
     if isinstance(p, ParamsM127) and p.portfolio.score_tilt is not None:  # M127: MSCI-style score tilt
         assert p.portfolio.score_tilt_clip is not None
         k = score_tilts(panel, p.ranking, ranks, p.portfolio.score_tilt_clip)

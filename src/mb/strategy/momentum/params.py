@@ -1135,3 +1135,28 @@ class RankingM129(RankingM128):
 
 class ParamsM129(ParamsM128):
     ranking: RankingM129
+
+
+# M131 option (docs/research/m131.md).
+
+
+class PortfolioM131(PortfolioM127):
+    # Null: weights as `weighting` says. "erc": equal risk contribution among the picks (Maillard, Roncalli & Teiletche
+    # 2010) from the covariance of daily log returns over the last `inverse_vol_sessions` sessions, each correlation
+    # shrunk toward the picks' mean correlation by `erc_shrink` (0 = sample). With equal correlations ERC is inverse vol.
+    risk_weighting: Literal["erc"] | None
+    erc_shrink: float | None
+
+    @model_validator(mode="after")
+    def _m131(self) -> PortfolioM131:
+        if (self.risk_weighting is None) != (self.erc_shrink is None):
+            raise ValueError("risk_weighting and erc_shrink are both null or both set")
+        if self.erc_shrink is not None and not 0.0 <= self.erc_shrink < 1.0:
+            raise ValueError("erc_shrink must be in [0, 1)")
+        if self.risk_weighting is not None and (self.weighting != "inverse_vol" or self.score_tilt is not None):
+            raise ValueError("risk_weighting needs weighting inverse_vol and no score_tilt")
+        return self
+
+
+class ParamsM131(ParamsM129):
+    portfolio: PortfolioM131
