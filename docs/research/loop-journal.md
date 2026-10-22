@@ -189,3 +189,9 @@ Note for M7 (live): even without adoption, a held stock moved to trade-to-trade 
 narrow band); flag it in the daily ticket. Not changed in the running paper book (LOOP rule).
 Next queue: (1) 2026-10-30 first live decision vs research; (2) ideas are thin; next research pass should look at
 new data families only (shareholding pattern quarterly history is the one cheap source left).
+
+## 2026-10-23, cycle 15: M133 price floor
+
+The ₹50 price floor was the one M106 setting never varied (M50 swept the others). ₹25 / ₹100 both fail
+(docs/research/m133.md): ₹25 1.492 vs 1.500 at offset 0, wins 5/10/15 but f2 1.717 vs 2.200; ₹100 costs 1-2.6 pts
+CAGR. Robustness note for M106: the floor is not a knife edge. Variants: ~1,012.

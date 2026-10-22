@@ -100,6 +100,7 @@ its own `mNN.md`; this file only summarises.
 | 130 | Fill-timing sensitivity of M106: next close, (O+H+L+C)/4, one session late (information) | close 1.441, typical 1.451, late 1.412 vs open 1.500 (offset 0) | CAGR −0.4 / −0.5 / −0.6 pts (four-offset mean); edge holds in every mode | information: use pre-open (AMO) orders live |
 | 131 | Equal-risk-contribution weights among the picks, sample / half-shrunk correlations (Maillard, Roncalli & Teiletche 2010; López de Prado 2016) | erc 1.357, erc50 1.441 vs 1.500 at offset 0 | offsets 5/10 win, 0/15 lose; f3 lost | fails pre-screen; inverse vol is enough |
 | 132 | Sell picks moved to trade-to-trade (BE/BZ) at the next open (Parmar & Chaturvedula 2017; outcome peeked, disclosed) | 1.680 (30.6% CAGR, 18.2% DD) at offset 0 | offset 5 wins, 10 / 15 lose (1.271, 1.378); f1, f2 by < 0.01 | fails pre-screen; four-offset mean 1.353 vs 1.316 |
+| 133 | Price floor ₹25 / ₹100 instead of ₹50 (never varied; Birru & Wang 2016 nominal price illusion) | p25 1.492, p100 1.483 vs 1.500 | p25 wins offsets 5/10/15 (mean 1.345 vs 1.316), loses f2 (1.717); p100 −1 to −2.6 pts CAGR | fails; ₹50 is not a knife edge |
 
 What the evidence says so far:
 
