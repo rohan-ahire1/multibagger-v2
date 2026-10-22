@@ -166,3 +166,12 @@ Then LOOP step 10: `notebooks/m130_fill_timing.py` re-simulates M106 with fills 
 a missed fill should go at the next open. Variants for adoption: unchanged (~1,007).
 Next queue: (1) the first live decision on 2026-10-30: compare the paper book's orders with a research run; (2) a
 corporate-action audit of 2024-26 for M106's held names (data quality, no returns).
+
+## 2026-10-23, cycle 13: M131 equal-risk-contribution weights
+
+Idea: weight the 25 picks so each adds equal variance (ERC; Maillard, Roncalli & Teiletche 2010; HRP, López de Prado
+2016), correlations from 84 sessions, sample or half-shrunk. Result: fail at the pre-screen (docs/research/m131.md):
+offset 0 1.357 / 1.441 vs 1.500; offsets 5 and 10 win, 15 ties or loses; f3 lost. Weighting family on this book
+(inverse vol, M124 bands, M127 score tilt, M131 ERC) is done. Variants: ~1,009.
+Next queue: (1) the first live decision on 2026-10-30: compare the paper book with research (after the 2026-10-30
+evening job); (2) data quality for 2024-26 (corporate actions on held names, no returns).
