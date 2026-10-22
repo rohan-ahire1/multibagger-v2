@@ -902,3 +902,36 @@ class ParamsM120(ParamsM118):
         if self.limit_hits is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("limit_hits needs max_per_sector null")
         return self
+
+
+# M121 option (docs/research/m121.md).
+
+
+class LongReversal(Strict):
+    # The long-term return is adj_close `to_sessions` sessions ago / adj_close `from_sessions` sessions ago - 1 (months
+    # 13-36 for 756 / 252). A name not held is not bought when its long-term return is in the top drop_frac of the
+    # decision's ranked (eligible) names that have one. Names without the history are not affected.
+    from_sessions: int
+    to_sessions: int
+    drop_frac: float
+
+    @model_validator(mode="after")
+    def _m121(self) -> LongReversal:
+        if not 0 < self.to_sessions < self.from_sessions:
+            raise ValueError("need 0 < to_sessions < from_sessions")
+        if not 0.0 < self.drop_frac < 1.0:
+            raise ValueError("drop_frac must be in (0, 1)")
+        return self
+
+
+class ParamsM121(ParamsM120):
+    long_reversal: LongReversal | None
+
+    @model_validator(mode="after")
+    def _m121(self) -> ParamsM121:
+        if self.long_reversal is not None and (self.limit_hits is not None or self.insider is not None
+                                               or self.results is not None or self.deals is not None):
+            raise ValueError("long_reversal, limit_hits, deals, results and insider are exclusive")
+        if self.long_reversal is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("long_reversal needs max_per_sector null")
+        return self

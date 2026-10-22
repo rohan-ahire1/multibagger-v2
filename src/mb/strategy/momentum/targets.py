@@ -13,7 +13,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, Insider, LimitHits, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -412,6 +412,10 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
         hits = limit_hits(panel, lh, list(ranks))
         net = {d: {s: -1.0 for s, n in c.items() if n > lh.max_hits} for d, c in hits.items()}
         ins = Insider(raw_dir="", categories=[], lookback_days=lh.sessions, rule="nosell", rank_max=None)
+    lr = p.long_reversal if isinstance(p, ParamsM121) else None
+    if lr is not None:  # M121: the nosell rule, on the top drop_frac of long-term returns among the ranked names
+        net = long_winners(panel, lr, ranks)
+        ins = Insider(raw_dir="", categories=[], lookback_days=lr.from_sessions, rule="nosell", rank_max=None)
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]
@@ -472,6 +476,19 @@ def limit_hits(panel: pl.DataFrame, lh: LimitHits, dates: list[date]) -> dict[da
     for d, s, n in f.select("date", "symbol", "hits").iter_rows():
         out[d][s] = n
     return out
+
+
+def long_winners(panel: pl.DataFrame, lr: LongReversal, ranks: dict[date, list[str]]) -> dict[date, dict[str, float]]:
+    """M121: per decision, -1.0 for the ranked names whose long-term return is in the top lr.drop_frac (ties by symbol)."""
+    ret = pl.col("adj_close").shift(lr.to_sessions) / pl.col("adj_close").shift(lr.from_sessions) - 1.0
+    f = (panel.select("date", "symbol", "adj_close").sort("symbol", "date")
+         .with_columns(ret.over("symbol").alias("lt"))
+         .filter(pl.col("date").is_in(list(ranks)) & pl.col("lt").is_not_null() & pl.col("lt").is_finite()))
+    out: dict[date, dict[str, float]] = {}
+    for (d,), g in f.group_by("date"):
+        g = g.filter(pl.col("symbol").is_in(ranks[d])).sort("lt", "symbol", descending=[True, False])
+        out[d] = {s: -1.0 for s in g.head(math.ceil(lr.drop_frac * g.height))["symbol"].to_list()}
+    return {d: out.get(d, {}) for d in ranks}
 
 
 def seasonal_off(regime: dict[date, bool], months: list[int]) -> dict[date, bool]:
