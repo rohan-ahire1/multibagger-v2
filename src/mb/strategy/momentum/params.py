@@ -1112,3 +1112,26 @@ class RankingM128(RankingM55):
 
 class ParamsM128(ParamsM127):
     ranking: RankingM128
+
+
+# M129 option (docs/research/m129.md).
+
+
+class RankingM129(RankingM128):
+    # Null: rank on the score. Otherwise each eligible name's order key is (1 - w) x its percentile rank of the score plus
+    # w x its percentile rank of acceleration: the t^2 coefficient of a least-squares quadratic fit to log adj_close over
+    # the same `lookback - skip` rows (Chen & Yu; Ardila, Forro & Sornette 2015).
+    accel_rank_weight: float | None
+
+    @model_validator(mode="after")
+    def _m129(self) -> RankingM129:
+        if self.accel_rank_weight is not None:
+            if not 0.0 < self.accel_rank_weight < 1.0:
+                raise ValueError("accel_rank_weight must be in (0, 1)")
+            if self.order != "score" or self.second_lookback_sessions is not None or self.return_part != "total":
+                raise ValueError("accel_rank_weight needs order score, total return and no second lookback")
+        return self
+
+
+class ParamsM129(ParamsM128):
+    ranking: RankingM129

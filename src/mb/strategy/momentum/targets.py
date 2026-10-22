@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -81,6 +81,26 @@ def _discreteness(r: Ranking) -> pl.Expr:
 
     mom = pl.col("adj_close").shift(r.skip_sessions) / pl.col("adj_close").shift(r.lookback_sessions) - 1.0
     return (mom.sign() * (share(ret < 0.0) - share(ret > 0.0))).over("symbol")
+
+
+def accelerations(panel: pl.DataFrame, lookback: int, skip: int, dates: list[date]) -> dict[tuple[date, str], float]:
+    """M129: (date, symbol) -> t^2 coefficient of a least-squares quadratic fit to log adj_close over the `lookback - skip`
+    rows ending `skip` rows before the date (t in rows). Rows with too little history are left out."""
+    n = lookback - skip
+    t = np.arange(n, dtype=float)
+    x = np.column_stack([np.ones(n), t, t * t])
+    w = np.linalg.solve(x.T @ x, x.T)[2]  # c = w . log price window
+    want = pl.Series(dates, dtype=pl.Date)
+    out: dict[tuple[date, str], float] = {}
+    for (sym,), g in panel.select("date", "symbol", "adj_close").sort("symbol", "date").group_by("symbol", maintain_order=True):
+        if g.height < lookback:
+            continue
+        c = np.convolve(np.log(g["adj_close"].to_numpy()), w[::-1], mode="valid")  # c[k] fits rows k .. k + n - 1
+        rows = np.nonzero(g["date"].is_in(want.implode()).to_numpy())[0]
+        ds = g["date"]
+        for i in rows[rows >= n - 1 + skip]:
+            out[(ds[int(i)], str(sym))] = float(c[i - skip - n + 1])
+    return out
 
 
 def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
@@ -202,6 +222,8 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     else:
         every, phase = every_sessions
         dates = f.select("date").unique().sort("date")["date"].to_list()[phase::every]
+    acc = (accelerations(panel, r.lookback_sessions, r.skip_sessions, dates)
+           if isinstance(r, RankingM129) and r.accel_rank_weight is not None else {})
     for d in dates:
         day = f.filter((pl.col("date") == d) & eligible)
         if max_frac is not None:
@@ -217,6 +239,13 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
             # Ranks are summed before dividing so equal means tie exactly and fall back to the symbol order.
             n = pl.len().cast(pl.Float64)
             day = day.with_columns(((pl.col("score").rank("average") + pl.col("score2").rank("average")) / (2.0 * n))
+                                   .alias("score"))
+        aw = r.accel_rank_weight if isinstance(r, RankingM129) else None
+        if aw is not None:  # M129: blend of the score's and acceleration's percentile ranks
+            day = day.with_columns(pl.Series("accel", [acc.get((d, s)) for s in day["symbol"]], dtype=pl.Float64))
+            day = day.filter(pl.col("accel").is_not_null() & pl.col("accel").is_finite())
+            n = pl.len().cast(pl.Float64)
+            day = day.with_columns((((1.0 - aw) * pl.col("score").rank("average") + aw * pl.col("accel").rank("average")) / n)
                                    .alias("score"))
         day = day.sort(*keys, "score", "symbol", descending=[True] * (len(keys) + 1) + [False])
         order = day["symbol"].to_list()
