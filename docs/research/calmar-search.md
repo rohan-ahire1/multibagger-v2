@@ -92,6 +92,7 @@ its own `mNN.md`; this file only summarises.
 | 122 | Also risk-off when JUNIORBEES's 36- / 24-month return is negative (Cooper, Gutierrez & Hameed 2004; Daniel & Moskowitz 2016) | st36 1.440, st24 1.430 vs 1.500 | st24 wins offsets 5, 10 only (timing luck before March 2020) | fails offset 0, f1, f3, 25 bps; costs 1.2–1.4 pts CAGR |
 | 123 | No new buys in the top 10% / 20% of last-month returns (Jegadeesh 1990; Indian large-move reversals, 2000–19) | sr20 1.540 (29.7% CAGR, 19.3% DD) at offset 0 | sr20 loses offsets 5/10/15, f1; sr10 loses offset 0 | fails; signs flip by offset (timing luck) |
 | 124 | No-trade band: held names left alone within 20% / 50% of their goal (Leland 1999; Donohue & Yip 2003; Novy-Marx & Velikov 2016) | band20 1.524 / after tax 1.126 vs 1.500 / 1.102 | band20 fails offset 5 by 0.003, f1, f2; band50 offsets 5, 10, f1 | fails; saves almost no tax (exits, not trims, carry the tax) |
+| 125 | No new buys in the weaker half of NSE sectors / industries by 12-1 momentum (Moskowitz & Grinblatt 1999; new `mb data fetch industry`) | sector 1.532 (29.2% CAGR, 19.0% DD); after tax 1.115 vs 1.102 | sector wins 4/4 offsets and 25 bps; bootstrap 37% | fails f1 (2.117), f2 (2.149); ~1 pt CAGR for ~1 pt DD |
 
 What the evidence says so far:
 

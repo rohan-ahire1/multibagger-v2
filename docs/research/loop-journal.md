@@ -72,3 +72,17 @@ f1/f2) and M124 band20. M106 stays. Next queue: (1) a point-in-time industry map
 whether NSE's quote API or old bhavcopy-era "industry" files give history); (2) robustness of M106 on newer data;
 (3) tax: since exits carry the tax, a rule that defers exits of winners near 12 months (M110 taxhold) was a hair from
 passing; any revisit needs a new reason.
+
+## 2026-10-23, cycle 6: M125 industry momentum
+
+Built `mb data fetch industry` (NSE quote API, four-level classes for today's 2,611 listed symbols; snapshot
+`data/raw/nse_industry/2026-10-22.parquet`, 90% of M106's buys classified). Idea: no new buys in the weaker half of
+sectors / industries by 12-1 momentum (Moskowitz & Grinblatt 1999). Result: fail (docs/research/m125.md): sector wins
+all four offsets and 25 bps (1.532 vs 1.500 at offset 0) but loses f1, f2; bootstrap 37%. Industry level ties.
+Variants: ~1,002.
+Pattern: M121 (long-term reversal) and M125 (sector) both cut drawdown ~0.5-1 pt and pay ~1 pt CAGR in 2010-17;
+they win every decision day by small margins and lose f1/f2. Combining them would be fitting the dev period; not done.
+Next queue: (1) the M110 taxhold rule was a hair from passing in 2010-23 and slightly negative on the locked years:
+closed. (2) M106 robustness on the newest data: extend the dataset (bhavcopy + delivery since 2026-10-14) once the
+paper book has a few months; (3) look for new data families: FII/DII holding changes from the shareholding XBRL
+(quarterly, from 2015) - check evidence first.
