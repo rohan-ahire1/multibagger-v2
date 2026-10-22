@@ -27,3 +27,16 @@ significant: weak.
 Next queue: (1) long-term reversal guard: skip new buys whose months 13-36 return is extreme (De Bondt-Thaler;
 Dhankar & Maheshwari NSE 1997-2013 long-term overreaction; Conrad & Yavuz 2017); (2) industry momentum tilt using the
 sector map (Moskowitz & Grinblatt 1999; no India test found); (3) realism: M106 robustness / live-fill checks.
+
+## 2026-10-23, cycle 2: M121 long-term reversal guard
+
+Research: industry momentum dropped for now (sector map covers only the current Nifty 500, 524 symbols, while M106
+buys small caps; a point-in-time industry map would be needed). NSE shareholding-pattern history is fetchable
+(`/api/corporate-share-holdings-master?symbol=X`, quarterly from Dec 2015, promoter %, submission dates; revisions
+overwrite originals), but promoter buying is the dead insider family. Picked: skip new buys in the top 10% / 20% of
+month 13-36 returns (De Bondt & Thaler; Jegadeesh & Titman 2001; Conrad & Yavuz 2017; Dhankar & Maheshwari NSE).
+Result: fail (docs/research/m121.md). lr10 wins all four offsets, 25 bps and after tax by small margins
+(1.535 vs 1.500 at offset 0) but loses f1 (2.126 vs 2.259) and f2 (2.189 vs 2.200); bootstrap only 62.8%. lr20 worse.
+Variants: ~994.
+Next queue: (1) Cooper-Gutierrez-Hameed market state: JUNIORBEES 36-month return < 0 as a second risk-off condition;
+(2) realism / robustness of M106 (live fills vs backtest, cost sensitivity on the newest data).
