@@ -5,6 +5,7 @@ the book only processes sessions it has not committed.
 """
 from __future__ import annotations
 
+import json
 import shutil
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -15,7 +16,7 @@ from mb.config.models import DataConfig, DataConfigM40, PaperConfig
 from mb.data import build, datasets
 from mb.live import calendar
 from mb.live.alerts import Alerter
-from mb.live.paper import Blocked, Store, advance, load_view, write_json
+from mb.live.paper import Blocked, Store, advance, load_view, off_series, write_json
 from mb.live.replay import replay, report
 from mb.sources import nse_bhavcopy, nse_corporate_actions, nse_delivery
 
@@ -134,6 +135,8 @@ def run(cfg_path: Path, root: Path, today: date, fetch: bool = True, alerter: Al
         if r["decision"] is not None:
             _decision_push(cfg, r, alerter)
 
+    log["off_series"] = off_series(book, view, strat.params.universe.allowed_series)
+
     rep = replay(cfg, strat, view, store.days())
     if rep is not None:
         store.save_text("replays", f"{rep['as_of']}.md", report(rep))
@@ -142,7 +145,7 @@ def run(cfg_path: Path, root: Path, today: date, fetch: bool = True, alerter: Al
             problems.append(f"replay mismatch through {rep['as_of']}: gap {rep['equity_gap_pct']:+.2f}%, "
                             f"{len(rep['decision_mismatches'])} decision(s) differ")
     if not problems and today.weekday() == cfg.alerts.heartbeat_weekday and not (store.dir / "daily" / f"heartbeat-{today}").exists():
-        _heartbeat(cfg, book, rep, last_session, alerter)
+        _heartbeat(cfg, book, rep, last_session, alerter, log["off_series"])
         store.save_text("daily", f"heartbeat-{today}", "")
     return _finish(cfg, store, alerter, problems, log, today)
 
@@ -167,11 +170,14 @@ def _decision_push(cfg: PaperConfig, rec: dict, alerter: Alerter) -> None:
     alerter.send(f"{cfg.name}: month-end orders", body, "default", ("chart_with_upwards_trend",))
 
 
-def _heartbeat(cfg: PaperConfig, book: Any, rep: dict | None, last_session: date, alerter: Alerter) -> None:
+def _heartbeat(cfg: PaperConfig, book: Any, rep: dict | None, last_session: date, alerter: Alerter,
+               off: list[str]) -> None:
     ret = (book.equity() / cfg.initial_capital - 1) * 100
     gap = f", replay gap {rep['equity_gap_pct']:+.2f}%" if rep else ""
     body = (f"Data through {last_session}. Book as of {book.as_of}: equity Rs {book.equity():,.0f} ({ret:+.2f}%), "
             f"{len(book.positions)} positions{gap}.")
+    if off:
+        body += "\nHeld outside the usual series (trade-to-trade: delivery only): " + "; ".join(off)
     alerter.send(f"{cfg.name}: weekly ok", body, "low", ("white_check_mark",))
 
 
@@ -186,6 +192,10 @@ def status(cfg_path: Path, root: Path) -> str:
              f"positions {len(book.positions)}  month-end decisions {len(decisions)}"]
     if book.pending:
         lines.append(f"pending orders from {book.pending['decided']}: {len(book.pending['orders'])}")
+    logs = sorted((store.dir / "daily").glob("*.json"))
+    off = json.loads(logs[-1].read_text()).get("off_series") if logs else None
+    if off:
+        lines.append("held outside the usual series (trade-to-trade: delivery only): " + "; ".join(off))
     reps = sorted((store.dir / "replays").glob("*.md"))
     if reps:
         lines.append(reps[-1].read_text().strip())

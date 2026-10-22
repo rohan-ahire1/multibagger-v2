@@ -52,6 +52,9 @@ fix to what the book can hold, chosen before any paper result, not a tuned varia
    must stay within `replay_max_equity_gap_pct` (whole shares and cash make a small gap normal).
 5. Alerts through ntfy (topic in `~/.config/multibagger/alerts.env`): month-end orders, a weekly "ok" on Fridays,
    and a high-priority alert for any problem or crash. Silence for more than a week means the job is not running.
+   Held names whose newest row is outside the strategy's `allowed_series` (moved to trade-to-trade, BE / BZ: delivery
+   only, narrow band; see `docs/research/m132.md`) are listed in the daily log (`off_series`), the weekly "ok" and
+   `mb paper status`. This is information for whoever places live orders; the book's rules do not change.
 
 Running it twice a day, or re-running after a fix, is safe: each session is committed once.
 

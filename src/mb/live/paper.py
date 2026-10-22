@@ -415,6 +415,25 @@ def _jump_blocks(view: DataView, names: set[str], lo: date, hi: date) -> list[st
     return [f"{sym}: unexplained jump x{r:.3f} on {d}" for sym, d, r in hits.select("symbol", "date", "ratio").iter_rows()]
 
 
+def off_series(book: Book, view: DataView, allowed: list[str]) -> list[str]:
+    """M132 live note: held names whose newest row (up to the book's date) is outside `allowed` series, e.g. moved to
+    trade-to-trade (BE / BZ: delivery only, narrow band). Information for a person; the book's rules are unchanged."""
+    if book.as_of is None or not book.positions:
+        return []
+    rows = (view.panel.filter(pl.col("symbol").is_in(list(book.positions)) & (pl.col("date") <= book.as_of))
+            .sort("symbol", "date").select("symbol", "date", "series"))
+    out = []
+    for (sym,), g in rows.group_by("symbol", maintain_order=True):
+        series = g["series"].to_list()
+        if series[-1] in allowed:
+            continue
+        k = len(series) - 1
+        while k > 0 and series[k - 1] not in allowed:
+            k -= 1
+        out.append(f"{sym}: series {series[-1]} since {g['date'][k]}")
+    return out
+
+
 def advance(book: Book, cfg: PaperConfig, strat: Resolved, view: DataView, holidays: set[date],
             store: Store | None = None) -> tuple[Book, list[dict[str, Any]], list[str]]:
     """Process every session after `book.as_of`. Returns the book, the committed day records and notes.

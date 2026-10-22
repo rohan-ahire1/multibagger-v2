@@ -228,3 +228,21 @@ then keep winning. Event-based filters on M106 have now failed four times.
 Next queue: (1) after the 2026-10-30 close, compare the paper book's first decision with a research run; (2) live
 prep (M7): flag pledge invocations and moves to trade-to-trade on held names in the daily ticket (information only, not
 a rule change).
+
+## 2026-10-23, cycle 17: ideas dropped at the information stage; live prep
+
+Dropped before pre-registration (no backtest, not counted as variants):
+- NSE ASM / short-term ASM lists: in Chari & Inamdar's NSE working paper, a 23% five-day run-up into inclusion reverses
+  to about 0% after it. That is no drawdown signal, and the lists start in 2018.
+- Bonus / split ex-dates: Indian announcement effects are +1.8% / +0.8% (Dhar & Chhaochharia), and no long-run drift
+  study exists. Only 29 of M106's 1,271 buys came within 90 days after an ex-date, so the rule would hardly act.
+- Dividend-payer screen: payer data is clean from 2010 (21% of M106's buys had no dividend in the prior two years,
+  half of them in 2021-22). But Asem 2009 (JBF) finds the payer gap comes from losers, not winners.
+Live prep (M7, the M132 note): `paper.off_series` lists held names whose newest row is outside `allowed_series`. They
+appear in the daily log, the weekly ok and `mb paper status` (docs/paper.md). Research branch only; the running books
+get it only if a later change is merged to m8. Smoke-run of `mb paper daily --no-fetch` here stops at "no daily
+dataset" (expected on the research checkout); the new function is unit-tested.
+Next queue: (1) after the 2026-10-30 evening job, compare the paper book's first decision with a research run of
+`m120_ref` extended to that date. This needs a dataset through 2026-10-30 (`mb data build`) after fetching bhavcopy +
+delivery. (2) Otherwise only new data families. Candidates left are weak: MF scheme holdings (monthly portfolios from
+AMFI, 2019+ only), shareholding pattern (quarterly XBRL, heavy).
