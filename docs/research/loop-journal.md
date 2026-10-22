@@ -195,3 +195,21 @@ new data families only (shareholding pattern quarterly history is the one cheap 
 The ₹50 price floor was the one M106 setting never varied (M50 swept the others). ₹25 / ₹100 both fail
 (docs/research/m133.md): ₹25 1.492 vs 1.500 at offset 0, wins 5/10/15 but f2 1.717 vs 2.200; ₹100 costs 1-2.6 pts
 CAGR. Robustness note for M106: the floor is not a knife edge. Variants: ~1,012.
+
+## Session 2026-10-23 (cycles 10-15, M128-M133): summary
+
+Six cycles: M128 downside-deviation score, M129 acceleration, M130 fill timing (information), M131 ERC weights, M132
+trade-to-trade exit, M133 price floor. 0 of 5 candidates passed; variants ~1,012 (from ~1,005). M106 unchanged.
+Lessons:
+1. The month-end decision keeps flattering candidates (M129 1.625, M132 1.680, both fail other offsets). The bar's
+   four-offset rule is doing its job; keep pre-screening at all four offsets first (`notebooks/prescreen.py REF CAND`).
+2. Ranking (M127-M129) and weighting (M124, M127, M131) changes are exhausted on this book; so are buy filters
+   (M120-M125) and regime variants (M122, M126, dispersion, illiquidity, weekly checks).
+3. Realism: M106's open fill is worth ~0.4-0.5 pts CAGR a year over intraday fills; a day's delay ~0.6 (M130). Live:
+   AMO orders into the pre-open, and watch for holdings moved to trade-to-trade (M132).
+4. Robustness of M106: the ₹50 price floor (M133) and every other setting (M50, M109) sit on a plateau.
+Each further price-only variant adds to the trial count and weakens any later "pass"; the next session should prefer
+new data (shareholding history from 2015, MF flows from 2019 - both weak and short) or live work (M7), and should
+start with the 2026-10-30 paper decision vs research.
+New tools: `notebooks/prescreen.py`, `notebooks/m130_fill_timing.py`; engine-side options `RankingM128/M129`,
+`PortfolioM131`, `ExitsM132` (all off by default in earlier configs; suite 315 passed, 9 skipped before M132).
