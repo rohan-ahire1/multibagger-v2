@@ -246,3 +246,7 @@ Next queue: (1) after the 2026-10-30 evening job, compare the paper book's first
 `m120_ref` extended to that date. This needs a dataset through 2026-10-30 (`mb data build`) after fetching bhavcopy +
 delivery. (2) Otherwise only new data families. Candidates left are weak: MF scheme holdings (monthly portfolios from
 AMFI, 2019+ only), shareholding pattern (quarterly XBRL, heavy).
+Queue note for M7 (implementation, not a signal): the fixed 25% gold sleeve could be held partly in Sovereign Gold
+Bonds (2.5% a year interest; NSE series GB from about 2016) instead of GOLDBEES. That is worth up to +0.6 pts CAGR on
+the sleeve, but SGBs trade at a moving premium or discount to gold, are thin, and new issues stopped in 2024. Only for
+the fixed part (the risk-off switch trades too often). It needs the user's call; do not backtest it as a candidate.
