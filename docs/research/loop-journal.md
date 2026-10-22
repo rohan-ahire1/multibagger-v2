@@ -250,3 +250,25 @@ Queue note for M7 (implementation, not a signal): the fixed 25% gold sleeve coul
 Bonds (2.5% a year interest; NSE series GB from about 2016) instead of GOLDBEES. That is worth up to +0.6 pts CAGR on
 the sleeve, but SGBs trade at a moving premium or discount to gold, are thin, and new issues stopped in 2024. Only for
 the fixed part (the risk-off switch trades too often). It needs the user's call; do not backtest it as a candidate.
+
+## 2026-10-23, cycle 18: M135 paper support for decision offsets (tranches; live prep)
+
+Research first (no new candidate; nothing counted): same-calendar-month seasonality (Heston & Sadka 2008) is mostly
+absent in emerging markets (Li, Zhang & Zheng, 42 markets); no study of a small-cap index trend filter (and the
+M95-M99 benchmark variants are done); Vijaykumar 2026 (SSRN 7394980, ten published momentum definitions on Indian
+stocks) is behind a 403 here, and ranking changes are exhausted (M127-M129). Practitioner pages on stock-level MA exits
+have no evidence (stops are a dead family).
+Work (LOOP step 10, queued since cycle 8): the paper book now takes `schedule.decision_offset_sessions`, so M106 can
+run as four quarter-capital tranches (offsets 0/5/10/15) without month-end luck (M117: tranche ~1.34 vs the 1.50 draw).
+Changes: `targets(..., open_end=True)`, `calendar.sessions_left_in_month`, paper decides when N trading days are left
+(calendar; data overrules once it reaches the next month), and the replay takes the open month's decision as the book
+made it. Checks (docs/research/m135.md): 6 new tests, suite 332 passed / 9 skipped. `m135_m106_offN` trades are
+byte-identical to `m120_ref_offN`. End to end on `nse_daily_delivery@2026-10-22` (read only), 2026-01..10-22: four
+books, 0 replay mismatches, 8/8 decisions per book equal research. Equity gaps reach +1.34% at ₹2.5 lakh a tranche
+(whole-share rounding; the alert limit is 2%).
+Not deployed: drafts `configs/paper/momentum_m106_tranche_off{0,5,10,15}.yaml` (start 2026-11-02). The user decides
+whether to run them beside or instead of M106. Deploying = merge to m8, pull in multibagger-v2, add one unit per book.
+Variants: unchanged (~1,014).
+Next queue: (1) after the 2026-10-30 evening job, compare the M106 paper book's first decision with research (needs a
+dataset through 2026-10-30); (2) live prep: unit files for the tranche drafts (written, not installed) if the user says yes;
+(3) new data families only for signals (MF holdings 2019+, shareholding pattern).
