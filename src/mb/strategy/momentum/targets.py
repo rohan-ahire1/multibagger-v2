@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, IndustryFilter, Insider, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -338,7 +338,8 @@ def _pick(order: list[str], keep: list[str], top_n: int, cap: int | None, sector
 def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: dict[str, str] | None = None,
             days_per_year: int | None = None, fund_symbols: frozenset[str] | None = None,
             insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
-            deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None) -> dict[date, Target]:
+            deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None,
+            industries: pl.DataFrame | None = None) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
     `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set, `market_values` (M118, from the matching
@@ -421,6 +422,12 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
     if lr is not None:  # M121: the nosell rule, on the top drop_frac of long-term returns among the ranked names
         net = long_winners(panel, lr, ranks)
         ins = Insider(raw_dir="", categories=[], lookback_days=lr.from_sessions, rule="nosell", rank_max=None)
+    ind = p.industry_filter if isinstance(p, ParamsM125) else None
+    if ind is not None:  # M125: the nosell rule, on names in the weakest industries (`industries` from nse_industry.load)
+        if industries is None:
+            raise ValueError("industry_filter needs industries")
+        net = weak_industry_names(panel, industries, ind, ranks)
+        ins = Insider(raw_dir="", categories=[], lookback_days=ind.lookback_sessions, rule="nosell", rank_max=None)
     sr = p.short_reversal if isinstance(p, ParamsM123) else None
     if sr is not None:  # M123: the nosell rule, on the top drop_frac of recent returns among the ranked names
         net = top_returns(panel, sr.sessions, 0, sr.drop_frac, ranks)
@@ -506,6 +513,26 @@ def top_returns(panel: pl.DataFrame, from_sessions: int, to_sessions: int, frac:
     for (d,), g in f.group_by("date"):
         g = g.filter(pl.col("symbol").is_in(ranks[d])).sort("lt", "symbol", descending=[True, False])
         out[d] = {s: -1.0 for s in g.head(math.ceil(frac * g.height))["symbol"].to_list()}
+    return {d: out.get(d, {}) for d in ranks}
+
+
+def weak_industry_names(panel: pl.DataFrame, industries: pl.DataFrame, ind: IndustryFilter,
+                        ranks: dict[date, list[str]]) -> dict[date, dict[str, float]]:
+    """M125: per decision, -1.0 for the ranked names whose industry (`ind.level`) is in the bottom `ind.drop_frac` of the
+    industries with at least `ind.min_members` ranked names, by their members' equal-weighted mean return
+    (ties by industry name)."""
+    cls = dict(industries.filter(pl.col(ind.level).is_not_null()).select("symbol", ind.level).iter_rows())
+    ret = pl.col("adj_close").shift(ind.skip_sessions) / pl.col("adj_close").shift(ind.lookback_sessions) - 1.0
+    f = (panel.select("date", "symbol", "adj_close").sort("symbol", "date").with_columns(ret.over("symbol").alias("r"))
+         .filter(pl.col("date").is_in(list(ranks)) & pl.col("r").is_not_null() & pl.col("r").is_finite()))
+    out: dict[date, dict[str, float]] = {}
+    for (d,), g in f.group_by("date"):
+        members = g.filter(pl.col("symbol").is_in(ranks[d])).with_columns(
+            pl.col("symbol").replace_strict(cls, default=None).alias("cls")).filter(pl.col("cls").is_not_null())
+        groups = (members.group_by("cls").agg(pl.col("r").mean(), pl.len().alias("n"))
+                  .filter(pl.col("n") >= ind.min_members).sort("r", "cls"))
+        weak = set(groups.head(math.ceil(ind.drop_frac * groups.height))["cls"].to_list())
+        out[d] = {s: -1.0 for s, c in members.select("symbol", "cls").iter_rows() if c in weak}
     return {d: out.get(d, {}) for d in ranks}
 
 

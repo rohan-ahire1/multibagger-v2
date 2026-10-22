@@ -1003,3 +1003,38 @@ class PortfolioM124(PortfolioM110):
 
 class ParamsM124(ParamsM123):
     portfolio: PortfolioM124
+
+
+# M125 option (docs/research/m125.md).
+
+
+class IndustryFilter(Strict):
+    # Industry momentum at a decision: the equal-weighted mean of adj_close `skip` sessions ago / `lookback` sessions
+    # ago - 1 over the decision's ranked names in the industry (at least min_members of them). A name not held is not
+    # bought when its industry is in the bottom drop_frac of those industries. Names without a class are not affected.
+    raw_dir: str                  # mb data fetch industry snapshots
+    snapshot: str                 # file stem (fetch date)
+    level: Literal["sector", "industry", "basic_industry"]
+    lookback_sessions: int
+    skip_sessions: int
+    min_members: int
+    drop_frac: float
+
+    @model_validator(mode="after")
+    def _m125(self) -> IndustryFilter:
+        if not 0 <= self.skip_sessions < self.lookback_sessions or self.min_members < 1 or not 0.0 < self.drop_frac < 1.0:
+            raise ValueError("need 0 <= skip < lookback, min_members >= 1, drop_frac in (0, 1)")
+        return self
+
+
+class ParamsM125(ParamsM124):
+    industry_filter: IndustryFilter | None
+
+    @model_validator(mode="after")
+    def _m125(self) -> ParamsM125:
+        others = (self.short_reversal, self.long_reversal, self.limit_hits, self.insider, self.results, self.deals)
+        if self.industry_filter is not None and any(o is not None for o in others):
+            raise ValueError("industry_filter and the other buy rules are exclusive")
+        if self.industry_filter is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("industry_filter needs max_per_sector null")
+        return self
