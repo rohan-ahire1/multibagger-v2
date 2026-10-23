@@ -316,3 +316,18 @@ Dropped at the information stage: MAD (21/200) on JUNIORBEES in place of the 200
 regime-filter family is spent (M103 band, M122, M126 SMA ensembles), and smoothing the price is a third SMA variant.
 Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
 `mb live plan`; (2) signal ideas are thin: new data families only.
+
+## 2026-10-23, cycle 22: M139 short NIFTY futures instead of the gold switch
+
+Research: no study tests a futures overlay on a long-only momentum book; the mechanism is portable alpha, and Daniel &
+Moskowitz 2016 show past winners carry low beta after market falls (crash risk sits in losers). Idea: in risk-off keep
+all picks and short NIFTY futures (0.375 / 0.75 of the book) instead of moving half the stocks to GOLDBEES. New:
+`mb data fetch fo-bhav` (legacy F&O bhavcopy 2021-23 fetched; 2009-20 were already here) and strategy kind `hedged`.
+Result: both fail the pre-screen (docs/research/m139.md): h375 1.376 / h75 1.413 vs 1.500, every offset lost; the
+short lost ₹15 / ₹31 lakh over 45 risk-off months. Gold does two jobs in risk-off (less beta and a crisis asset);
+the hedge does one. The risk-off instrument family (cash M88, gold M89, futures M139) is done. Variants: ~1,018.
+Disk: free space fell to 9.7 GB during this cycle (other projects and ~/.cache grew; this repo added 0.4 GB of F&O
+files). Below the 20 GB rule; nothing of other projects deleted. Next cycles should avoid new raw data until space is
+freed (flagged in the ntfy line).
+Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
+`mb live plan`; (2) no new raw data while disk < 20 GB; prefer analysis on data already here.

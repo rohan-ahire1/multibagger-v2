@@ -38,6 +38,7 @@ locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 | `src/mb/strategy/vcp/` | M9 Minervini VCP (`docs/research/m8_vcp.md`): `features.py` (trend template, RS rank), `pattern.py` (swings, base, dry-up, breakout), `check.py` (funnel + chart page), `run.py` |
 | `src/mb/strategy/momentum/` | Month-end momentum: `targets.py` (ranking, stocks-only filter, vol-adjusted score, hold buffer, regime), `params.py`, `run.py` |
 | `src/mb/strategy/blend/` | Fixed-weight mix of existing strategy configs, each pinned by config hash |
+| `src/mb/strategy/hedged/` | M139: a momentum config (pinned by hash, switch off) plus short NIFTY futures while risk-off |
 | `docs/research/` | Pre-registration and results per research milestone |
 | `src/mb/live/` | M6 paper trading: `calendar.py` (NSE holiday list, month-end), `paper.py` (book: fills, corporate actions, jump refusal), `replay.py` (backtest check), `alerts.py` (ntfy), `daily.py` (the daily job) |
 | `configs/paper/` | Paper configs; each pins its strategy config by resolved hash |
@@ -62,6 +63,7 @@ uv run mb data check nse_research@<label>                              # recorde
 uv run mb data fetch bhavcopy configs/data/nse_research.yaml --from D --to D
 uv run mb data fetch corporate-actions configs/data/nse_research.yaml --start-year Y --end-year Y
 uv run mb data fetch pledges configs/data/nse_pledges.yaml --from YYYY-MM --to YYYY-MM   # SAST Reg 31 pledge events (M134)
+uv run mb data fetch fo-bhav configs/data/nse_fo_bhav.yaml --start-year Y --end-year Y   # legacy F&O bhavcopy, one file per year (M139)
 uv run mb paper daily configs/paper/momentum_voladj_stocks.yaml [--no-fetch] [--today D]   # the VPS daily job
 uv run mb paper status configs/paper/momentum_voladj_stocks.yaml
 uv run mb live plan configs/live/dhan_m106.yaml [--decided D] [--holdings F] [--paper-root P]   # Dhan order bodies, not sent (M137)
