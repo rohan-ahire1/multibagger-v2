@@ -1,0 +1,18 @@
+# M139 (docs/research/m139.md): M106's stocks kept in risk-off, short NIFTY futures at 0.75 of the book instead
+name: hedged
+version: m139_h75_off15
+dataset: nse_research@2026-10-14
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  base:
+    config: strategies/momentum/configs/m139_base_off15.yaml
+    config_hash: dfb673722fdf8093856dda345a1a3e4b5f4af40af508b2e173066c24452dbb70
+  hedge:
+    signal_symbol: JUNIORBEES
+    sma_sessions: 200
+    ratio: 0.75
+    futures_raw_dir: data/raw/nse_fo_bhav
+    futures_symbol: NIFTY
+    roll_sessions: 2
+    cost_bps_per_side: 2.0

@@ -321,6 +321,16 @@ class PledgeSource(Strict):
     request_sleep_s: float
 
 
+class FoBhavSource(Strict):
+    # M139: NSE F&O bhavcopy, legacy daily archive (`sources/nse_fo_bhav.py`), one parquet per calendar year.
+    raw_dir: str
+    legacy_archive_base_url: str   # .../content/historical/DERIVATIVES; files <YYYY>/<MON>/fo<DD><MON><YYYY>bhav.csv.zip
+    legacy_cutoff: date            # first day in NSE's UDiFF format; years reaching it are refused
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
+
+
 class IndustrySource(Strict):
     # M125: NSE's four-level industry classification (macro / sector / industry / basic industry) for the symbols listed
     # today (`sources/nse_industry.py`). One snapshot file per fetch date; history is not available from NSE.

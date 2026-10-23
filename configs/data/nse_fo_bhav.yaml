@@ -1,0 +1,7 @@
+# M139 (docs/research/m139.md): NSE F&O bhavcopy, legacy daily archive; 2009-2020 were copied from india-market-data.
+raw_dir: data/raw/nse_fo_bhav
+legacy_archive_base_url: https://nsearchives.nseindia.com/content/historical/DERIVATIVES
+legacy_cutoff: 2024-07-08
+timeout_s: 30
+max_retries: 3
+request_sleep_s: 0.5

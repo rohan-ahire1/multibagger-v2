@@ -228,6 +228,27 @@ def fetch_pledges(
         raise _fail(f"months failed: {', '.join(failed)}")
 
 
+@fetch_app.command("fo-bhav")
+def fetch_fo_bhav(
+    fo_config: Annotated[Path, typer.Argument(help="F&O bhavcopy source YAML (configs/data/nse_fo_bhav.yaml).")],
+    first_year: Annotated[int, typer.Option("--start-year", help="First year to fetch.")],
+    last_year: Annotated[int, typer.Option("--end-year", help="Last year to fetch.")],
+    root: Root = _ROOT,
+) -> None:
+    """Fetch NSE's legacy F&O bhavcopy, one immutable file per ended year (existing years are skipped)."""
+    from mb.config.loader import load_fo_bhav_config
+    from mb.sources import nse_fo_bhav
+
+    try:
+        cfg = load_fo_bhav_config(fo_config)
+        written, skipped, failed = nse_fo_bhav.fetch(cfg, root, first_year, last_year, date.today())
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"wrote {written}, skipped {skipped}")
+    if failed:
+        raise _fail("days failed: " + "; ".join(f"{y}: {len(ds)} ({ds[:3]})" for y, ds in failed.items()))
+
+
 @fetch_app.command("dhan-scrips")
 def fetch_dhan_scrips(
     live_config: Annotated[Path, typer.Argument(help="Live config YAML (configs/live/dhan_m106.yaml).")],
