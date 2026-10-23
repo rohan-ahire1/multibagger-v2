@@ -346,3 +346,20 @@ Each replay holds ~4 GB RAM for ~15 min: run one at a time, outside the paper-jo
 Variants: unchanged (~1,018).
 Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
 `mb live plan`; (2) M7 capital: the user's call, ≥ ₹5 lakh per M140; (3) disk below 20 GB: no new raw data.
+
+## Session 2026-10-23 (cycles 21-23, M138-M140): summary
+
+- M138 moving-average distance in the rank: fails (ranking family done: M127-M129, M138).
+- M139 short NIFTY futures instead of the gold switch: fails at every offset (risk-off instrument family done: cash
+  M88, gold M89, futures M139). New tools kept: `mb data fetch fo-bhav` (F&O bhavcopy now 2009-2023), strategy kind
+  `hedged`.
+- M140 live capital (information): the paper engine reproduces M106 over 2010-23 within 0.3-1.0 pts CAGR from ₹1 crore
+  down to ₹2.5 lakh; ≥ ₹5 lakh recommended for M7.
+- Dropped at the information stage (not counted): MAD on JUNIORBEES, buybacks, momentum-index rebalance flows,
+  re-running the deflated Sharpe (nothing adopted since M104, so M106's evidence is unchanged).
+Variants ~1,018. M106 unchanged; running paper books untouched.
+State for the next session: signal ideas that need only data on this box are spent; each new price-only variant adds
+to the trial count. The paper job's daily replay already compares each decision with research, so the 2026-10-30
+check is mostly automatic: read `replays/` and the 10-30 day record, then dry-run `mb live plan`. Disk is at 8.7 GB
+free (other projects and ~/.cache grow); fetch no new raw data until it is back above 20 GB. Each M140-style replay
+holds ~4 GB RAM for ~15 min.
