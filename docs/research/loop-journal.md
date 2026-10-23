@@ -302,3 +302,17 @@ Next queue: (1) after the 2026-10-30 evening job: compare M106's first paper dec
 `mb live plan configs/live/dhan_m106.yaml --paper-root ~/projects/multibagger-v2` on its pending orders as the
 first real dry run; (2) M7 needs the user: capital, client id, static IP; (3) signal ideas are thin; only new data
 families are left.
+
+## 2026-10-23, cycle 21: M138 moving-average distance in the rank
+
+Idea (pre-registered by the previous session, runs made at code ba1d1b2; this session wrote the results): rank on a
+blend of the vol-adjusted score and MAD = 21-day / 200-day SMA (Avramov, Kaplanski & Subrahmanyam 2021; MAD also times
+92 country indices, Abudy, Kaplanski & Mugerman 2024 JIFMIM). Result: both fail the pre-screen (docs/research/m138.md):
+mad50 1.484 vs 1.500 at offset 0, wins offsets 5/10/15 by 0.01-0.06 but loses f1/f2/f3; MAD alone 1.377, −0.3 to −1.3
+pts CAGR everywhere. Variants: ~1,016.
+Note: disk had 17 GB free at the start of this session (rule: ≥ 20 GB). The space is used by other projects, not this
+one (runs/ 18 MB, datasets 1.1 GB); nothing deleted. Backtests write ~150 KB each, so research continued.
+Dropped at the information stage: MAD (21/200) on JUNIORBEES in place of the 200-day filter (Abudy et al. 2024): the
+regime-filter family is spent (M103 band, M122, M126 SMA ensembles), and smoothing the price is a third SMA variant.
+Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
+`mb live plan`; (2) signal ideas are thin: new data families only.
