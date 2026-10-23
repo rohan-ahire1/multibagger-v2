@@ -1213,3 +1213,36 @@ class ParamsM134(ParamsM132):
         if self.pledges is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("pledges needs max_per_sector null")
         return self
+
+
+# M138 option (docs/research/m138.md).
+
+
+class RankingM138(RankingM129):
+    # Null: off. Otherwise each eligible name's order key is (1 - w) x its percentile rank of the score plus w x its
+    # percentile rank of moving-average distance: mean adj_close over the last mad_short_sessions / mean over the last
+    # mad_long_sessions, both ending at the decision session (Avramov, Kaplanski & Subrahmanyam 2021). w = 1: MAD alone.
+    mad_rank_weight: float | None
+    mad_short_sessions: int | None
+    mad_long_sessions: int | None
+
+    @model_validator(mode="after")
+    def _m138(self) -> RankingM138:
+        on = self.mad_rank_weight is not None
+        if on != (self.mad_short_sessions is not None) or on != (self.mad_long_sessions is not None):
+            raise ValueError("mad_rank_weight, mad_short_sessions and mad_long_sessions go together")
+        if on:
+            assert self.mad_rank_weight is not None and self.mad_short_sessions is not None
+            assert self.mad_long_sessions is not None
+            if not 0.0 < self.mad_rank_weight <= 1.0:
+                raise ValueError("mad_rank_weight must be in (0, 1]")
+            if not 1 <= self.mad_short_sessions < self.mad_long_sessions:
+                raise ValueError("need 1 <= mad_short_sessions < mad_long_sessions")
+            if (self.order != "score" or self.second_lookback_sessions is not None or self.return_part != "total"
+                    or self.accel_rank_weight is not None):
+                raise ValueError("mad_rank_weight needs order score, total return, no second lookback, no acceleration")
+        return self
+
+
+class ParamsM138(ParamsM134):
+    ranking: RankingM138

@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, RankingM138, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -172,6 +172,15 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     if isinstance(r, RankingM29) and r.order == "htp":
         high = pl.col("adj_close").rolling_max(r.lookback_sessions - r.skip_sessions + 1).shift(r.skip_sessions)
         cols.append((high / pl.col("adj_close").shift(r.lookback_sessions)).log().over("symbol").alias("htp"))
+    mad_w = r.mad_rank_weight if isinstance(r, RankingM138) else None
+    if mad_w is not None:  # M138: moving-average distance
+        assert isinstance(r, RankingM138) and r.mad_short_sessions is not None and r.mad_long_sessions is not None
+        ms, ml = r.mad_short_sessions, r.mad_long_sessions
+        cols.append((pl.col("adj_close").rolling_mean(ms, min_samples=ms) / pl.col("adj_close").rolling_mean(ml, min_samples=ml))
+                    .over("symbol").alias("mad"))
+        keys_mad = ["mad"]
+    else:
+        keys_mad = []
     dfrac = u.delivery_drop_frac if isinstance(u, UniverseM40) else None
     if dfrac is not None:
         span = r.lookback_sessions - r.skip_sessions
@@ -214,7 +223,7 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
     if max_gap is not None:
         eligible = eligible & (pl.col("max_gap") <= max_gap)
     for k in (keys + (["discreteness"] if frog is not None else []) + (["maxret"] if max_frac is not None else [])
-              + keys_extra):
+              + keys_extra + keys_mad):
         eligible = eligible & pl.col(k).is_not_null() & pl.col(k).is_finite()
     if u.exclude_fund_units:
         eligible = eligible & ~pl.col("security_id").str.starts_with("isin:INF")
@@ -252,6 +261,10 @@ def ranked(panel: pl.DataFrame, u: Universe, r: Ranking, start: date, end: date,
             day = day.filter(pl.col("accel").is_not_null() & pl.col("accel").is_finite())
             n = pl.len().cast(pl.Float64)
             day = day.with_columns((((1.0 - aw) * pl.col("score").rank("average") + aw * pl.col("accel").rank("average")) / n)
+                                   .alias("score"))
+        if mad_w is not None:  # M138: blend of the score's and MAD's percentile ranks
+            n = pl.len().cast(pl.Float64)
+            day = day.with_columns((((1.0 - mad_w) * pl.col("score").rank("average") + mad_w * pl.col("mad").rank("average")) / n)
                                    .alias("score"))
         day = day.sort(*keys, "score", "symbol", descending=[True] * (len(keys) + 1) + [False])
         order = day["symbol"].to_list()
