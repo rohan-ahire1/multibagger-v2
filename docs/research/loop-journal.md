@@ -331,3 +331,18 @@ files). Below the 20 GB rule; nothing of other projects deleted. Next cycles sho
 freed (flagged in the ntfy line).
 Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
 `mb live plan`; (2) no new raw data while disk < 20 GB; prefer analysis on data already here.
+
+## 2026-10-23, cycle 23: M140 M106 at live capital sizes (realism, information)
+
+Research first (journal only, nothing counted): Indian buybacks show no post-announcement drift (Agarwalla, Jacob &
+Vasudevan, IIMA; Bhama 2023), dropped; Raju & Chandrasekaran's India long-only momentum paper is behind a 403; NSE
+momentum-index rebalance flows (₹17,000 cr passive, June/December) are the dead "momentum index fund" family.
+Work (LOOP step 10, M7 prep): `notebooks/m140_live_capital.py` replays M106 through `mb.live.paper.advance` (the
+running books' code: whole shares, raw prices) over 2010-23 at five capitals (docs/research/m140.md). CAGR 29.11% at
+₹2.5 lakh, 29.48% at ₹5 lakh, 29.66% at ₹10 lakh, 29.80% at ₹1 crore, vs 30.09% fractional; drawdown unchanged
+(20.16%); DP fee on every sale day ≤ 0.03 pts. No book blocked in 14 years. For M7: ₹5 lakh or more.
+Note: the paper code needs the dataset's fund list for pre-2011 data (no ISINs); live data is unaffected.
+Each replay holds ~4 GB RAM for ~15 min: run one at a time, outside the paper-job windows.
+Variants: unchanged (~1,018).
+Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
+`mb live plan`; (2) M7 capital: the user's call, ≥ ₹5 lakh per M140; (3) disk below 20 GB: no new raw data.

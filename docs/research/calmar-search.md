@@ -106,6 +106,7 @@ its own `mNN.md`; this file only summarises.
 | 137 | Offline Dhan order plan and holdings check for the M106 book (M7 prep; `mb live plan` / `mb live reconcile`, safety rails in `configs/live/dhan_m106.yaml`) | — | e2e: the voladj 2026-09-30 decision maps 30/30 symbols to Dhan ids and passes the rails; reconcile matches | tooling, nothing sent; live capital floor ~₹2.5 lakh from whole shares |
 | 138 | Rank on a blend of the score's and moving-average distance's (21 / 200-day SMA) percentile ranks, w = 0.5 / 1 (Avramov, Kaplanski & Subrahmanyam 2021) | mad50 1.484, mad100 1.377 vs 1.500 | mad50 wins offsets 5/10/15 by 0.01-0.06, loses f1/f2/f3; mad100 −0.3 to −1.3 pts CAGR, f1 1.52 | fails pre-screen; ranking family done |
 | 139 | Keep all picks in risk-off and short NIFTY futures (0.375 / 0.75 of the book) instead of moving half the stocks to GOLDBEES (portable alpha; Daniel & Moskowitz 2016 on winners' low bear-market beta; new `mb data fetch fo-bhav`, strategy kind `hedged`) | h375 1.376, h75 1.413 vs 1.500 | every offset lost; short lost ₹15 / ₹31 lakh over 45 risk-off months | fails pre-screen; gold beats a futures hedge as the risk-off leg |
+| 140 | M106 through the paper engine (whole shares, raw prices, real corporate actions) at ₹2.5 lakh to ₹1 crore, 2010-23 (realism, information) | ₹2.5L 1.444, ₹5L 1.462, ₹10L 1.471, ₹1Cr 1.478 vs 1.500 fractional | −1.0 / −0.6 / −0.4 / −0.3 pts CAGR; DP fee on every sale ≤ 0.03 pts | information: ≥ ₹5 lakh keeps live within ~0.6 pts |
 
 What the evidence says so far:
 
