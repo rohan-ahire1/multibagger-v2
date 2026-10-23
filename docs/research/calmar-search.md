@@ -104,6 +104,7 @@ its own `mNN.md`; this file only summarises.
 | 134 | No new buys (pl180) / also not kept (pl180h) after a promoter pledge creation or invocation in the last 180 days (Indian pledging crash-risk studies; new `mb data fetch pledges`, SAST Reg 31 from 2014) | pl180 1.355 (28.9% CAGR, 21.4% DD), pl180h 1.416 vs 1.500 | lose all four offsets, f2, f3 (f1 equal: no data before 2014) | fail at the pre-screen; −0.6 to −1.2 pts CAGR everywhere |
 | 135 | Paper support for decision offsets: M106 as four quarter-capital tranches (offsets 0/5/10/15; Hoffstein, Faber & Braun 2020; infrastructure, information) | offset configs equal `m120_ref_offN` byte for byte; e2e 2026: 4 books, 0 replay mismatches, 8/8 decisions equal research each | — | ready, not deployed (user's call); removes M106's month-end luck (tranche ~1.34 vs 1.50 draw) |
 | 137 | Offline Dhan order plan and holdings check for the M106 book (M7 prep; `mb live plan` / `mb live reconcile`, safety rails in `configs/live/dhan_m106.yaml`) | — | e2e: the voladj 2026-09-30 decision maps 30/30 symbols to Dhan ids and passes the rails; reconcile matches | tooling, nothing sent; live capital floor ~₹2.5 lakh from whole shares |
+| 138 | Rank on a blend of the score's and moving-average distance's (21 / 200-day SMA) percentile ranks, w = 0.5 / 1 (Avramov, Kaplanski & Subrahmanyam 2021) | mad50 1.484, mad100 1.377 vs 1.500 | mad50 wins offsets 5/10/15 by 0.01-0.06, loses f1/f2/f3; mad100 −0.3 to −1.3 pts CAGR, f1 1.52 | fails pre-screen; ranking family done |
 
 What the evidence says so far:
 
