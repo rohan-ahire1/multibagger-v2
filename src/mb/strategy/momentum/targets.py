@@ -12,9 +12,9 @@ from datetime import date
 import numpy as np
 import polars as pl
 
-from mb.data import insider, market, results
+from mb.data import fundamentals, insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, RankingM138, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, ParamsM141, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, RankingM138, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -469,12 +469,12 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             insider_trades: pl.DataFrame | None = None, meetings: pl.DataFrame | None = None,
             deal_trades: pl.DataFrame | None = None, market_values: pl.DataFrame | None = None,
             industries: pl.DataFrame | None = None, pledge_events: pl.DataFrame | None = None,
-            open_end: bool = False) -> dict[date, Target]:
+            filings: pl.DataFrame | None = None, open_end: bool = False) -> dict[date, Target]:
     """`sectors` and `days_per_year` are needed only by the M8 sector cap and volatility target; `fund_symbols` as in `ranked`.
     `insider_trades` (M111, from `mb.data.insider.load`) is needed when `p.insider` is set, `meetings` (M114, from
     `mb.data.results.load`) when `p.results` is set, `deal_trades` (M116, from `mb.data.deals.load`) when `p.deals` is set, `market_values` (M118, from the matching
     `mb.data.market.load_*`) when `p.regime.market_signal` is set, `pledge_events` (M134, from `nse_pledges.load`) when
-    `p.pledges` is set. `open_end` (M135, paper with a decision offset) as in `decision_dates`."""
+    `p.pledges` is set, `filings` (M141, from `nse_results.load`) when `p.fundamentals` is set. `open_end` (M135, paper with a decision offset) as in `decision_dates`."""
     m11 = p if isinstance(p, ParamsM11) else None
     min_mom = p.portfolio.min_momentum if isinstance(p, ParamsM12) else None
     ranks = ranked(panel, p.universe, p.ranking, start, end, p.portfolio.top_n,
@@ -572,6 +572,12 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             raise ValueError("pledges rule needs pledge_events")
         net = pledge_flags(pledge_events, pg, list(ranks))
         ins = Insider(raw_dir="", categories=[], lookback_days=pg.lookback_days, rule="nosell", rank_max=None)
+    fu = p.fundamentals if isinstance(p, ParamsM141) else None
+    if fu is not None:  # M141: the nosell rule, on quarterly results
+        if filings is None:
+            raise ValueError("fundamentals rule needs filings")
+        net = fundamentals.flags(filings, fu.rule, list(ranks), fu.max_age_days)
+        ins = Insider(raw_dir="", categories=[], lookback_days=fu.max_age_days, rule="nosell", rank_max=None)
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]

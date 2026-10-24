@@ -1246,3 +1246,36 @@ class RankingM138(RankingM129):
 
 class ParamsM138(ParamsM134):
     ranking: RankingM138
+
+
+# M141 option (docs/research/m141.md).
+
+
+class Fundamentals(Strict):
+    # NSE quarterly results, standalone (`mb data fetch results`, `mb.data.fundamentals.flags`). A name the rule flags
+    # at a decision is not bought (held names are kept as usual). Rules: `loss` (last four quarters sum to a loss),
+    # `yoy_decline` (latest quarter's net profit below the same quarter a year earlier). Names whose latest known
+    # quarter ended more than max_age_days before the decision, or with too few quarters, are not flagged.
+    raw_dir: str
+    rule: Literal["loss", "yoy_decline"]
+    max_age_days: int
+
+    @model_validator(mode="after")
+    def _m141(self) -> Fundamentals:
+        if self.max_age_days <= 0:
+            raise ValueError("max_age_days must be > 0")
+        return self
+
+
+class ParamsM141(ParamsM138):
+    fundamentals: Fundamentals | None
+
+    @model_validator(mode="after")
+    def _m141(self) -> ParamsM141:
+        others = (self.short_reversal, self.long_reversal, self.limit_hits, self.insider, self.results, self.deals,
+                  self.industry_filter, self.pledges)
+        if self.fundamentals is not None and any(o is not None for o in others):
+            raise ValueError("fundamentals and the other buy rules are exclusive")
+        if self.fundamentals is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("fundamentals needs max_per_sector null")
+        return self

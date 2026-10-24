@@ -321,6 +321,25 @@ class PledgeSource(Strict):
     request_sleep_s: float
 
 
+class ResultsSource(Strict):
+    # M141: NSE quarterly financial results (`sources/nse_results.py`): per-symbol filing list, then each filing's
+    # figures (old HTML page or XBRL). Symbols: every EQ name of `dataset` that met the price and ADV floors on some
+    # session from `symbols_from`.
+    raw_dir: str
+    api_url: str              # corporates-financial-results, queried per symbol
+    home_url: str
+    referer_url: str
+    timeout_s: float
+    max_retries: int
+    request_sleep_s: float
+    period_from: date         # quarters ending before this are not fetched
+    natures: list[str]        # listing `consolidated` values to fetch (e.g. Non-Consolidated)
+    symbols_from: date
+    symbols_min_price_inr: float
+    symbols_min_adv_inr: float
+    symbols_adv_window_sessions: int
+
+
 class FoBhavSource(Strict):
     # M139: NSE F&O bhavcopy, legacy daily archive (`sources/nse_fo_bhav.py`), one parquet per calendar year.
     raw_dir: str

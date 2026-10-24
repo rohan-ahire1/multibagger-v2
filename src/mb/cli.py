@@ -228,6 +228,34 @@ def fetch_pledges(
         raise _fail(f"months failed: {', '.join(failed)}")
 
 
+@fetch_app.command("results")
+def fetch_results(
+    results_config: Annotated[Path, typer.Argument(help="Results source YAML (configs/data/nse_results.yaml).")],
+    dataset: Annotated[str, typer.Option("--dataset", help="Dataset whose eligible EQ symbols are fetched, name@version.")],
+    first: Annotated[int, typer.Option("--first", help="Index of the first symbol (sorted by name) to fetch.")] = 0,
+    count: Annotated[int, typer.Option("--count", help="Number of symbols to fetch (0 = all).")] = 0,
+    root: Root = _ROOT,
+) -> None:
+    """Fetch NSE quarterly results: each symbol's filing list, then each wanted filing's figures (existing files kept)."""
+    import logging
+
+    from mb.config.loader import load_results_config
+    from mb.data.datasets import dataset_path
+    from mb.sources import nse_results
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    try:
+        cfg = load_results_config(results_config)
+        symbols = nse_results.eligible_symbols(dataset_path(root, dataset) / "panel.parquet", cfg)
+        symbols = symbols[first:first + count] if count else symbols[first:]
+        n_list, n_det, failed = nse_results.fetch(cfg, root, symbols)
+    except (ConfigError, ValueError) as e:
+        raise _fail(str(e)) from None
+    typer.echo(f"{len(symbols)} symbols: wrote {n_list} listings, {n_det} filings")
+    if failed:
+        raise _fail(f"symbols failed: {', '.join(failed)}")
+
+
 @fetch_app.command("fo-bhav")
 def fetch_fo_bhav(
     fo_config: Annotated[Path, typer.Argument(help="F&O bhavcopy source YAML (configs/data/nse_fo_bhav.yaml).")],

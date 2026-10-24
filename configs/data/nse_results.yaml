@@ -1,0 +1,14 @@
+# M141 (docs/research/m141.md): NSE quarterly financial results, standalone, per symbol.
+raw_dir: data/raw/nse_results
+api_url: https://www.nseindia.com/api/corporates-financial-results
+home_url: https://www.nseindia.com/
+referer_url: https://www.nseindia.com/companies-listing/corporate-filings-financial-results
+timeout_s: 30
+max_retries: 3
+request_sleep_s: 0.35
+period_from: 2007-01-01
+natures: [Non-Consolidated]
+symbols_from: 2009-01-01
+symbols_min_price_inr: 50
+symbols_min_adv_inr: 10000000
+symbols_adv_window_sessions: 50
