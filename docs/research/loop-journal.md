@@ -401,3 +401,15 @@ costs; its weakness is a steady bull market (f2). Paper trading it needs a daily
 Next queue: (1) 2026-10-30: M106's first paper decision vs research, dry-run `mb live plan`; (2) if the user wants
 the blend on paper: build paper support for the pullback sleeve (research branch only, unit drafted, not installed);
 (3) fix the calmar-search summary line about March 2020.
+
+## 2026-10-25, cycle 26: M143 scaled turnover
+
+Idea dropped in cycle 10 for lack of share counts; M141's results data now gives them (paid-up / face value, 97% of
+filings). Rule: no new buys in the top 20% / 40% of 50-day traded value / market cap (Lee & Swaminathan 2000;
+BacktestIndia 2026). Result (docs/research/m143.md): both lose every offset and fold at -3 to -6 pts CAGR (tr20 1.477,
+tr40 1.420 vs 1.500). The heavily traded winners are M106's best names. Variants: ~1,029.
+New tool: `mb.data.fundamentals.turnover_ratio` (market cap carried through splits by adj_factor).
+Next queue: (1) 2026-10-30 paper decision check and `mb live plan` dry run; (2) market cap now exists: a size tilt is
+the only fundamentals idea left that is not a buy filter; but M33/M66 (lower ADV floors) already push towards smaller
+names, and Indian momentum is reported stronger in large caps (NSE RP 2012), so expected weak; (3) the M142 blend's
+paper support if the user asks.
