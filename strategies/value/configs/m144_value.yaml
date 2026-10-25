@@ -1,7 +1,7 @@
 # M144 (docs/research/m144.md): value book, top 25 NSE names by trailing earnings yield, equal weight, month-end
 name: value
 version: m144_value
-dataset: nse_research@2026-10-23
+dataset: nse_research@2026-10-25
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:

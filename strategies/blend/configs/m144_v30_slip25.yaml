@@ -1,16 +1,16 @@
 # M144 (docs/research/m144.md): M106 0.7 + value 0.3, 25 bps extra slippage
 name: blend
 version: m144_v30_slip25
-dataset: nse_research@2026-10-23
+dataset: nse_research@2026-10-25
 market: nse_cash_slip25
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
   sleeves:
-    - config: strategies/momentum/configs/m142_ref_slip25.yaml
-      config_hash: e854cd02ef90ab25e453ae2d8aacbbfd1938bf27e04e3c9710bc38bc863054c0
+    - config: strategies/momentum/configs/m144_ref_slip25.yaml
+      config_hash: 9c053ec575e38d067fecba575bd3801312a0acfb5f59365dc72fa3ed7421ace0
       weight: 0.7
     - config: strategies/value/configs/m144_value_slip25.yaml
-      config_hash: c23bffe4ce12426d42873ced2b6e93a35794456a8390a5861407bf9f6d38af09
+      config_hash: abf9740b2e230dd6b4a3d7b29fe3480f2a91279b941688acd83ec5c5ecd6ad18
       weight: 0.3
   initial_capital: 1000000
   rebalance: monthly

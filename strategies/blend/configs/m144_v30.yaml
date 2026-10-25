@@ -1,16 +1,16 @@
 # M144 (docs/research/m144.md): M106 0.7 + value book 0.3, monthly rebalanced, decision offset 0
 name: blend
 version: m144_v30
-dataset: nse_research@2026-10-23
+dataset: nse_research@2026-10-25
 market: nse_cash
 period: {start: 2010-01-04, end: 2023-12-31}
 params:
   sleeves:
-    - config: strategies/momentum/configs/m136_ref.yaml
-      config_hash: 63e24383068c582010edd532153f73e91ffa4bacb9667efbb5a5aa1548aa68ff
+    - config: strategies/momentum/configs/m144_ref.yaml
+      config_hash: de1f83aa8a331bf073fdc3f8582e223e009a1b6b39c74efb7495a01ec4485c12
       weight: 0.7
     - config: strategies/value/configs/m144_value.yaml
-      config_hash: a1c04078e6965a59a6f69d39c59c31a88164b023d43914b98355148a1245cb21
+      config_hash: bcba05df50bcac55fbb73b7c6e08ee7f71c0d905eb7d4a4cacb4323628fa6653
       weight: 0.3
   initial_capital: 1000000
   rebalance: monthly
