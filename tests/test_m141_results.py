@@ -110,3 +110,21 @@ def test_fundamentals_params_validate():
     Fundamentals(raw_dir="x", rule="loss", max_age_days=200)
     with pytest.raises(ValueError):
         Fundamentals(raw_dir="x", rule="loss", max_age_days=0)
+
+
+def test_turnover_ratio_carries_shares_through_a_split():
+    # 10 shares at the March quarter; a 1:2 split on 2020-05-04 (raw close halves, adj_factor 0.5 before, 1.0 after).
+    days = [date(2020, 3, 31), date(2020, 4, 30), date(2020, 5, 4), date(2020, 5, 29)]
+    panel = pl.DataFrame({"date": days, "symbol": ["A"] * 4, "close": [100.0, 100.0, 50.0, 50.0],
+                          "adj_factor": [0.5, 0.5, 1.0, 1.0], "turnover": [10.0, 10.0, 10.0, 30.0]})
+    f = pl.DataFrame({"symbol": ["A"], "seq": ["1"], "period_end": [date(2020, 3, 31)], "avail": [date(2020, 4, 20)],
+                      "paid_up": [100.0], "face_value": [10.0]})
+    tr = fundamentals.turnover_ratio(f, panel, [date(2020, 4, 30), date(2020, 5, 29)], 2, 200)
+    assert tr[date(2020, 4, 30)] == {"A": pytest.approx(10.0 / 1000.0)}   # 10 shares x 100
+    assert tr[date(2020, 5, 29)] == {"A": pytest.approx(20.0 / 1000.0)}   # 20 shares x 50, mean turnover (10+30)/2
+    assert fundamentals.turnover_ratio(f, panel, [date(2020, 4, 15)], 2, 200)[date(2020, 4, 15)] == {}
+
+
+def test_top_frac_ties_by_symbol():
+    from mb.strategy.momentum.targets import top_frac
+    assert top_frac({"b": 1.0, "a": 1.0, "c": 0.5}, 0.5) == {"a": -1.0, "b": -1.0}

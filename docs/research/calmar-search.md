@@ -112,7 +112,7 @@ its own `mNN.md`; this file only summarises.
 
 What the evidence says so far:
 
-- Through M89 the max drawdown of every long-only book was March 2020 (M106: 2022-05-25, 20.1%; see M142). Calmar is
+- For the earlier books (this line was written before the Next 50 filter) the max drawdown was March 2020; M106's is 2022-05-25 (20.1%, M142). Calmar is
   roughly CAGR / (that loss). Gold is the only asset with history from 2007 that did not fall with Indian stocks;
   gilt ETFs start in 2016, MON100 trades at a 10–30% premium to NAV.
 - Ways that cut the 2020 loss (rotation, low-vol) cost about the same share of return in strong years.

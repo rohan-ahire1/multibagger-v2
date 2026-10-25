@@ -1279,3 +1279,38 @@ class ParamsM141(ParamsM138):
         if self.fundamentals is not None and self.portfolio.max_per_sector is not None:
             raise ValueError("fundamentals needs max_per_sector null")
         return self
+
+
+# M143 option (docs/research/m143.md).
+
+
+class ScaledTurnover(Strict):
+    # Turnover ratio = mean daily traded value over `sessions` / market cap (shares from NSE quarterly results,
+    # `mb.data.fundamentals.turnover_ratio`). A name not held is not bought when its ratio is in the top drop_frac of the
+    # decision's ranked (eligible) names that have one. Names without a ratio are not affected.
+    raw_dir: str
+    sessions: int
+    max_age_days: int
+    drop_frac: float
+
+    @model_validator(mode="after")
+    def _m143(self) -> ScaledTurnover:
+        if self.sessions <= 0 or self.max_age_days <= 0:
+            raise ValueError("sessions and max_age_days must be > 0")
+        if not 0.0 < self.drop_frac < 1.0:
+            raise ValueError("drop_frac must be in (0, 1)")
+        return self
+
+
+class ParamsM143(ParamsM141):
+    scaled_turnover: ScaledTurnover | None
+
+    @model_validator(mode="after")
+    def _m143(self) -> ParamsM143:
+        others = (self.short_reversal, self.long_reversal, self.limit_hits, self.insider, self.results, self.deals,
+                  self.industry_filter, self.pledges, self.fundamentals)
+        if self.scaled_turnover is not None and any(o is not None for o in others):
+            raise ValueError("scaled_turnover and the other buy rules are exclusive")
+        if self.scaled_turnover is not None and self.portfolio.max_per_sector is not None:
+            raise ValueError("scaled_turnover needs max_per_sector null")
+        return self

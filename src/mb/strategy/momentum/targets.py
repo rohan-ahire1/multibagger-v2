@@ -14,7 +14,7 @@ import polars as pl
 
 from mb.data import fundamentals, insider, market, results
 from mb.engine.rebalance import Target
-from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, ParamsM141, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, RankingM138, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
+from mb.strategy.momentum.params import (Params, ParamsM8, ParamsM11, ParamsM12, ParamsM19, ParamsM21, ParamsM22, ParamsM46, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM131, ParamsM132, ParamsM134, ParamsM141, ParamsM143, IndustryFilter, Insider, Pledges, LimitHits, LongReversal, Ranking, RankingM8, RankingM10, RankingM12, RankingM29, RankingM55, RankingM128, RankingM129, RankingM138, ScheduleM57, UniverseM40, UniverseM44, UniverseM53,
                                          Rotation, Sizing, Universe, UniverseM13, VolStates)
 
 
@@ -578,6 +578,13 @@ def targets(panel: pl.DataFrame, p: Params, start: date, end: date, *, sectors: 
             raise ValueError("fundamentals rule needs filings")
         net = fundamentals.flags(filings, fu.rule, list(ranks), fu.max_age_days)
         ins = Insider(raw_dir="", categories=[], lookback_days=fu.max_age_days, rule="nosell", rank_max=None)
+    stv = p.scaled_turnover if isinstance(p, ParamsM143) else None
+    if stv is not None:  # M143: the nosell rule, on the top drop_frac of turnover / market cap among the ranked names
+        if filings is None:
+            raise ValueError("scaled_turnover needs filings")
+        tr = fundamentals.turnover_ratio(filings, panel, list(ranks), stv.sessions, stv.max_age_days)
+        net = {d: top_frac({s: v for s, v in tr[d].items() if s in set(o)}, stv.drop_frac) for d, o in ranks.items()}
+        ins = Insider(raw_dir="", categories=[], lookback_days=stv.sessions, rule="nosell", rank_max=None)
     for d, order in ranks.items():
         pos = {s: k for k, s in enumerate(order)}
         keep = [s for s in held if s in pos and pos[s] < p.portfolio.hold_rank_max]
@@ -654,6 +661,12 @@ def limit_hits(panel: pl.DataFrame, lh: LimitHits, dates: list[date]) -> dict[da
     for d, s, n in f.select("date", "symbol", "hits").iter_rows():
         out[d][s] = n
     return out
+
+
+def top_frac(values: dict[str, float], frac: float) -> dict[str, float]:
+    """M143: -1.0 for the ceil(frac x n) symbols with the highest values (ties by symbol)."""
+    order = sorted(values, key=lambda s: (-values[s], s))
+    return {s: -1.0 for s in order[: math.ceil(frac * len(order))]}
 
 
 def long_winners(panel: pl.DataFrame, lr: LongReversal, ranks: dict[date, list[str]]) -> dict[date, dict[str, float]]:

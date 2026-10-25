@@ -12,10 +12,10 @@ from mb.engine.rebalance import RebalanceResult, simulate_targets
 from mb.engine.run import load_sectors, score
 from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
-from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM128, ParamsM129, ParamsM131, ParamsM132, ParamsM134, ParamsM138, ParamsM141, UniverseM40
+from mb.strategy.momentum.params import Params, ParamsM8, ParamsM10, ParamsM11, ParamsM12, ParamsM13, ParamsM19, ParamsM21, ParamsM22, ParamsM27, ParamsM29, ParamsM32, ParamsM40, ParamsM44, ParamsM46, ParamsM53, ParamsM55, ParamsM57, ParamsM75, ParamsM76, ParamsM79, ParamsM81, ParamsM82, ParamsM89, ParamsM97, ParamsM99, ParamsM103, ParamsM110, ParamsM111, ParamsM114, ParamsM116, ParamsM117, ParamsM118, ParamsM120, ParamsM121, ParamsM122, ParamsM123, ParamsM124, ParamsM125, ParamsM126, ParamsM127, ParamsM128, ParamsM129, ParamsM131, ParamsM132, ParamsM134, ParamsM138, ParamsM141, ParamsM143, UniverseM40
 from mb.strategy.momentum.targets import rotation_shares, targets, vol_state_scales, with_book_scale, with_rotation
 
-__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "ParamsM89", "ParamsM97", "ParamsM99", "ParamsM103", "ParamsM110", "ParamsM111", "ParamsM114", "ParamsM116", "ParamsM117", "ParamsM118", "ParamsM120", "ParamsM121", "ParamsM122", "ParamsM123", "ParamsM124", "ParamsM125", "ParamsM126", "ParamsM127", "ParamsM128", "ParamsM129", "ParamsM131", "ParamsM132", "ParamsM134", "ParamsM138", "ParamsM141", "run", "simulate"]
+__all__ = ["Params", "ParamsM8", "ParamsM10", "ParamsM11", "ParamsM12", "ParamsM13", "ParamsM19", "ParamsM21", "ParamsM22", "ParamsM27", "ParamsM29", "ParamsM32", "ParamsM40", "ParamsM44", "ParamsM46", "ParamsM53", "ParamsM55", "ParamsM57", "ParamsM75", "ParamsM76", "ParamsM79", "ParamsM81", "ParamsM82", "ParamsM89", "ParamsM97", "ParamsM99", "ParamsM103", "ParamsM110", "ParamsM111", "ParamsM114", "ParamsM116", "ParamsM117", "ParamsM118", "ParamsM120", "ParamsM121", "ParamsM122", "ParamsM123", "ParamsM124", "ParamsM125", "ParamsM126", "ParamsM127", "ParamsM128", "ParamsM129", "ParamsM131", "ParamsM132", "ParamsM134", "ParamsM138", "ParamsM141", "ParamsM143", "run", "simulate"]
 
 
 def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
@@ -28,7 +28,8 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
              .select("date", "symbol", "security_id", "series", "close", "turnover", "adj_open", "adj_high", "adj_close",
                      *(("volume", "deliv_qty") if isinstance(p.universe, UniverseM40)
                        and p.universe.delivery_drop_frac is not None else ()),
-                     *(("high",) if isinstance(p, ParamsM120) and p.limit_hits is not None else ()))
+                     *(("high",) if isinstance(p, ParamsM120) and p.limit_hits is not None else ()),
+                     *(("adj_factor",) if isinstance(p, ParamsM143) and p.scaled_turnover is not None else ()))
              .collect())
     days = sorted(panel.filter(pl.col("date").is_between(period.start, period.end))["date"].unique().to_list())
     bars = panel.select("date", "symbol", pl.col("adj_open").alias("open"), pl.col("adj_close").alias("close"))
@@ -51,7 +52,9 @@ def simulate(cfg: Resolved, root: Path) -> RebalanceResult:
                  pledge_events=nse_pledges.load(root / p.pledges.raw_dir)
                  if isinstance(p, ParamsM134) and p.pledges is not None else None,
                  filings=nse_results.load(root / p.fundamentals.raw_dir)
-                 if isinstance(p, ParamsM141) and p.fundamentals is not None else None)
+                 if isinstance(p, ParamsM141) and p.fundamentals is not None else
+                 nse_results.load(root / p.scaled_turnover.raw_dir)
+                 if isinstance(p, ParamsM143) and p.scaled_turnover is not None else None)
     stop = p.exits.stop_loss_frac if isinstance(p, ParamsM11) else None
     stop_to = p.exits.stop_proceeds_to if isinstance(p, ParamsM75) else None
     trail = p.exits.stop_trailing if isinstance(p, ParamsM76) else False
