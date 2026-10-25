@@ -363,3 +363,23 @@ to the trial count. The paper job's daily replay already compares each decision 
 check is mostly automatic: read `replays/` and the 10-30 day record, then dry-run `mb live plan`. Disk is at 8.7 GB
 free (other projects and ~/.cache grow); fetch no new raw data until it is back above 20 GB. Each M140-style replay
 holds ~4 GB RAM for ~15 min.
+
+## 2026-10-24/25, cycle 24: M141 quarterly results (new data family)
+
+Research: Novy-Marx 2015 (earnings momentum subsumes price momentum, US), Chan, Jegadeesh & Lakonishok 1996, Indian SUE
+drift (Harshita, Singh & Yadav 2018; against: Gupta & Dhusia 2021), NSE's Smallcap250 Momentum Quality 100 index (screens
+momentum names on ROE, leverage, EPS-growth variability). Dropped at the information stage: single-stock futures basis
+as a shorting-demand signal (M106 buys almost no F&O names, M118/M119).
+New data: NSE quarterly results for every symbol M106 could buy (2,649 symbols, 93,701 standalone filings, 2007-24,
+old HTML pages + XBRL; `mb data fetch results`, `src/mb/sources/nse_results.py`, 557 MB in `data/raw/nse_results`).
+Net profit parses for ≥ 98.7% of filings each year. The fetch took ~6 h with four workers; NSE refused one burst of
+~60 symbols, recovered by a single fill-in pass.
+Idea: no new buys of loss-makers (TTM) or of names whose latest quarterly profit fell year on year (19% of buys).
+Result: both fail the pre-screen (docs/research/m141.md): loss 1.394, yoy 1.408 vs 1.500; yoy wins offsets 10 and 15
+(1.312 / 1.501) on smaller drawdowns but loses 0 and 5, every fold, and CAGR everywhere. Variants: ~1,020.
+Pattern: every buy filter, now including fundamentals, trades CAGR for drawdown inside the decision-day band.
+Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper decision with research and dry-run
+`mb live plan`; (2) with fundamentals now on disk: an earnings-stability or valuation (E/P cap) screen is the same
+buy-filter family, so only one more try, and only with a stronger reason than M141's; (3) the M113 pullback blend
+(dev 1.876, locked 1.533 vs 1.314) is the largest effect seen and fails only f2; it needs a paper-engine pullback sleeve
+and the user's call, not more fitting.
