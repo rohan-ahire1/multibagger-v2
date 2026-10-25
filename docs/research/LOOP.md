@@ -50,7 +50,7 @@ only, and never pass `--final` on a new config without writing why first. Keep a
    or restart the existing paper books or their configs. If installing is blocked, write the exact command into the
    journal and the ntfy message.
 8. Append to `docs/research/loop-journal.md`: date, idea, sources, result, verdict, variants count, next ideas queue.
-9. Send one plain-language line to ntfy: `curl -s -d "<msg>" https://ntfy.sh/$TOPIC` with TOPIC from
+9. Send one plain-language line to ntfy: `curl -s -d "<msg>" https://ntfy.sh/$MB_NTFY_TOPIC` with MB_NTFY_TOPIC from
    `~/.config/multibagger/alerts.env` (never print the topic or any secret into the repo).
 10. Start the next cycle. If an idea fails, pick another. If ideas run thin, do data-quality work, realism (costs,
     circuit locks, live fills), robustness of M106 itself, or live-trading (M7, Dhan) preparation, rather than

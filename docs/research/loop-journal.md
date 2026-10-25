@@ -383,3 +383,21 @@ Next queue: (1) after the 2026-10-30 evening job, compare M106's first paper dec
 buy-filter family, so only one more try, and only with a stronger reason than M141's; (3) the M113 pullback blend
 (dev 1.876, locked 1.533 vs 1.314) is the largest effect seen and fails only f2; it needs a paper-engine pullback sleeve
 and the user's call, not more fitting.
+
+## 2026-10-25, cycle 25: M142 the m108-line pullback blend through the loop bar (information)
+
+Why: the biggest effect found anywhere (M113 on branch m108: M106 0.8 + 5-name RSI(2) pullback 0.2, monthly
+rebalanced; dev 1.876, locked 2024-26 1.533 vs 1.314) had never faced this loop's bar. Code cherry-picked from m108
+(pullback, calendar, rebalanced blend, engine limit entries; docs left out, their milestone numbers clash).
+Result (docs/research/m142.md): wins offset 0 and offsets 5/10/15 (1.876 / 1.244 / 1.445 / 1.660 vs 1.500 / 1.080 /
+1.273 / 1.409), after tax (1.412 vs 1.102), 25 bps (1.679 vs 1.411), neighbours (w10 1.726, w30 1.832). Fails f2
+(2014-17) at every offset, at 25 bps and after tax, and the bootstrap is 74.8% (bar 85%). Not adopted.
+Correction found while writing: M106's worst drawdown is 2022-05-25 (20.1%), not March 2020; the old summary line
+in calmar-search.md ("max DD of every long-only book is March 2020") predates the Next 50 filter. A's worst is
+2020-03-23 (15.6%). Variants: ~1,027.
+For the user: this is the one config that beats M106 on whole-period Calmar in dev, out of sample, after tax and at
+costs; its weakness is a steady bull market (f2). Paper trading it needs a daily pullback sleeve in the paper engine
+(not built) and the user's OK.
+Next queue: (1) 2026-10-30: M106's first paper decision vs research, dry-run `mb live plan`; (2) if the user wants
+the blend on paper: build paper support for the pullback sleeve (research branch only, unit drafted, not installed);
+(3) fix the calmar-search summary line about March 2020.

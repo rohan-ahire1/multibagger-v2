@@ -108,10 +108,11 @@ its own `mNN.md`; this file only summarises.
 | 139 | Keep all picks in risk-off and short NIFTY futures (0.375 / 0.75 of the book) instead of moving half the stocks to GOLDBEES (portable alpha; Daniel & Moskowitz 2016 on winners' low bear-market beta; new `mb data fetch fo-bhav`, strategy kind `hedged`) | h375 1.376, h75 1.413 vs 1.500 | every offset lost; short lost ₹15 / ₹31 lakh over 45 risk-off months | fails pre-screen; gold beats a futures hedge as the risk-off leg |
 | 140 | M106 through the paper engine (whole shares, raw prices, real corporate actions) at ₹2.5 lakh to ₹1 crore, 2010-23 (realism, information) | ₹2.5L 1.444, ₹5L 1.462, ₹10L 1.471, ₹1Cr 1.478 vs 1.500 fractional | −1.0 / −0.6 / −0.4 / −0.3 pts CAGR; DP fee on every sale ≤ 0.03 pts | information: ≥ ₹5 lakh keeps live within ~0.6 pts |
 | 141 | No new buys of loss-makers (last four quarters) / of names whose latest quarterly profit fell year on year (Novy-Marx 2015; Chan, Jegadeesh & Lakonishok 1996; Indian SUE drift; new `mb data fetch results`, NSE quarterly results 2007-24) | loss 1.394, yoy 1.408 vs 1.500 at offset 0 | yoy wins offsets 10/15 (1.312 / 1.501) on smaller drawdowns, loses 0/5 and f1-f3; loss loses everything | fail: earnings add nothing to the vol-adjusted 12-1 score; CAGR lower everywhere |
+| 142 | The m108-line blend (M106 0.8 + 5-name RSI(2) pullback 0.2, monthly rebalanced) through the full loop bar (information; code from branch m108) | **1.876 (29.25% CAGR, 15.59% DD)**; offsets 5/10/15 1.244 / 1.445 / 1.660; after tax 1.412 vs 1.102; 25 bps 1.679 vs 1.411 | wins every offset, after tax, 25 bps, neighbours; **loses f2 at every offset** (1.83-2.05 vs 2.04-2.37); bootstrap 74.8% | fail (f2, bootstrap); strongest near miss so far; paper trading is the user's call |
 
 What the evidence says so far:
 
-- The max drawdown of every long-only book is March 2020, a one-month crash a monthly rule cannot react to. Calmar is
+- Through M89 the max drawdown of every long-only book was March 2020 (M106: 2022-05-25, 20.1%; see M142). Calmar is
   roughly CAGR / (that loss). Gold is the only asset with history from 2007 that did not fall with Indian stocks;
   gilt ETFs start in 2016, MON100 trades at a 10–30% premium to NAV.
 - Ways that cut the 2020 loss (rotation, low-vol) cost about the same share of return in strong years.

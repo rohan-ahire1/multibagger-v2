@@ -24,12 +24,13 @@ TAX = load_tax_config(ROOT / 'configs/tax/india_fy2026.yaml')
 
 
 def trades_to_fills(t: pl.DataFrame) -> pl.DataFrame:
-    """A closed trade -> a buy on entry (cash_flow -bought) and a sell on exit (+sold), same shares."""
-    t = t.filter(pl.col('exit_date').is_not_null())
+    """A closed signal-engine trade -> a buy on entry (cash_flow -shares x entry_price) and a sell on exit (the buy's
+    cost plus the trade's pnl, so the taxed gain is the pnl net of costs)."""
+    t = t.filter(pl.col('exit_date').is_not_null()).with_columns((pl.col('shares') * pl.col('entry_price')).alias('cost'))
     buys = t.select(pl.col('entry_date').alias('date'), 'symbol', pl.lit('buy').alias('side'), 'shares',
-                    (-pl.col('bought')).alias('cash_flow'))
+                    (-pl.col('cost')).alias('cash_flow'))
     sells = t.select(pl.col('exit_date').alias('date'), 'symbol', pl.lit('sell').alias('side'), 'shares',
-                     pl.col('sold').alias('cash_flow'))
+                     (pl.col('cost') + pl.col('pnl')).alias('cash_flow'))
     return pl.concat([buys, sells]).sort('date', pl.col('side') == 'sell')
 
 
