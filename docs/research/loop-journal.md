@@ -438,3 +438,16 @@ return; the blend's edge is drawdown, so it cannot answer the question); NSE sha
 starts 2021, no delisted names).
 Scheduled: a reminder fires 2026-10-30 18:45 UTC for the first M106 paper decision check (send_later, trigger
 trig_016C6ZdixxLfubtN7wtQGu6Y).
+
+## 2026-10-25, cycle 29: M146 corporate-action audit (data quality)
+
+46 unexplained jumps sat on feed demerger / scheme / rights / split rows with no factor (`notebooks/m146_ca_audit.py`).
+Added 39 overrides (exact factors from feed text for 2005-07 splits/bonuses, TERP for rights with known issue price,
+ex-date price discovery for demergers and unknown rights); skipped CENTEXT 2005 and penny-stock AGM price flips.
+Dataset `nse_research@2026-10-25b`: unexplained jumps 993 → 957, checks pass. M106 on it: 1.490 vs 1.500 (ANANTRAJ's
+2020 demerger now ranks it in 2021); offsets 5/10/15 within 0.004. Use 2026-10-25b and `m146_ref*` from now on.
+Found: m8's BHAGYANGR override (ad31abf) was never in research; now it is (same factor). No paper book holds any newly
+fixed name. Variants: unchanged (~1,033; references, not candidates).
+Next queue: (1) 2026-10-30 paper decision check (scheduled); (2) the M142 blend's paper support if the user asks;
+(3) the remaining ~950 unexplained jumps are mostly real moves or have no feed row; a second audit pass would need
+another source (BSE corporate actions), not worth it unless a book trips the gate.

@@ -112,6 +112,7 @@ its own `mNN.md`; this file only summarises.
 | 143 | No new buys in the top 20% / 40% of turnover / market cap (Lee & Swaminathan 2000; BacktestIndia 2026; shares from M141 results) | tr20 1.477 (26.79% CAGR), tr40 1.420 vs 1.500 | loses every offset and fold, -3 to -6 pts CAGR | fail: heavily traded winners keep winning on NSE |
 | 144 | Value sleeve: top 25 by trailing earnings yield (NSE results, point-in-time market cap) at 20% / 30% beside M106, monthly rebalanced (Asness, Moskowitz & Pedersen 2013) | v20 1.165, v30 0.944 vs 1.500; value book alone 0.168 (12.75% CAGR, 75.7% DD 2010-13) | loses every offset, 25 bps, f1 and f3 | fail: cheap NSE small caps are value traps; MANDHANA 2016 demerger override, dataset `nse_research@2026-10-25` |
 | 145 | M144 value sleeve restricted to names profitable in each of the last four quarters with growing trailing profit (Piotroski 2000; Novy-Marx 2013; QMJ) | q20 1.197, q30 0.862 vs 1.500; book alone 0.208 (15.66% CAGR, 75.2% DD) | loses every offset, 25 bps, f1 and f3 | fail: the screen adds 3 pts CAGR to the book but not its 2010-13 drawdown; value family closed |
+| 146 | Corporate-action audit: 39 overrides for unexplained jumps on unfactored feed demerger / rights / split rows (data quality) | M106 on corrected data 1.490 (29.89% CAGR, 20.06% DD) vs 1.500; offsets 5/10/15 within 0.004 | ANANTRAJ 2020 demerger now ranks in 2021 | new dataset `nse_research@2026-10-25b`; references `m146_ref*` |
 
 What the evidence says so far:
 
