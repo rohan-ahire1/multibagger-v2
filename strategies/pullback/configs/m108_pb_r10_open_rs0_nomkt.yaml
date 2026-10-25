@@ -1,0 +1,52 @@
+# M108 question m108-pullback (docs/research/m108.md): RSI(2) <= 10, entry at the open, RS rank >= 0, market filter off
+name: pullback
+version: m108_pb_r10_open_rs0_nomkt
+dataset: nse_research@2026-10-12m108
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 100000000
+    adv_window_sessions: 50
+    min_history_sessions: 252
+    exclude_fund_units: true
+  rs:
+    lookbacks: [63, 126, 189, 252]
+    weights: [0.4, 0.2, 0.2, 0.2]
+  setup:
+    trend_sma_sessions: 200
+    rsi_sessions: 2
+    rsi_max: 10
+    min_rs_rank: 0
+  market:
+    enabled: false
+    benchmark_symbol: NIFTYBEES
+    sma_sessions: 200
+  signal:
+    limit_below_close_pct: 0.0
+    stop_below_ref_pct: 0.2
+  engine:
+    entry: {pending_bars: 1, order: open}
+    exits:
+      mode: reclaim
+      reclaim_sma_sessions: 5
+      breakeven_r: 1000.0         # off
+      tighten_r: 1000.0           # ema_hybrid only; unused
+      max_hold_days: 14
+      stagnation_bars: 100000     # off
+      stagnation_max_mfe_r: 0.0
+      stagnation_max_open_r: 0.0
+    sizing:
+      risk_per_trade: 1.0         # the 50% name cap binds, not the stop
+      max_positions: 2
+      max_name_pct: 0.5
+      max_sector_positions: 0
+      max_sector_pct: 1.0
+      max_heat_pct: 100.0
+      default_sector: UNKNOWN
+      uncapped_sectors: []
+    breaker: {half_dd: 1.0, stop_dd: 1.0, close_dd: 1.0}   # off
+    initial_capital: 1000000
+    settle_calendar_days: 0

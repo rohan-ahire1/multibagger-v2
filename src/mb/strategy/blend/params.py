@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+from typing import Literal
 
 from pydantic import model_validator
 
@@ -25,3 +26,9 @@ class Params(Strict):
         if any(s.weight <= 0 for s in self.sleeves) or not math.isclose(sum(s.weight for s in self.sleeves), 1.0):
             raise ValueError("sleeve weights must be positive and sum to 1")
         return self
+
+
+class ParamsM110(Params):
+    """M110 (docs/research/m110.md): `monthly` resets the sleeves to their weights at the close of each month's last
+    session; the rupees moved pay the market's slippage and charges on both the sale and the purchase."""
+    rebalance: Literal["none", "monthly"]

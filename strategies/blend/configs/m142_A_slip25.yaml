@@ -1,0 +1,16 @@
+# M142 (docs/research/m142.md): blend A, 25 bps extra slippage in both sleeves
+name: blend
+version: m142_A_slip25
+dataset: nse_research@2026-10-23
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m142_ref_slip25.yaml
+      config_hash: e854cd02ef90ab25e453ae2d8aacbbfd1938bf27e04e3c9710bc38bc863054c0
+      weight: 0.8
+    - config: strategies/pullback/configs/m142_pb5_slip25.yaml
+      config_hash: f18c37560cc0f89bae4825ef68917af96bce539badfae9fa99cfe5ca829a04e6
+      weight: 0.2
+  initial_capital: 1000000
+  rebalance: monthly

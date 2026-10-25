@@ -1,0 +1,16 @@
+# M142 (docs/research/m142.md): M113 blend A (M106 0.8 + pullback 0.2, monthly rebalanced) on nse_research@2026-10-23, decision offset 0
+name: blend
+version: m142_A
+dataset: nse_research@2026-10-23
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m136_ref.yaml
+      config_hash: 63e24383068c582010edd532153f73e91ffa4bacb9667efbb5a5aa1548aa68ff
+      weight: 0.8
+    - config: strategies/pullback/configs/m142_pb5.yaml
+      config_hash: acd8987d259ee255e7d473faa08a60f6d8a6847ddf0cd3a8e262ff19279906a3
+      weight: 0.2
+  initial_capital: 1000000
+  rebalance: monthly

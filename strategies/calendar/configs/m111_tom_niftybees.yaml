@@ -1,0 +1,36 @@
+# M111 question m111-tom (docs/research/m111.md): buy NIFTYBEES at the close of the month's second-last session, sell at the
+# close of the third session of the next month (as paper_alert.py's turn-of-month rule).
+name: calendar
+version: m111_tom_niftybees
+dataset: nse_research@2026-10-12m108
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  symbol: NIFTYBEES
+  entry_session_from_end: 2
+  stop_below_ref_pct: 0.5          # disaster stop only
+  trade: true
+  engine:
+    entry: {pending_bars: 1, order: close}
+    exits:
+      mode: hard
+      reclaim_sma_sessions: 5      # unused (mode hard)
+      hold_sessions: 4
+      breakeven_r: 1000.0          # off
+      tighten_r: 1000.0            # unused
+      max_hold_days: 100000        # off
+      stagnation_bars: 100000      # off
+      stagnation_max_mfe_r: 0.0
+      stagnation_max_open_r: 0.0
+    sizing:
+      risk_per_trade: 1.0          # the 100% name cap binds
+      max_positions: 1
+      max_name_pct: 1.0
+      max_sector_positions: 0
+      max_sector_pct: 1.0
+      max_heat_pct: 100.0
+      default_sector: UNKNOWN
+      uncapped_sectors: []
+    breaker: {half_dd: 1.0, stop_dd: 1.0, close_dd: 1.0}   # off
+    initial_capital: 1000000
+    settle_calendar_days: 0

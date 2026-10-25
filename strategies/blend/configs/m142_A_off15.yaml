@@ -1,0 +1,16 @@
+# M142 (docs/research/m142.md): blend A, momentum sleeve at decision offset 15
+name: blend
+version: m142_A_off15
+dataset: nse_research@2026-10-23
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m141_ref_off15.yaml
+      config_hash: c3212a758d52e4b8f073fc243e52d1551afc5ff45e528549b8de7c681f9fe67e
+      weight: 0.8
+    - config: strategies/pullback/configs/m142_pb5.yaml
+      config_hash: acd8987d259ee255e7d473faa08a60f6d8a6847ddf0cd3a8e262ff19279906a3
+      weight: 0.2
+  initial_capital: 1000000
+  rebalance: monthly

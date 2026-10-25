@@ -64,3 +64,36 @@ class EngineConfig(Strict):
 class EngineConfigVCP(EngineConfig):
     entry: EntryRulesVCP
     exits: ExitRulesVCP
+
+
+class EntryRulesM108(EntryRules):
+    """Pullback entries (M108). `open` buys at the next session's open; `limit` buys if the low reaches entry_ref, at
+    min(open, entry_ref). One position per name."""
+    order: Literal["open", "limit"]
+
+
+class ExitRulesM108(ExitRules):
+    """Adds `reclaim` (M108): a close above the SMA of `reclaim_sma_sessions` sells at the next open."""
+    mode: Literal["ema_hybrid", "ema10", "ema21", "hard", "reclaim"]
+    reclaim_sma_sessions: int
+
+
+class EngineConfigM108(EngineConfig):
+    entry: EntryRulesM108
+    exits: ExitRulesM108
+
+
+class EntryRulesM111(EntryRulesM108):
+    """Adds `close` (M111): buys at the close of the first session after the signal (a next-day market-on-close order)."""
+    order: Literal["open", "limit", "close"]
+
+
+class ExitRulesM111(ExitRulesM108):
+    """Adds `hold_sessions` (M111): after this many sessions held, the position closes at that session's close.
+    0 turns it off."""
+    hold_sessions: int
+
+
+class EngineConfigM111(EngineConfig):
+    entry: EntryRulesM111
+    exits: ExitRulesM111

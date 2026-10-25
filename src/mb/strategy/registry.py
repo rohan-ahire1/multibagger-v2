@@ -37,10 +37,11 @@ def _hedged() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
     return run.Params, run.run
 
 
-def _blend() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+def _blend() -> tuple[Any, Callable[[Resolved, Path], RunResult]]:
     from mb.strategy.blend import run
 
-    return run.Params, run.run
+    # A config validates as exactly one of these (unknown keys fail), so pre-M110 (m108 line) blends keep their hash.
+    return run.Params | run.ParamsM110, run.run
 
 
 def _vcp() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
@@ -55,9 +56,22 @@ def _options_book() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResu
     return run.Params, run.run
 
 
+def _pullback() -> tuple[Any, Callable[[Resolved, Path], RunResult]]:
+    from mb.strategy.pullback import run
+
+    # A config validates as exactly one of these (unknown keys fail), so M108 configs keep their hash.
+    return run.Params | run.ParamsM109 | run.ParamsM110 | run.ParamsM112, run.run
+
+
+def _calendar() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+    from mb.strategy.calendar import run
+
+    return run.Params, run.run
+
+
 _REGISTRY: dict[str, Callable[[], tuple[Any, Callable]]] = {
     "dummy": _dummy, "sepa": _sepa, "momentum": _momentum, "blend": _blend, "hedged": _hedged, "vcp": _vcp,
-    "options_book": _options_book,
+    "options_book": _options_book, "pullback": _pullback, "calendar": _calendar,
 }
 
 

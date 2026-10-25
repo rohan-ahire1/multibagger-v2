@@ -15,7 +15,7 @@ from datetime import date
 import polars as pl
 
 from mb.config.models import MarketConfig
-from mb.engine.config import EngineConfig, EntryRulesVCP, ExitRulesVCP
+from mb.engine.config import EngineConfig, EntryRulesM108, EntryRulesVCP, ExitRulesM108, ExitRulesM111, ExitRulesVCP
 
 SIGNAL_COLUMNS = ("symbol", "signal_date", "entry_ref", "stop", "size_mult")
 BAR_COLUMNS = ("date", "symbol", "open", "high", "low", "close")
@@ -171,9 +171,15 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
     if not (br.half_dd <= br.stop_dd <= br.close_dd):
         raise ValueError("breaker thresholds must satisfy half_dd <= stop_dd <= close_dd")
 
-    sig_rows = signals.sort("signal_date", "symbol").to_dicts()
+    # An optional `rank` column (M108) sets the fill order within a day; without it the order is by symbol.
+    order = ("signal_date", "rank", "symbol") if "rank" in signals.columns else ("signal_date", "symbol")
+    sig_rows = signals.sort(*order).to_dicts()
     vcp_entry = en if isinstance(en, EntryRulesVCP) else None
-    sma_span = ex.trail_sma_sessions if isinstance(ex, ExitRulesVCP) and ex.mode == "sma" else None
+    m108_entry = en if isinstance(en, EntryRulesM108) else None
+    reclaim = isinstance(ex, ExitRulesM108) and ex.mode == "reclaim"
+    hold_sessions = ex.hold_sessions if isinstance(ex, ExitRulesM111) else 0
+    sma_span = (ex.trail_sma_sessions if isinstance(ex, ExitRulesVCP) and ex.mode == "sma"
+                else ex.reclaim_sma_sessions if reclaim else None)
     series = _build_series(bars, {r["symbol"] for r in sig_rows}, sma_span)
     calendar = sorted(bars["date"].unique().to_list())
     by_day: dict[date, list[dict]] = defaultdict(list)
@@ -220,13 +226,23 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
                  sector_counts: dict[str, int], sector_values: dict[str, float]) -> str:
         """Returns 'filled', 'wait' (try again next session), or the reason the signal is dropped."""
         o, h = s.open[k], s.high[k]
-        if vcp_entry is not None and any(p.symbol == pend.symbol for p in book.positions):
+        if (vcp_entry is not None or m108_entry is not None) and any(p.symbol == pend.symbol for p in book.positions):
             return "skipped_held"  # one position per name
-        if not (o >= pend.entry_ref or h >= pend.entry_ref):
-            return "wait"
-        if vcp_entry is not None and o > pend.entry_ref * (1.0 + vcp_entry.max_open_above_ref_pct):
-            return "skipped_chase"
-        fill = max(o, pend.entry_ref)
+        if m108_entry is not None:
+            if m108_entry.order == "open":
+                fill = o
+            elif m108_entry.order == "close":
+                fill = s.close[k]
+            elif s.low[k] <= pend.entry_ref:
+                fill = min(o, pend.entry_ref)
+            else:
+                return "wait"
+        else:
+            if not (o >= pend.entry_ref or h >= pend.entry_ref):
+                return "wait"
+            if vcp_entry is not None and o > pend.entry_ref * (1.0 + vcp_entry.max_open_above_ref_pct):
+                return "skipped_chase"
+            fill = max(o, pend.entry_ref)
         stop = pend.stop if vcp_entry is None else max(pend.stop, fill * (1.0 - vcp_entry.max_stop_below_fill_pct))
         budget = equity * sz.risk_per_trade * size_mult * max(0.0, pend.size_mult)
         heat = sum(p.initial_risk * p.shares for p in book.positions)
@@ -303,6 +319,16 @@ def simulate(signals: pl.DataFrame, bars: pl.DataFrame, sectors: dict[str, str],
             if (pos.bars_held >= ex.stagnation_bars and peak_r < ex.stagnation_max_mfe_r
                     and open_r <= ex.stagnation_max_open_r):
                 pos.pending_exit = "stagnation"
+                i += 1
+                continue
+
+            if hold_sessions and pos.bars_held >= hold_sessions:
+                close_out(pos, today, c, "hold_sessions")
+                book.positions.pop(i)
+                continue
+
+            if reclaim and s.sma[k] > 0.0 and c > s.sma[k]:
+                pos.pending_exit = "reclaim"
                 i += 1
                 continue
 
