@@ -426,3 +426,15 @@ Lesson: on NSE small caps a price-only signal (M106) already avoids the junk tha
 Next queue: (1) 2026-10-30 paper decision check and `mb live plan` dry run (use `nse_research@2026-10-25` or newer);
 (2) if another sleeve is tried, it must be something that did well in 2011-13 and in 2022, when M106 drew down;
 gold already covers that, so expected weak; (3) the M142 blend's paper support if the user asks.
+
+## 2026-10-25, cycle 28: M145 quality-screened value sleeve
+
+Follow-up to M144 with its own reason (value traps; Piotroski 2000, Novy-Marx 2013, QMJ). Screen: positive profit in
+each of the last four quarters and trailing profit growth. Result (docs/research/m145.md): the book gains 3 pts CAGR
+(15.7%) but keeps its 75% 2010-13 drawdown; blends q20 1.197 / q30 0.862 vs 1.500, every offset and 25 bps lost.
+Value family closed. Variants: ~1,033.
+Dropped at the information stage this cycle (not counted): deflated Sharpe of the M142 blend (the test scores mean
+return; the blend's edge is drawdown, so it cannot answer the question); NSE shareholding patterns (API history
+starts 2021, no delisted names).
+Scheduled: a reminder fires 2026-10-30 18:45 UTC for the first M106 paper decision check (send_later, trigger
+trig_016C6ZdixxLfubtN7wtQGu6Y).
