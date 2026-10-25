@@ -104,3 +104,48 @@ def turnover_ratio(filings: pl.DataFrame, panel: pl.DataFrame, decisions: list[d
              .filter(pl.col("mcap") > 0.0))
         out[d] = dict(x.select("symbol", pl.col("adv") / pl.col("mcap")).iter_rows())
     return out
+
+
+def ttm_profit(filings: pl.DataFrame, decisions: list[date], max_age_days: int) -> dict[date, dict[str, float]]:
+    """M144: decision -> symbol -> net profit of the latest quarter and the three before it (first filings, all known
+    at d, latest quarter ended within max_age_days). Symbols missing any of the four quarters are left out."""
+    q = first_filings(filings)
+    by_sym: dict[str, list[tuple[date, date, float]]] = {}
+    for s, pe, av, npf in q.iter_rows():
+        by_sym.setdefault(s, []).append((pe, av, npf))
+    out: dict[date, dict[str, float]] = {}
+    for d in decisions:
+        got: dict[str, float] = {}
+        for s, rows in by_sym.items():
+            known = {(pe.year, pe.month): npf for pe, av, npf in rows if av <= d}
+            if not known:
+                continue
+            last = max(pe for pe, av, _ in rows if av <= d)
+            if (d - last).days > max_age_days:
+                continue
+            ks = [_quarter_back(last, k) for k in range(4)]
+            if all(k in known for k in ks):
+                got[s] = sum(known[k] for k in ks)
+        out[d] = got
+    return out
+
+
+def market_caps(filings: pl.DataFrame, panel: pl.DataFrame, decisions: list[date], max_age_days: int
+                ) -> dict[date, dict[str, float]]:
+    """M144: decision -> symbol -> market cap at d (as in `turnover_ratio`: shares from the latest usable filing,
+    carried through later splits and bonuses by adj_factor)."""
+    sh = first_share_filings(filings)
+    px = panel.select("date", "symbol", "close", "adj_factor").sort("symbol", "date")
+    qf = (sh.sort("period_end").join_asof(px.select("symbol", "date", pl.col("adj_factor").alias("af_q")).sort("date"),
+                                          left_on="period_end", right_on="date", by="symbol", strategy="backward")
+          .drop("date").filter(pl.col("af_q").is_not_null()))
+    at_d = px.filter(pl.col("date").is_in(decisions))
+    out: dict[date, dict[str, float]] = {}
+    for d in decisions:
+        usable = (qf.filter((pl.col("avail") <= d) & (pl.col("period_end") >= d - timedelta(days=max_age_days)))
+                  .sort("period_end").group_by("symbol").agg(pl.all().last()))
+        x = (at_d.filter(pl.col("date") == d).join(usable, on="symbol", how="inner")
+             .with_columns((pl.col("shares") * pl.col("close") * pl.col("adj_factor") / pl.col("af_q")).alias("mcap"))
+             .filter(pl.col("mcap") > 0.0))
+        out[d] = dict(x.select("symbol", "mcap").iter_rows())
+    return out

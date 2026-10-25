@@ -16,7 +16,7 @@ from mb.config.loader import load_strategy_config, load_tax_config
 from mb.evaluation.metrics import equity_metrics
 from mb.evaluation.tax import after_tax, realised
 from mb.strategy.blend.run import load_sleeves
-from mb.strategy.momentum.run import simulate
+import importlib
 from mb.strategy.registry import runner
 
 ROOT = Path('.')
@@ -36,8 +36,8 @@ def trades_to_fills(t: pl.DataFrame) -> pl.DataFrame:
 
 def sleeve_curves(sc) -> tuple[pl.DataFrame, pl.DataFrame]:
     """(pre-tax equity, after-tax equity) of one sleeve config, both with columns date, equity."""
-    if sc.strategy.name == 'momentum':
-        res = simulate(sc, ROOT)
+    if sc.strategy.name in ('momentum', 'value'):  # target-weight books: the simulator keeps the fills
+        res = importlib.import_module(f'mb.strategy.{sc.strategy.name}.run').simulate(sc, ROOT)
         eq, fills = res.equity.select('date', 'equity'), res.fills
     else:
         r = runner(sc.strategy.name)(sc, ROOT)

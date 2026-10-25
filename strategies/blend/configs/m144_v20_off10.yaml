@@ -1,0 +1,16 @@
+# M144 (docs/research/m144.md): M106 0.8 + value 0.2, momentum sleeve at decision offset 10
+name: blend
+version: m144_v20_off10
+dataset: nse_research@2026-10-23
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m141_ref_off10.yaml
+      config_hash: 4640fa5e366f4370819ffd47e45bfd477d4e52049a5117d0151c049b3a16dbf8
+      weight: 0.8
+    - config: strategies/value/configs/m144_value.yaml
+      config_hash: a1c04078e6965a59a6f69d39c59c31a88164b023d43914b98355148a1245cb21
+      weight: 0.2
+  initial_capital: 1000000
+  rebalance: monthly

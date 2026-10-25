@@ -1,0 +1,19 @@
+# M144 (docs/research/m144.md): value book, top 25 NSE names by trailing earnings yield, equal weight, month-end
+name: value
+version: m144_value
+dataset: nse_research@2026-10-23
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  universe:
+    allowed_series: [EQ]
+    min_price_inr: 50
+    min_adv_inr: 10000000
+    adv_window_sessions: 50
+    exclude_fund_units: true
+  results_raw_dir: data/raw/nse_results
+  max_age_days: 200
+  score: earnings_yield
+  top_n: 25
+  decision_offset_sessions: 0
+  initial_capital: 1000000
