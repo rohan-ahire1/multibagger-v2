@@ -413,3 +413,16 @@ Next queue: (1) 2026-10-30 paper decision check and `mb live plan` dry run; (2) 
 the only fundamentals idea left that is not a buy filter; but M33/M66 (lower ADV floors) already push towards smaller
 names, and Indian momentum is reported stronger in large caps (NSE RP 2012), so expected weak; (3) the M142 blend's
 paper support if the user asks.
+
+## 2026-10-25, cycle 27: M144 value sleeve
+
+Idea: the only structural gain so far is a diversifying sleeve (M142); value is the textbook partner of momentum
+(Asness, Moskowitz & Pedersen 2013). New strategy kind `value` (top 25 by trailing four-quarter earnings / market cap,
+NSE results from M141). The first try was stopped by the data gate on MANDHANA (2016-09-22 demerger, no factor in
+the feed); override added, dataset `nse_research@2026-10-25` built (unexplained jumps 994 → 993; M106 unchanged on it).
+Result (docs/research/m144.md): the value book alone has a 75.7% drawdown in 2010-13 (real value-trap collapses),
+Calmar 0.168; blends v20 1.165 / v30 0.944 vs 1.500, every offset and 25 bps lost. Variants: ~1,031.
+Lesson: on NSE small caps a price-only signal (M106) already avoids the junk that cheap-valuation screens buy.
+Next queue: (1) 2026-10-30 paper decision check and `mb live plan` dry run (use `nse_research@2026-10-25` or newer);
+(2) if another sleeve is tried, it must be something that did well in 2011-13 and in 2022, when M106 drew down;
+gold already covers that, so expected weak; (3) the M142 blend's paper support if the user asks.
