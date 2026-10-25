@@ -1,0 +1,16 @@
+# M145 (docs/research/m145.md): M106 0.8 + quality value 0.2, 25 bps extra slippage
+name: blend
+version: m145_q20_slip25
+dataset: nse_research@2026-10-25
+market: nse_cash_slip25
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m144_ref_slip25.yaml
+      config_hash: 9c053ec575e38d067fecba575bd3801312a0acfb5f59365dc72fa3ed7421ace0
+      weight: 0.8
+    - config: strategies/value/configs/m145_qvalue_slip25.yaml
+      config_hash: 7e384b9c67f90d23db1e5dd1612531f5035231f8beb08b87be8cb63631e7cda8
+      weight: 0.2
+  initial_capital: 1000000
+  rebalance: monthly

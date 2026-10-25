@@ -49,3 +49,14 @@ def test_market_caps_and_value_targets_pick_highest_positive_yield():
                decision_offset_sessions=0, initial_capital=1e6)
     t = targets(panel, f, p, d, d, frozenset({"D"}))
     assert set(t[d].weights) == {"B", "A"} and t[d].gross == 1.0   # D is a fund unit, C loses money, E has no data
+
+
+def test_stable_growth_needs_eight_quarters_all_recent_positive_and_growth():
+    qs = [date(2018, 3, 31), date(2018, 6, 30), date(2018, 9, 30), date(2018, 12, 31)] + QS
+    def rows(sym, profits):
+        return [(sym, f"{sym}{i}", pe, pe, npf, 100.0, 10.0) for i, (pe, npf) in enumerate(zip(qs, profits))]
+    f = _filings(rows("G", [1, 1, 1, 1, 1, 1, 1, 2]) + rows("L", [1, 1, 1, 1, 2, -1, 3, 3])
+                 + rows("F", [2, 2, 2, 2, 1, 1, 1, 1]) + rows("S", [1, 1, 1, 1, 1, 1, 1]))
+    d = date(2020, 1, 31)
+    # G grows; L has a loss quarter; F shrinks; S lacks the eighth quarter (Dec 2019)
+    assert fundamentals.stable_growth(f, [d], 200)[d] == {"G"}

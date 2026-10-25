@@ -69,10 +69,11 @@ def _calendar() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]
     return run.Params, run.run
 
 
-def _value() -> tuple[type[BaseModel], Callable[[Resolved, Path], RunResult]]:
+def _value() -> tuple[Any, Callable[[Resolved, Path], RunResult]]:
     from mb.strategy.value import run
 
-    return run.Params, run.run
+    # A config validates as exactly one of these (unknown keys fail), so M144 configs keep their hash.
+    return run.Params | run.ParamsM145, run.run
 
 
 _REGISTRY: dict[str, Callable[[], tuple[Any, Callable]]] = {

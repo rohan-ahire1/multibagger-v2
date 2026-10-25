@@ -14,9 +14,9 @@ from mb.evaluation.metrics import exposure_metrics
 from mb.runs.record import RunResult
 from mb.sources import nse_results
 from mb.strategy.momentum.targets import decision_dates
-from mb.strategy.value.params import Params
+from mb.strategy.value.params import Params, ParamsM145
 
-__all__ = ["Params", "run", "targets", "simulate"]
+__all__ = ["Params", "ParamsM145", "run", "targets", "simulate"]
 
 
 def targets(panel: pl.DataFrame, filings: pl.DataFrame, p: Params, start: date, end: date,
@@ -32,9 +32,12 @@ def targets(panel: pl.DataFrame, filings: pl.DataFrame, p: Params, start: date, 
     ok = {d: set(g["symbol"].to_list()) for (d,), g in elig.group_by("date")}
     ttm = fundamentals.ttm_profit(filings, dec, p.max_age_days)
     caps = fundamentals.market_caps(filings, panel, dec, p.max_age_days)
+    good = (fundamentals.stable_growth(filings, dec, p.max_age_days)
+            if isinstance(p, ParamsM145) and p.quality == "stable_growth" else None)
     out: dict[date, Target] = {}
     for d in dec:
-        ey = {s: ttm[d][s] / caps[d][s] for s in ok.get(d, set()) if s in ttm[d] and s in caps[d] and ttm[d][s] > 0.0}
+        ey = {s: ttm[d][s] / caps[d][s] for s in ok.get(d, set()) if s in ttm[d] and s in caps[d] and ttm[d][s] > 0.0
+              and (good is None or s in good[d])}
         pick = sorted(ey, key=lambda s: (-ey[s], s))[: p.top_n]
         out[d] = Target({s: 1.0 for s in pick}, 1.0 if pick else 0.0)
     return out

@@ -16,7 +16,7 @@ class Universe(Strict):
     exclude_fund_units: bool      # ISINs starting INF, read from the whole dataset
 
 
-class Params(Strict):
+class Params(Strict):  # M144
     # Month-end (or decision_offset_sessions before it) book of the top_n names by earnings yield: trailing four
     # quarters' standalone net profit (NSE results, first filings) / market cap at the decision. Only positive
     # earnings count. Equal weight, traded at the next open.
@@ -33,3 +33,10 @@ class Params(Strict):
         if self.top_n <= 0 or self.max_age_days <= 0 or self.decision_offset_sessions < 0:
             raise ValueError("need top_n > 0, max_age_days > 0, decision_offset_sessions >= 0")
         return self
+
+
+class ParamsM145(Params):
+    # M145: `stable_growth` keeps only names with a positive net profit in each of the last four quarters and a
+    # trailing four-quarter profit above the trailing four quarters a year earlier (all first filings known at the
+    # decision). `none` = M144.
+    quality: Literal["none", "stable_growth"]

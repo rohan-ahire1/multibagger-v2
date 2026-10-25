@@ -149,3 +149,29 @@ def market_caps(filings: pl.DataFrame, panel: pl.DataFrame, decisions: list[date
              .filter(pl.col("mcap") > 0.0))
         out[d] = dict(x.select("symbol", "mcap").iter_rows())
     return out
+
+
+def stable_growth(filings: pl.DataFrame, decisions: list[date], max_age_days: int) -> dict[date, set[str]]:
+    """M145: decision -> symbols whose last four quarters (first filings known at d, latest within max_age_days) each
+    have a positive net profit and sum to more than the four quarters a year earlier (also known at d)."""
+    q = first_filings(filings)
+    by_sym: dict[str, list[tuple[date, date, float]]] = {}
+    for s, pe, av, npf in q.iter_rows():
+        by_sym.setdefault(s, []).append((pe, av, npf))
+    out: dict[date, set[str]] = {}
+    for d in decisions:
+        got: set[str] = set()
+        for s, rows in by_sym.items():
+            known = {(pe.year, pe.month): npf for pe, av, npf in rows if av <= d}
+            if not known:
+                continue
+            last = max(pe for pe, av, _ in rows if av <= d)
+            if (d - last).days > max_age_days:
+                continue
+            now = [_quarter_back(last, k) for k in range(4)]
+            before = [_quarter_back(last, k) for k in range(4, 8)]
+            if all(k in known for k in now + before) and all(known[k] > 0.0 for k in now) \
+                    and sum(known[k] for k in now) > sum(known[k] for k in before):
+                got.add(s)
+        out[d] = got
+    return out

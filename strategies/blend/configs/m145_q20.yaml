@@ -1,0 +1,16 @@
+# M145 (docs/research/m145.md): M106 0.8 + quality value 0.2, monthly rebalanced, decision offset 0
+name: blend
+version: m145_q20
+dataset: nse_research@2026-10-25
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m144_ref.yaml
+      config_hash: de1f83aa8a331bf073fdc3f8582e223e009a1b6b39c74efb7495a01ec4485c12
+      weight: 0.8
+    - config: strategies/value/configs/m145_qvalue.yaml
+      config_hash: 5c642bf1dadf034f67769d0733805ac02e1f1aa658d7ced849088d2a62470cd6
+      weight: 0.2
+  initial_capital: 1000000
+  rebalance: monthly

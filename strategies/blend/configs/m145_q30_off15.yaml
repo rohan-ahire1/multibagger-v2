@@ -1,0 +1,16 @@
+# M145 (docs/research/m145.md): M106 0.7 + quality value 0.3, momentum sleeve at decision offset 15
+name: blend
+version: m145_q30_off15
+dataset: nse_research@2026-10-25
+market: nse_cash
+period: {start: 2010-01-04, end: 2023-12-31}
+params:
+  sleeves:
+    - config: strategies/momentum/configs/m144_ref_off15.yaml
+      config_hash: dde4d0cf45cfd5ec880ebde3eaf38f8e35b5c38a2f2c00293a22db1416b2e012
+      weight: 0.7
+    - config: strategies/value/configs/m145_qvalue.yaml
+      config_hash: 5c642bf1dadf034f67769d0733805ac02e1f1aa658d7ced849088d2a62470cd6
+      weight: 0.3
+  initial_capital: 1000000
+  rebalance: monthly
