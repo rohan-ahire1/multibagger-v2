@@ -95,6 +95,16 @@ def open_positions(trades: pl.DataFrame) -> dict[str, list[str]]:
     return {s: sorted(o.filter(pl.col("sleeve") == s)["symbol"].to_list()) for s in sorted(o["sleeve"].unique().to_list())}
 
 
+def positions(trades: pl.DataFrame) -> list[dict[str, Any]]:
+    """Open positions marked at the last close: sleeve, symbol, entry date and gain since entry."""
+    if "status" not in trades.columns:
+        return []
+    o = trades.filter(pl.col("status") == "open").sort("sleeve", "symbol")
+    return [{"sleeve": r["sleeve"], "symbol": r["symbol"], "entry": r["entry_date"].isoformat(),
+             "gain_pct": None if r["return_pct"] is None else round(r["return_pct"], 2)}
+            for r in o.select("sleeve", "symbol", "entry_date", "return_pct").iter_rows(named=True)]
+
+
 def _sessions_path(cfg: ShadowConfig, root: Path) -> Path:
     return root / "data" / "paper" / cfg.name / "sessions.json"
 
@@ -154,7 +164,7 @@ def run(cfg_path: Path, root: Path, today: date, alerter: Alerter | None = None)
               if trades.height and "status" in trades.columns else [])
     latest = {"as_of": last.isoformat(), "dataset": ref, "equity": rec[last.isoformat()]["equity"],
               "return_pct": (rec[last.isoformat()]["equity"] / equity["equity"][0] - 1) * 100 if equity.height else 0.0,
-              "held": held, "entered": entered, "exited": exited, "next_open_limit_buys": pending}
+              "held": held, "positions": positions(trades), "entered": entered, "exited": exited, "next_open_limit_buys": pending}
     write_json(out / "latest.json", latest)
     log["added"], log["latest"] = added, latest
     if added and (pending and any(pending.values()) or entered or exited or calendar.is_month_end(last, holidays)):

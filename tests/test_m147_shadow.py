@@ -31,7 +31,7 @@ def _wire(monkeypatch, curve: list[tuple[date, float]], last: date) -> None:
     eq = pl.DataFrame({"date": [d for d, _ in curve], "equity": [e for _, e in curve],
                        "invested_value": [0.0] * len(curve)})
     trades = pl.DataFrame(schema={"symbol": pl.String, "entry_date": pl.Date, "exit_date": pl.Date,
-                                  "status": pl.String, "sleeve": pl.String})
+                                  "status": pl.String, "sleeve": pl.String, "return_pct": pl.Float64})
     monkeypatch.setattr(shadow, "load_shadow_config", lambda p, r: (_cfg(), object()))
     monkeypatch.setattr(shadow, "load_data_config", lambda p: (type("D", (), {"name": "nse_daily"})(), "x"))
     monkeypatch.setattr(shadow, "latest_ref", lambda r, n: "nse_daily@v")
