@@ -357,6 +357,38 @@ def paper_status(paper_config: PaperCfg, root: Root = _ROOT) -> None:
         raise _fail(str(e)) from None
 
 
+ShadowCfg = Annotated[Path, typer.Argument(help="Shadow config YAML, e.g. configs/paper/shadow_m142_A.yaml.")]
+
+
+@paper_app.command("shadow")
+def paper_shadow(
+    shadow_config: ShadowCfg,
+    today: Annotated[str | None, typer.Option("--today", help="Run as of this date, YYYY-MM-DD (default: today in IST).")] = None,
+    root: Root = _ROOT,
+) -> None:
+    """M147: re-run a pinned config over the shadow book's period on the newest daily dataset, record new sessions, alert."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    from mb.config.loader import load_shadow_config
+    from mb.live import shadow
+    from mb.live.alerts import Alerter
+
+    day = date.fromisoformat(today) if today else datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    try:
+        code = shadow.run(shadow_config, root, day)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    except Exception as e:  # noqa: BLE001 - a crash must still reach the phone
+        try:
+            cfg, _ = load_shadow_config(shadow_config, root)
+            Alerter(cfg.alerts).send(f"{cfg.name}: shadow job crashed", f"{type(e).__name__}: {e}", "high", ("rotating_light",))
+        finally:
+            raise
+    typer.echo(shadow.status(shadow_config, root))
+    raise typer.Exit(code)
+
+
 live_app = typer.Typer(no_args_is_help=True)
 app.add_typer(live_app, name="live", help="Offline Dhan order plans and holdings checks (M137; nothing is sent).")
 LiveCfg = Annotated[Path, typer.Argument(help="Live config YAML, e.g. configs/live/dhan_m106.yaml.")]
