@@ -35,12 +35,26 @@ paper:
       label: Adopted (M106)
       backtest_run: 20261002-051722-93574646
       timer_file: deploy/mb-paper-jr.timer
+  shadow_books:
+    - name: shadow_m142_A
+      label: M142 blend (shadow)
+      config: configs/paper/shadow_m142_A.yaml
+      strategy: strategies/blend/configs/m142_A.yaml
+      preview_strategy: strategies/momentum/configs/m106_gap30_g25_jr_b2.yaml
+      start: 2026-10-30
+      capital: 1000000
+      backtest_run: 20261025-024325-39301991
+      schedule: "Mon–Fri 20:00 · 23:30 IST"
 
 runs:
   - {pin: momentum/m106_g25_jr_gap, label: "Adopted · Top 25 + gold + Next 50 filter", group: Adopted strategy,
      tag: Paper book, note: "M106 pin, development period 2010-23. The paper book from the 2026-10-30 close."}
   - {run: 20261002-054052-94c22192, label: "Adopted · final 2010-26", group: Adopted strategy,
      note: "M107 final run, crosses the locked window (2024+: 20.4% CAGR, 15.5% DD)."}
+  - {run: 20261025-024325-39301991, label: "M142 · M106 0.8 + dip-buy 0.2 (dev)", group: Adopted strategy, tag: Shadow book,
+     note: "M142 blend A, development period 2010-23 (Calmar 1.876 vs 1.500). Not adopted: loses 2014-17, bootstrap 75%. Shadow book from the 2026-10-30 close."}
+  - {run: 20261012-094324-c4fcd4fa, label: "M142 · final 2010-26", group: Adopted strategy,
+     note: "M113 final run of the same blend, crosses the locked window (2024+: 20.4% CAGR, 13.3% DD, Calmar 1.533)."}
   - {run: 20261002-041639-baa42e53, label: "Best in-sample · M95 tranches (dev)", group: Adopted strategy,
      note: "M95: 10% stop, 4 tranches. Kept for later; weaker in the locked window."}
   - {run: 20261002-054109-996f5a8b, label: "Best in-sample · M95 final 2010-26", group: Adopted strategy,
