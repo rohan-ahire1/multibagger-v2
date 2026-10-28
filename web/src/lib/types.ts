@@ -32,7 +32,7 @@ export interface PaperLive {
   equity: number
   cash: number
   return_pct: number
-  positions: { symbol: string; shares: number; entry: string; close: number; value: number; weight_pct: number; gain_pct: number | null }[]
+  positions: { symbol: string; sleeve?: string; shares: number | null; entry: string; close: number | null; value: number | null; weight_pct: number | null; gain_pct: number | null }[]
   pending: number
   pending_decided: string | null
   sessions: number
@@ -40,9 +40,11 @@ export interface PaperLive {
   last_decision: string | null
   curve: [string, number][]
   fills: { session: string; symbol: string; side: string; shares: number; price: number; cash_flow: number }[]
+  limit_buys?: { sleeve: string; symbol: string; limit: number; rsi: number }[]
 }
 
 export interface PaperBook {
+  kind: 'paper' | 'shadow'
   name: string
   label: string
   config: string

@@ -28,7 +28,7 @@ export function Paper({ c, book }: { c: Ctx; book: number }) {
   const stats = [
     live
       ? { label: 'Status', value: 'Live', sub: 'as of ' + fdate(live.as_of), fg: 'var(--up)' }
-      : { label: 'Status', value: 'Armed', sub: b.first_decision ? 'first decision ' + fdate(b.first_decision) : 'no decision date', fg: 'var(--accent)' },
+      : { label: 'Status', value: 'Armed', sub: b.first_decision ? (b.kind === 'shadow' ? 'first session ' : 'first decision ') + fdate(b.first_decision) : 'no decision date', fg: 'var(--accent)' },
     live
       ? { label: 'Equity', value: inr(live.equity), sub: `${pct(live.return_pct, 1)} since start · ${live.positions.length} positions`, fg: 'var(--ink)' }
       : { label: 'Equity', value: inr(b.capital), sub: 'all cash · 0 positions', fg: 'var(--ink)' },
@@ -49,7 +49,7 @@ export function Paper({ c, book }: { c: Ctx; book: number }) {
         ))}
       </div>
       <div className="flex-1 min-h-0 grid grid-cols-[minmax(0,868fr)_minmax(0,424fr)] gap-5">
-        {live ? <LiveBook live={live} /> : (
+        {live ? <LiveBook live={live} shadow={b.kind === 'shadow'} /> : (
           <div className="card px-4 pb-3.5 flex flex-col min-h-0">
             <div className="h-14 flex-none flex items-center justify-between gap-3">
               <CardTitle title={`Target book if the month ended ${fdate(pv.as_of)}`} sub={`Ranked by the strategy · 12-1 momentum shown · about ${inr(b.capital / pv.n)} per name`} />
@@ -80,7 +80,14 @@ export function Paper({ c, book }: { c: Ctx; book: number }) {
 
 function Steps({ b, live }: { b: PaperBook; live: PaperLive | null }) {
   const pv = b.preview
-  const steps: { when: string; what: string; detail: string; state: 'done' | 'next' | 'todo' }[] = [
+  const ran = !!live && live.sessions > 0
+  const steps: { when: string; what: string; detail: string; state: 'done' | 'next' | 'todo' }[] = b.kind === 'shadow' ? [
+    { when: fdate(pv.as_of), what: 'Preview', detail: 'Momentum sleeve ranking if the month ended at this close', state: 'done' },
+    { when: fdate(b.start) + ' · after close', what: 'First session', detail: 'Re-run the pinned blend on the daily data through this close', state: ran ? 'done' : 'next' },
+    { when: 'Every weekday evening', what: 'Re-run and record', detail: b.timer + '. Each session is saved once; a later change is alerted', state: ran ? 'done' : 'todo' },
+    { when: 'Any evening', what: 'Dip buys (20%)', detail: 'Up to 5 names, limit 3% below the close, out on a close above the 5-day average or after 7 days. Only while Nifty is above its 200-day average', state: 'todo' },
+    { when: 'Last session of each month', what: 'Momentum rebalance (80%)', detail: `Top ${pv.n} plus gold, as the M106 book. Sleeves reset to 80/20`, state: 'todo' },
+  ] : [
     { when: fdate(pv.as_of), what: 'Preview', detail: 'Ranking if the month ended at this close', state: 'done' },
     { when: (b.first_decision ? fdate(b.first_decision) : 'First month-end') + ' · after close', what: 'First decision', detail: 'Rank at the close, write the order ticket', state: live && live.decisions > 0 ? 'done' : 'next' },
     { when: 'Next session · open', what: 'Fills', detail: 'Buys fill at the open with costs and slippage', state: live && live.fills.length ? 'done' : 'todo' },
@@ -101,6 +108,14 @@ function Steps({ b, live }: { b: PaperBook; live: PaperLive | null }) {
           </div>
         </div>
       ))}
+      {live?.limit_buys && live.limit_buys.length > 0 && (
+        <div className="pt-3 border-t border-border">
+          <Label>Limit buys for the next session</Label>
+          {live.limit_buys.map((x) => (
+            <div key={x.symbol} className="flex justify-between text-[11px] py-1"><span className="text-soft">{x.symbol} · RSI {x.rsi}</span><span className="font-medium">@ {x.limit.toLocaleString('en-IN')}</span></div>
+          ))}
+        </div>
+      )}
       {live && live.fills.length > 0 && (
         <div className="pt-3 border-t border-border">
           <Label>Recent fills</Label>
@@ -113,31 +128,35 @@ function Steps({ b, live }: { b: PaperBook; live: PaperLive | null }) {
   )
 }
 
-function LiveBook({ live }: { live: PaperLive }) {
+function LiveBook({ live, shadow }: { live: PaperLive; shadow: boolean }) {
   const pts = live.curve
   const lo = Math.min(...pts.map((p) => p[1])), hi = Math.max(...pts.map((p) => p[1]))
   const path = pts.length > 1 ? pts.map((p, i) => `${i ? 'L' : 'M'}${((i / (pts.length - 1)) * 100).toFixed(2)} ${(100 - ((p[1] - lo) / Math.max(1, hi - lo)) * 100).toFixed(2)}`).join('') : ''
   return (
     <div className="card px-4 pb-3.5 flex flex-col min-h-0">
       <div className="h-14 flex-none flex items-center justify-between gap-3">
-        <CardTitle title={`Positions as of ${fdate(live.as_of)}`} sub={`${live.sessions} sessions · ${live.decisions} decisions · cash ${inr(live.cash)}${live.pending ? ` · ${live.pending} orders pending` : ''}`} />
-        <Badge tone="up">Live</Badge>
+        <CardTitle title={`Positions as of ${fdate(live.as_of)}`} sub={shadow ? `${live.sessions} sessions · cash ${inr(live.cash)}${live.pending ? ` · ${live.pending} limit buys for the next session` : ''}` : `${live.sessions} sessions · ${live.decisions} decisions · cash ${inr(live.cash)}${live.pending ? ` · ${live.pending} orders pending` : ''}`} />
+        <Badge tone="up">{shadow ? 'Shadow' : 'Live'}</Badge>
       </div>
       {path && (
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="flex-none h-24 w-full mb-2.5"><path d={path} fill="none" stroke="var(--accent)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" /></svg>
       )}
       <div className="h-7 flex-none grid grid-cols-[1.2fr_0.8fr_1fr_1fr_1fr_0.8fr_0.8fr] gap-2 items-center border-y border-border bg-s2 px-2 text-[9.5px] font-semibold tracking-[0.08em] text-faint">
-        <span>SYMBOL</span><span className="text-right">SHARES</span><span>BOUGHT</span><span className="text-right">CLOSE</span><span className="text-right">VALUE</span><span className="text-right">WEIGHT</span><span className="text-right">GAIN</span>
+        <span>SYMBOL</span><span className="text-right">{shadow ? 'SLEEVE' : 'SHARES'}</span><span>BOUGHT</span><span className="text-right">CLOSE</span><span className="text-right">VALUE</span><span className="text-right">WEIGHT</span><span className="text-right">GAIN</span>
       </div>
       <div className="grow min-h-0 overflow-y-auto">
         {live.positions.map((p) => (
           <div key={p.symbol} className="h-[34px] px-2 grid grid-cols-[1.2fr_0.8fr_1fr_1fr_1fr_0.8fr_0.8fr] gap-2 items-center border-b border-row-line text-xs">
-            <span className="font-semibold text-accent">{p.symbol}</span><span className="text-right text-soft">{p.shares.toLocaleString('en-IN')}</span><span className="text-soft">{fdate(p.entry)}</span>
-            <span className="text-right">{p.close.toLocaleString('en-IN')}</span><span className="text-right">{inr(p.value)}</span><span className="text-right text-soft">{pctPlain(p.weight_pct, 1)}</span>
+            <span className="font-semibold text-accent">{p.symbol}</span><span className="text-right text-soft truncate">{shadow ? (p.sleeve?.includes('pb') ? 'dip-buy' : 'momentum') : dash(p.shares, (v) => v.toLocaleString('en-IN'))}</span><span className="text-soft">{fdate(p.entry)}</span>
+            <span className="text-right">{dash(p.close, (v) => v.toLocaleString('en-IN'))}</span><span className="text-right">{dash(p.value, inr)}</span><span className="text-right text-soft">{dash(p.weight_pct, (v) => pctPlain(v, 1))}</span>
             <span className="text-right font-semibold" style={{ color: toneColor(tone(p.gain_pct)) }}>{pct(p.gain_pct, 1)}</span>
           </div>
         ))}
       </div>
     </div>
   )
+}
+
+function dash(v: number | null, f: (v: number) => string) {
+  return v == null ? '—' : f(v)
 }
