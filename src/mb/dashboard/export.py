@@ -417,6 +417,27 @@ def build(cfg: DashboardConfig, root: Path, data_root: Path, config_file: str) -
     }
 
 
+def refresh_paper(cfg: DashboardConfig, root: Path, data_root: Path, bundle: dict[str, Any]) -> list[str]:
+    """Replace each paper and shadow book's live state in an exported bundle with today's files; runs, prices and
+    previews stay as exported. For the nightly job on the VPS, which has the books but not the run records.
+    Returns each book's as-of line."""
+    root, data_root = root.resolve(), data_root.resolve()
+    live: dict[str, dict[str, Any] | None] = {}
+    for b in cfg.paper.books:
+        pcfg, _ = load_paper_config(root / b.config, root)
+        live[pcfg.name] = live_state(data_root, pcfg, cfg.paper.recent_fills)
+    for sb in cfg.paper.shadow_books:
+        live[sb.name] = shadow_state(data_root, sb)
+    out = []
+    for book in bundle["paper"]["books"]:
+        if book["name"] not in live:
+            raise ConfigError(f"bundle book {book['name']} is not in {cfg.name}'s paper books; re-export the bundle")
+        book["live"] = live[book["name"]]
+        out.append(f"{book['name']}: {book['live']['as_of'] if book['live'] else 'not started'}")
+    bundle["generated"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return out
+
+
 def write(bundle: dict[str, Any], out: Path) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(bundle, separators=(",", ":"), allow_nan=False)

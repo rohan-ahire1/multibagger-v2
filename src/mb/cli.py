@@ -323,3 +323,27 @@ def dashboard_export(
     except ConfigError as e:
         raise _fail(str(e)) from None
     typer.echo(f"wrote {out} ({size / 1e6:.2f} MB): {len(bundle['runs'])} runs, {len(bundle['paper']['books'])} paper books, data to {bundle['data_to']}")
+
+
+@dashboard_app.command("refresh-paper")
+def dashboard_refresh_paper(
+    config: Annotated[Path, typer.Argument(help="Dashboard config YAML, e.g. configs/dashboard/research.yaml.")],
+    bundle: Annotated[Path, typer.Option("--bundle", help="An exported bundle.json to update in place.")],
+    root: Root = _ROOT,
+    data_root: Annotated[Path | None, typer.Option("--data-root", envvar="MB_DATA_ROOT",
+                                                   help="Folder holding data/paper/ (default: --root).")] = None,
+) -> None:
+    """Update only the paper books' live state in an exported bundle (the VPS nightly job)."""
+    import json
+
+    from mb.dashboard import config as dash_config
+    from mb.dashboard import export
+
+    try:
+        cfg = dash_config.load(config.resolve())
+        b = json.loads(bundle.read_text())
+        lines = export.refresh_paper(cfg, root, data_root or root, b)
+        export.write(b, bundle)
+    except ConfigError as e:
+        raise _fail(str(e)) from None
+    typer.echo("\n".join(lines))
