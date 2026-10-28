@@ -3,7 +3,7 @@
 NSE cash-equity research and trading system. Read `docs/HANDOFF.md` (context, traps, v1 data
 locations) then `docs/PLAN.md` (design, milestones) before changing anything.
 
-**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics), M3 (baselines + SEPA port), M4 (research loop) and M5 (momentum + blends, `docs/research/m5.md`) done. M6 (paper trading on the VPS, `docs/paper.md`) running from the 2026-09-30 close; M8 added a second book (40 names, `docs/research/m8.md`). Both books are stocks only (`docs/paper.md`). Next: M7 (live with Dhan). Build order is `docs/PLAN.md` §12.
+**Status:** M0 (skeleton), M1 (data layer), M2 (engine + metrics), M3 (baselines + SEPA port), M4 (research loop) and M5 (momentum + blends, `docs/research/m5.md`) done. M6 paper trading on the VPS (`docs/paper.md`): only the adopted M106 book runs, from the 2026-10-30 close; the Top 30 and Top 40 books were retired on 2026-10-29. Next: M7 (live with Dhan). Build order is `docs/PLAN.md` §12.
 
 ## Rules
 

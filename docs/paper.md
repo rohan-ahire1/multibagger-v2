@@ -1,5 +1,9 @@
 # M6: paper trading
 
+**Only the M106 book runs now.** The Top 30 and Top 40 books below were retired on 2026-10-29: M106 beat both on
+Calmar (2010-26 final 1.42, locked 2024-26 window 1.31, vs dev 0.64/0.65 for the old books; `m107.md`) and nothing tested since (M110-M119) beat M106.
+`mb-paper.timer` and `mb-paper-top40.timer` are disabled on the VPS; their files in `data/paper/` are kept.
+
 Two paper books run on the VPS from the 2026-09-30 close, ₹10L each, stocks only:
 
 - `configs/paper/momentum_voladj_stocks.yaml`: the M5 final strategy's params (`voladj_final.yaml`, 30 names) with fund
