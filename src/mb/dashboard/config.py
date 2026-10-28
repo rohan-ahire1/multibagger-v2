@@ -1,6 +1,7 @@
 """Dashboard config: which runs and paper books go into the bundle, and how compact it is. Every value is in the YAML."""
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 from pydantic import model_validator
@@ -45,11 +46,25 @@ class PaperBook(Strict):
     timer_file: str               # deploy/*.timer, read for the schedule text
 
 
+class ShadowBook(Strict):
+    """A shadow book (`mb paper shadow`, M147 on branch paper-pullback): a pinned config re-run each evening."""
+    name: str                     # data/paper/<name>/ holds its sessions.json and latest.json
+    label: str
+    config: str                   # its shadow config, shown on the page (it lives on the shadow book's branch)
+    strategy: str                 # the strategy config it re-runs, shown
+    preview_strategy: str         # momentum config whose ranking the preview shows (the blend's momentum sleeve)
+    start: date
+    capital: float
+    backtest_run: str             # the run whose numbers are this book's expectation
+    schedule: str                 # when its job runs, shown
+
+
 class Paper(Strict):
     preview_dataset: str          # dataset ref the target-book preview is ranked on, e.g. nse_research@2026-09-29d
     next_in_line: int             # names shown after the top N
     recent_fills: int             # fills listed for a live book
     books: list[PaperBook]
+    shadow_books: list[ShadowBook]
 
 
 class DashboardConfig(Strict):

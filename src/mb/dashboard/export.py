@@ -19,8 +19,8 @@ from typing import Any
 
 import polars as pl
 
-from mb.config.loader import ConfigError, load_baselines, load_paper_config
-from mb.dashboard.config import DashboardConfig, PaperBook, RunEntry
+from mb.config.loader import ConfigError, load_baselines, load_paper_config, load_strategy_config
+from mb.dashboard.config import DashboardConfig, PaperBook, RunEntry, ShadowBook
 from mb.data import datasets
 from mb.live import calendar
 from mb.live.paper import Store, load_view
@@ -277,6 +277,26 @@ def live_state(root: Path, cfg: Any, recent: int) -> dict[str, Any] | None:
     }
 
 
+def shadow_state(root: Path, b: ShadowBook) -> dict[str, Any] | None:
+    """A shadow book's record from data/paper/<name>, in the live-book shape; None before its first session."""
+    d = root / "data" / "paper" / b.name
+    if not (d / "latest.json").is_file() or not (d / "sessions.json").is_file():
+        return None
+    latest = json.loads((d / "latest.json").read_text())
+    sessions = json.loads((d / "sessions.json").read_text())
+    last = sessions[latest["as_of"]]
+    buys = [{"sleeve": n, **x} for n, xs in latest["next_open_limit_buys"].items() for x in xs]
+    return {
+        "as_of": latest["as_of"], "equity": round(last["equity"], 2), "cash": round(last["equity"] - last["invested"], 2),
+        "return_pct": round((last["equity"] / b.capital - 1) * 100, 2),
+        "positions": [{"symbol": p["symbol"], "sleeve": p["sleeve"], "shares": None, "entry": p["entry"], "close": None,
+                       "value": None, "weight_pct": None, "gain_pct": p["gain_pct"]} for p in latest["positions"]],
+        "pending": len(buys), "pending_decided": latest["as_of"] if buys else None, "sessions": len(sessions),
+        "decisions": 0, "last_decision": None, "curve": [[k, round(v["equity"], 2)] for k, v in sorted(sessions.items())],
+        "fills": [], "limit_buys": buys,
+    }
+
+
 def paper_block(cfg: DashboardConfig, root: Path, data_root: Path) -> tuple[dict[str, Any], set[str]]:
     books: list[dict[str, Any]] = []
     names: set[str] = set()
@@ -289,10 +309,19 @@ def paper_block(cfg: DashboardConfig, root: Path, data_root: Path) -> tuple[dict
             first = None
         names.update(p[0] for p in pv["picks"])
         names.update(pv["bench"])
-        books.append({"name": pcfg.name, "label": b.label, "config": b.config, "strategy": pcfg.strategy_config,
+        books.append({"kind": "paper", "name": pcfg.name, "label": b.label, "config": b.config, "strategy": pcfg.strategy_config,
                       "timer": schedule_text(root / b.timer_file), "backtest_run": b.backtest_run, "start": pcfg.start.isoformat(),
                       "capital": pcfg.initial_capital, "first_decision": first, "preview": pv,
                       "live": live_state(data_root, pcfg, cfg.paper.recent_fills)})
+    for sb in cfg.paper.shadow_books:
+        strat = load_strategy_config(root / sb.preview_strategy, root)
+        pv = preview(data_root, cfg.paper.preview_dataset, strat.params, cfg.paper.next_in_line)
+        names.update(p[0] for p in pv["picks"])
+        names.update(pv["bench"])
+        books.append({"kind": "shadow", "name": sb.name, "label": sb.label, "config": sb.config, "strategy": sb.strategy,
+                      "timer": sb.schedule, "backtest_run": sb.backtest_run, "start": sb.start.isoformat(),
+                      "capital": sb.capital, "first_decision": sb.start.isoformat(), "preview": pv,
+                      "live": shadow_state(data_root, sb)})
     return {"dataset": cfg.paper.preview_dataset, "books": books}, names
 
 
@@ -313,7 +342,7 @@ def build(cfg: DashboardConfig, root: Path, data_root: Path, config_file: str) -
     if dupes:
         raise ConfigError(f"runs listed twice: {', '.join(dupes)}")
     known = set(ids)
-    for b in cfg.paper.books:
+    for b in [*cfg.paper.books, *cfg.paper.shadow_books]:
         if b.backtest_run not in known:
             raise ConfigError(f"paper book {b.label}: backtest_run {b.backtest_run} is not in the runs list")
 
