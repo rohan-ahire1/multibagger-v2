@@ -1,0 +1,11 @@
+# Ten minutes after mb-paper-shadow.timer; the shared lock makes it wait for the paper jobs.
+[Unit]
+Description=multibagger dashboard paper refresh
+
+[Timer]
+OnCalendar=Mon..Fri 20:10 Asia/Kolkata
+OnCalendar=Mon..Fri 23:40 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

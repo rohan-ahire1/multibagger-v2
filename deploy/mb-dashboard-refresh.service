@@ -1,0 +1,12 @@
+# Nightly site refresh (web/README.md): the paper books' live state in the published bundle. Runs from its own checkout
+# (~/projects/mb-dashboard, branch dashboard); the books' files are in ~/projects/multibagger-v2/data/paper (the shadow
+# book's folder is a link to ~/projects/mb-shadow/data/paper/shadow_m142_A). The site folder is owned by rohan.
+[Unit]
+Description=multibagger dashboard paper refresh
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/mb-dashboard
+ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb dashboard refresh-paper configs/dashboard/research.yaml --bundle /var/www/multibagger.rohanahire.com/bundle.json --data-root %h/projects/multibagger-v2
+Nice=10
+TimeoutStartSec=600
