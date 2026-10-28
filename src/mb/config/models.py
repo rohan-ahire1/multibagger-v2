@@ -258,6 +258,20 @@ class PaperConfig(Strict):
         return v
 
 
+class ShadowConfig(Strict):
+    """M147 (docs/paper.md): a forward book that re-runs a pinned strategy config each evening over [start, newest
+    session] on the daily dataset. Recorded sessions are frozen; a later run that moves one is alerted, not saved."""
+    name: str
+    strategy_config: str          # any strategy config (a blend too); its params, market and baselines are used
+    strategy_config_hash: str     # the resolved hash it had when the book started; any change is refused
+    data_config: str              # read only: another book's daily job builds this dataset
+    start: date                   # first session of the book
+    max_missing_sessions: int     # trading days the newest data may trail today before a stale-data alert
+    max_restated_equity_pct: float  # a recorded session's equity may move this much on a rebuilt dataset
+    calendar: CalendarSource      # read only: the snapshot the other job downloads
+    alerts: PaperAlerts
+
+
 class DhanScripSource(Strict):
     # M137: Dhan's public scrip master (no login); one gzipped, unchanged copy per fetch date under raw_dir.
     url: str

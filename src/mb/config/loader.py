@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from mb.config.models import (BaselinesConfig, DataConfig, DataConfigM14, DataConfigM40, FoBhavSource, ResultsSource, HarvestConfig, IndustrySource, LiveConfig, PledgeSource, MarketConfig,
+from mb.config.models import (BaselinesConfig, DataConfig, DataConfigM14, DataConfigM40, FoBhavSource, ResultsSource, HarvestConfig, IndustrySource, LiveConfig, PledgeSource, MarketConfig, ShadowConfig,
                               PaperConfig, StrategyConfig, TaxConfig)
 
 
@@ -103,6 +103,16 @@ def load_paper_config(path: Path, root: Path) -> tuple[PaperConfig, Resolved]:
     if strat.hash() != cfg.strategy_config_hash:
         raise ConfigError(f"{cfg.strategy_config} resolves to hash {strat.hash()[:12]}, not the pinned "
                           f"{cfg.strategy_config_hash[:12]}; a changed strategy needs a new paper config")
+    return cfg, strat
+
+
+def load_shadow_config(path: Path, root: Path) -> tuple[ShadowConfig, Resolved]:
+    """The shadow config and its strategy config, which must still resolve to the pinned hash."""
+    cfg = _validate(ShadowConfig, _read_yaml(path.resolve()), str(path))
+    strat = load_strategy_config(root / cfg.strategy_config, root)
+    if strat.hash() != cfg.strategy_config_hash:
+        raise ConfigError(f"{cfg.strategy_config} resolves to hash {strat.hash()[:12]}, not the pinned "
+                          f"{cfg.strategy_config_hash[:12]}; a changed strategy needs a new shadow config")
     return cfg, strat
 
 
