@@ -1,0 +1,21 @@
+# M147 shadow book (docs/paper.md): the M142 blend A, M106 0.8 + 5-name pullback 0.2, sleeves reset monthly
+# (docs/research/m142.md: dev Calmar 1.876 vs M106 1.500; locked 2024-26 window 1.533 vs 1.314 in m113.md). Not adopted
+# (loses f2, bootstrap 75%); the user asked to paper it beside M106 on 2026-10-29. The paper engine cannot trade the
+# daily pullback sleeve yet, so this book re-runs the pinned config each evening on the daily dataset.
+name: shadow_m142_A
+strategy_config: strategies/blend/configs/m142_A.yaml
+strategy_config_hash: 39301991670a87213933f01ef5c801a7dca8e4880ab208ac5b2a131ed37cad4c
+# Built by the M106 book's job (mb-paper-jr); this job only reads it.
+data_config: configs/data/nse_daily_delivery.yaml
+start: 2026-10-30
+max_missing_sessions: 1
+max_restated_equity_pct: 0.5
+calendar:
+  url: https://www.nseindia.com/api/holiday-master?type=trading
+  segment: CM
+  raw_dir: data/raw/nse_holidays
+  timeout_s: 30
+alerts:
+  ntfy_url: https://ntfy.sh
+  topic_env: MB_NTFY_TOPIC
+  heartbeat_weekday: 4

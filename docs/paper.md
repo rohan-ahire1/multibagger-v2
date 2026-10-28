@@ -19,6 +19,30 @@ share moved to GOLDBEES at a month-end when JUNIORBEES closes below its 200-day 
 `configs/data/nse_daily_delivery.yaml`, so its first run downloads the delivery files back to 2023. Units
 `deploy/mb-paper-jr.*`, 19:55 and 23:25 IST, same lock.
 
+## Shadow book: M142 blend A (M147, from the 2026-10-30 close)
+
+Top 30 and Top 40 were retired on 2026-10-29. The user asked on the same day to run the M142 blend A beside M106:
+M106 0.8 + the 5-name daily pullback sleeve 0.2, reset to those weights at each month's last close
+(`docs/research/m142.md`: dev Calmar 1.876 vs 1.500, locked 2024-26 window 1.533 vs 1.314 in `m113.md`; not
+adopted, it loses f2 and the bootstrap gives it 75%).
+
+The paper engine trades month-end momentum only, so `configs/paper/shadow_m142_A.yaml` is a shadow book
+(`src/mb/live/shadow.py`, `mb paper shadow`): each evening it re-runs the pinned `m142_A` config over
+[2026-10-30, newest session] on the newest `nse_daily_delivery` dataset, with the sleeves' own simulators and the data
+gate (the run's fold and Nifty 500 TRI metrics are skipped: they need years of data). Every session is decided from data
+up to its own close. Each session's equity is written once to `data/paper/shadow_m142_A/sessions.json`; if a rebuilt
+dataset moves a recorded session by more than 0.5%, it alerts and keeps the recorded value. `latest.json` has the
+positions and the pullback sleeve's limit buys for the next open, which are also pushed to ntfy.
+
+Check before starting: on `nse_research@2026-10-23`, 2021-01-01..2023-12-29, both sleeves' curves and the rebalanced
+blend equal the research runners exactly (difference 0.0). From 2026-09-01 to 2026-10-28 the pullback sleeve made no
+trades: NIFTYBEES was below its 200-day average (the sleeve's market filter), so its 20% sat in cash.
+
+Runs from its own checkout `~/projects/mb-shadow` (this branch), with `data/datasets` and `data/raw` linked to the
+M106 book's checkout; units `deploy/mb-paper-shadow.*`, 20:00 and 23:30 IST, same lock, after the M106 job.
+Unlike the M106 book it has no independent fill model, so it can only show how the strategy does forward, not that
+the order flow works.
+
 ## Tranche drafts (M135, not deployed)
 
 The book also takes `schedule.decision_offset_sessions` (M135): it decides at the close of the session with N trading

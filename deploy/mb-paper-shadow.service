@@ -1,0 +1,14 @@
+# M147 shadow book (configs/paper/shadow_m142_A.yaml, docs/paper.md). Runs from its own checkout (~/projects/mb-shadow,
+# branch paper-pullback) with data/datasets and data/raw linked to ~/projects/multibagger-v2/data; it only reads the
+# dataset the M106 job builds, under the same lock.
+[Unit]
+Description=multibagger shadow book (shadow_m142_A)
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/projects/mb-shadow
+# MB_NTFY_TOPIC=<topic>, mode 0600
+EnvironmentFile=%h/.config/multibagger/alerts.env
+ExecStart=/usr/bin/flock %h/.config/multibagger/paper.lock %h/.local/bin/uv run --frozen mb paper shadow configs/paper/shadow_m142_A.yaml
+Nice=10
+TimeoutStartSec=1800
