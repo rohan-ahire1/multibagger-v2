@@ -451,3 +451,12 @@ fixed name. Variants: unchanged (~1,033; references, not candidates).
 Next queue: (1) 2026-10-30 paper decision check (scheduled); (2) the M142 blend's paper support if the user asks;
 (3) the remaining ~950 unexplained jumps are mostly real moves or have no feed row; a second audit pass would need
 another source (BSE corporate actions), not worth it unless a book trips the gate.
+
+## 2026-10-30, cycle 30: M147 first paper decision vs research, first Dhan dry run
+
+M106's first decision (risk-off, 62.4% GOLDBEES + 25 stocks) equals `targets()` on `nse_research@2026-10-30`, built
+separately: same 26 names, weight gaps only whole-share rounding (3.03% in all). Paper replay: match, gap 0.000%.
+`mb live plan`: all 26 mapped, rails pass, ₹969,713 of buys, nothing sent (docs/research/m147.md). Variants: ~1,033.
+Next queue: (1) after the 2026-11-02 evening job, compare the first fills with the opens (reminder scheduled);
+(2) the user's calls: M142 blend paper support, copying the M146 overrides to m8, M7 capital / client id / static IP;
+(3) no weak signal variants meanwhile: each adds to the trial count without a stronger reason than M141-M145 had.
